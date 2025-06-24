@@ -83,7 +83,7 @@
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">In Stock</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <a href="{{ route('products.edit', 1) }}" class="text-primary-600 hover:text-primary-900">Edit</a>
+                            <a href="{{ route('products.index', 1) }}" class="text-primary-600 hover:text-primary-900">Edit</a>
                             <button class="text-red-600 hover:text-red-900">Delete</button>
                         </td>
                     </tr>
