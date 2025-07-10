@@ -1,52 +1,42 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<html lang="en" class="h-full bg-gray-50 dark:bg-gray-900">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'POS System')</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
+
+    <!-- CSS -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     @stack('styles')
 </head>
+
 <body class="h-full">
     <div class="min-h-full">
         @include('components.navbar')
-        
-        <div class="flex">
+
+
+        <div class="flex ml-64 pt-16 min-h-screen">
             @include('components.sidebar')
-            
+
             <!-- Main content -->
-            <div class="flex-1 lg:ml-64">
-                <main class="py-6">
-                    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 min-h-screen">
+                <main class="flex-1 py-6 flex flex-col">
+                    <div class="mx-auto w-full max-w px-4 sm:px-6 lg:px-8 flex-1">
                         @yield('content')
                     </div>
                 </main>
             </div>
         </div>
+
     </div>
 
     <!-- Scripts -->
@@ -58,8 +48,14 @@
         }
 
         // Initialize dark mode
-        if (localStorage.getItem('darkMode') === 'true') {
+        if (localStorage.getItem('darkMode') === null) {
+            // No preference set, enable dark mode by default
             document.documentElement.classList.add('dark');
+            localStorage.setItem('darkMode', 'true');
+        } else if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
 
         // Mobile sidebar toggle
@@ -68,7 +64,24 @@
             sidebar.classList.toggle('-translate-x-full');
         }
     </script>
-    
+
+    @push('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                @if(session('success'))
+                    toastr.success("{{ session('success') }}");
+                @endif
+                @if(session('error'))
+                    toastr.error("{{ session('error') }}");
+                @endif
+                @if($errors->any())
+                    toastr.error(`{!! implode('<br>', $errors->all()) !!}`);
+                @endif
+                                        });
+        </script>
+    @endpush
+
     @stack('scripts')
 </body>
+
 </html>

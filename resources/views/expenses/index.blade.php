@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Expenses</h1>
-        <button onclick="openModal('expenseModal')" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">
+        <button onclick="openModal('expenseModal')" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 border" style="border-color: #4ea9dd; border-width: 1px;">
             <i class="fas fa-plus mr-2"></i>Add Expense
         </button>
     </div>
@@ -168,7 +168,7 @@
                 </div>
                 <div class="flex items-center justify-end space-x-4 pt-4">
                     <button type="button" onclick="closeModal('expenseModal')" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">Cancel</button>
-                    <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700">Save Expense</button>
+                    <button type="submit" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 border" style="border-color: #4ea9dd; border-width: 1px;">Save Expense</button>
                 </div>
             </form>
         </div>

@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BrandController;
+use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\PurchaseOrderController;
 
 Route::get('/', function () {
     return redirect()->route('cashier.dashboard');
@@ -14,9 +19,10 @@ Route::get('/brands', function () {
     return view('brands.index');
 })->name('brands.index');
 
-Route::get('/categories', function () {
-    return view('categories.index');
-})->name('categories.index');
+// Add resource route for categories
+Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('brands', BrandController::class)->only(['index', 'store', 'update', 'destroy']);
 
 Route::get('/expenses', function () {
     return view('expenses.index');
@@ -46,18 +52,10 @@ Route::get('/products-create', function () {
     return view('products.create');
 })->name('products.create');
 
-Route::get('/products/{id}/edit', function ($id) {
-    return view('products.index', ['id' => $id]);
-})->name('products.edit');
+Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
 
-
-Route::get('/purchase-orders-index', function () {
-    return view('purchase-orders.index');
-})->name('purchase-orders.index');
-
-Route::get('/purchase-orders-create', function () {
-    return view('purchase-orders.create');
-})->name('purchase-orders.create');
+// Add resource route for purchase orders
+Route::resource('purchase-orders', PurchaseOrderController::class);
 
 Route::get('/stock', function () {
     return view('stock-in.index');
@@ -67,10 +65,5 @@ Route::get('/stock-create', function () {
     return view('stock-in.create');
 })->name('stock-in.create');
 
-Route::get('/suppliers', function () {
-    return view('suppliers.index');
-})->name('suppliers.index');
-
-Route::get('/suppliers-create', function () {
-    return view('suppliers.create');
-})->name('suppliers.create');
+// Add resource route for suppliers
+Route::resource('suppliers', SupplierController::class);
