@@ -39,4 +39,16 @@ class Product extends Model
     {
         return $this->hasMany(Stock::class)->where('available_quantity', '>', 0);
     }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class)
+            ->withPivot([
+                'vendor_product_code',
+                'vendor_cost_price',
+                'is_preferred',
+                'lead_time_days'
+            ])
+            ->withTimestamps();
+    }
 }

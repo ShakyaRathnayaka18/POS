@@ -14,23 +14,28 @@ class CategorySeeder extends Seeder
     {
         $categories = [
             [
-                'cat_name' => 'Electronics',
-                'description' => 'Electronic devices and gadgets',
+                'cat_name' => 'Beverages',
+                'description' => 'Tea, Coffee, Soft Drinks, and Juices',
                 'icon' => null,
             ],
             [
-                'cat_name' => 'Accessories',
-                'description' => 'Phone and computer accessories',
+                'cat_name' => 'Food Grains',
+                'description' => 'Rice, Wheat, Flour, and Pulses',
                 'icon' => null,
             ],
             [
-                'cat_name' => 'Home Appliances',
-                'description' => 'Appliances for home use',
+                'cat_name' => 'Grocery',
+                'description' => 'Sugar, Salt, Oil, and Spices',
                 'icon' => null,
             ],
             [
-                'cat_name' => 'Gaming',
-                'description' => 'Gaming consoles and accessories',
+                'cat_name' => 'Snacks',
+                'description' => 'Biscuits, Chips, and Chocolates',
+                'icon' => null,
+            ],
+            [
+                'cat_name' => 'Stationery',
+                'description' => 'Pens, Notebooks, and Papers',
                 'icon' => null,
             ],
         ];

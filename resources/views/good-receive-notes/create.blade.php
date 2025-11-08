@@ -88,9 +88,46 @@
 
 <script>
 let itemIndex = 0;
-const products = @json($products);
+let products = [];
+let currentSupplierId = null;
+
+// Load products when supplier is selected
+document.getElementById('supplier_id').addEventListener('change', function() {
+    const supplierId = this.value;
+    currentSupplierId = supplierId;
+
+    if (supplierId) {
+        // Fetch supplier products via AJAX
+        fetch(`/suppliers/${supplierId}/products`)
+            .then(response => response.json())
+            .then(data => {
+                products = data;
+                // Clear existing items when supplier changes
+                document.getElementById('itemsContainer').innerHTML = '';
+                itemIndex = 0;
+            })
+            .catch(error => {
+                console.error('Error fetching supplier products:', error);
+                alert('Error loading products for this supplier');
+            });
+    } else {
+        products = [];
+        document.getElementById('itemsContainer').innerHTML = '';
+        itemIndex = 0;
+    }
+});
 
 function addItem() {
+    if (!currentSupplierId) {
+        alert('Please select a supplier first');
+        return;
+    }
+
+    if (products.length === 0) {
+        alert('This supplier has no products assigned. Please link products to this supplier first.');
+        return;
+    }
+
     const container = document.getElementById('itemsContainer');
     const itemHtml = `
         <div class="border border-gray-300 rounded-md p-4 mb-4" id="item-${itemIndex}">
@@ -102,11 +139,11 @@ function addItem() {
             </div>
             <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-3">
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Product *</label>
-                    <select name="items[${itemIndex}][product_id]" required onchange="updateCalculations()"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Product (Vendor Code) *</label>
+                    <select name="items[${itemIndex}][product_id]" required onchange="handleProductChange(${itemIndex}, this.value); updateCalculations();"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md product-select">
                         <option value="">Select Product</option>
-                        ${products.map(p => `<option value="${p.id}">${p.product_name} (${p.sku})</option>`).join('')}
+                        ${products.map(p => `<option value="${p.id}" data-vendor-code="${p.vendor_product_code}" data-vendor-cost="${p.vendor_cost_price || ''}">${p.product_name} (Vendor: ${p.vendor_product_code}, SKU: ${p.sku})</option>`).join('')}
                     </select>
                 </div>
                 <div>
@@ -157,6 +194,26 @@ function addItem() {
     `;
     container.insertAdjacentHTML('beforeend', itemHtml);
     itemIndex++;
+}
+
+function handleProductChange(itemIndex, productId) {
+    if (!productId) return;
+
+    // Find the product in the products array
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+
+    // Get the item container
+    const itemContainer = document.getElementById(`item-${itemIndex}`);
+    if (!itemContainer) return;
+
+    // Auto-fill cost price if vendor cost price is available
+    if (product.vendor_cost_price) {
+        const costPriceInput = itemContainer.querySelector('[name*="[cost_price]"]');
+        if (costPriceInput && !costPriceInput.value) {
+            costPriceInput.value = product.vendor_cost_price;
+        }
+    }
 }
 
 function removeItem(index) {

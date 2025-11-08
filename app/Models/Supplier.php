@@ -17,4 +17,21 @@ class Supplier extends Model
         'payment_terms',
         'credit_limit',
     ];
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class)
+            ->withPivot([
+                'vendor_product_code',
+                'vendor_cost_price',
+                'is_preferred',
+                'lead_time_days'
+            ])
+            ->withTimestamps();
+    }
+
+    public function goodReceiveNotes()
+    {
+        return $this->hasMany(GoodReceiveNote::class);
+    }
 }

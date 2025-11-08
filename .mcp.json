@@ -19,10 +19,9 @@
                 "npx",
                 "-y",
                 "@modelcontextprotocol/server-filesystem",
-                "E:\\wamp64\\www\\POS"
+                "E:\\Herd\\POS"
             ]
         },
-        
         "context7": {
             "command": "cmd",
             "args": ["/c", "npx", "-y", "@upstash/context7-mcp"]
@@ -31,11 +30,12 @@
             "command": "cmd",
             "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
         },
-           "excel": {
+        "excel": {
             "command": "cmd",
             "args": ["/c", "npx", "--yes", "@negokaz/excel-mcp-server"],
             "env": {
                 "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
             }
-     }
+        }
+    }
 }

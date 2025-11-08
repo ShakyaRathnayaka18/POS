@@ -57,6 +57,7 @@ Route::get('/products-create', function () {
 Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
 
 // Good Receive Notes (GRN) routes
+Route::get('suppliers/{supplier}/products', [GoodReceiveNoteController::class, 'getSupplierProducts'])->name('suppliers.products');
 Route::resource('good-receive-notes', GoodReceiveNoteController::class);
 
 // Batch management routes

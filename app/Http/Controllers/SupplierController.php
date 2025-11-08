@@ -49,9 +49,11 @@ class SupplierController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Supplier $supplier)
     {
-        //
+        $supplier->load(['products.category', 'products.brand']);
+
+        return view('suppliers.show', compact('supplier'));
     }
 
     /**

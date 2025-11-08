@@ -20,11 +20,13 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
-        // Seed brands, categories, and products
+        // Seed categories, brands, suppliers, products, and product-supplier relationships
         $this->call([
-            BrandSeeder::class,
             CategorySeeder::class,
+            BrandSeeder::class,
+            SupplierSeeder::class,
             ProductSeeder::class,
+            ProductSupplierSeeder::class,
         ]);
     }
 }

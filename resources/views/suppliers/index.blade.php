@@ -63,6 +63,8 @@
                                         class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                    <a href="{{ route('suppliers.show', $supplier) }}"
+                                        class="text-green-600 dark:text-white border border-green-600 dark:border-white rounded px-3 py-1 transition-colors duration-200 hover:bg-green-600 hover:text-white dark:hover:bg-white dark:hover:text-green-600">View</a>
                                     <a href="{{ route('suppliers.edit', $supplier) }}"
                                         class="text-[#2f85c3] dark:text-white border border-[#2f85c3] dark:border-white rounded px-3 py-1 transition-colors duration-200 hover:bg-[#2f85c3] hover:text-white dark:hover:bg-white dark:hover:text-[#2f85c3]">Edit</a>
                                     <form action="{{ route('suppliers.destroy', $supplier) }}" method="POST" class="inline">

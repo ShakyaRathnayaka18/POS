@@ -32,10 +32,34 @@ class GoodReceiveNoteController extends Controller
     public function create()
     {
         $suppliers = Supplier::all();
-        $products = Product::with(['category', 'brand'])->get();
         $grnNumber = $this->grnService->generateGrnNumber();
 
-        return view('good-receive-notes.create', compact('suppliers', 'products', 'grnNumber'));
+        return view('good-receive-notes.create', compact('suppliers', 'grnNumber'));
+    }
+
+    /**
+     * Get products for a specific supplier with vendor codes.
+     */
+    public function getSupplierProducts(Supplier $supplier)
+    {
+        $products = $supplier->products()
+            ->with(['category', 'brand'])
+            ->get()
+            ->map(function ($product) {
+                return [
+                    'id' => $product->id,
+                    'product_name' => $product->product_name,
+                    'sku' => $product->sku,
+                    'item_code' => $product->item_code,
+                    'category' => $product->category?->cat_name,
+                    'brand' => $product->brand?->brand_name,
+                    'vendor_product_code' => $product->pivot->vendor_product_code,
+                    'vendor_cost_price' => $product->pivot->vendor_cost_price,
+                    'lead_time_days' => $product->pivot->lead_time_days,
+                ];
+            });
+
+        return response()->json($products);
     }
 
     /**
