@@ -10,6 +10,7 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::withCount('products')->get();
+
         return view('categories.index', compact('categories'));
     }
 
@@ -21,6 +22,7 @@ class CategoryController extends Controller
             'icon' => 'nullable|string',
         ]);
         Category::create($validated);
+
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
 
@@ -32,12 +34,14 @@ class CategoryController extends Controller
             'icon' => 'nullable|string',
         ]);
         $category->update($validated);
+
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
 
     public function destroy(Category $category)
     {
         $category->delete();
+
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
     }
-} 
+}

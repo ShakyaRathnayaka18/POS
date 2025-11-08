@@ -1,11 +1,13 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\BatchController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\GoodReceiveNoteController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\PurchaseOrderController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return redirect()->route('cashier.dashboard');
@@ -54,8 +56,15 @@ Route::get('/products-create', function () {
 
 Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
 
-// Add resource route for purchase orders
-Route::resource('purchase-orders', PurchaseOrderController::class);
+// Good Receive Notes (GRN) routes
+Route::resource('good-receive-notes', GoodReceiveNoteController::class);
+
+// Batch management routes
+Route::resource('batches', BatchController::class)->only(['index', 'show']);
+Route::get('batches/expiring', [BatchController::class, 'expiring'])->name('batches.expiring');
+
+// Stock management routes
+Route::resource('stocks', StockController::class)->only(['index', 'show']);
 
 Route::get('/stock', function () {
     return view('stock-in.index');

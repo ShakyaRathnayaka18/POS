@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Supplier;
+use Illuminate\Http\Request;
 
 class SupplierController extends Controller
 {
@@ -13,6 +13,7 @@ class SupplierController extends Controller
     public function index()
     {
         $suppliers = Supplier::all();
+
         return view('suppliers.index', compact('suppliers'));
     }
 
@@ -41,6 +42,7 @@ class SupplierController extends Controller
             'credit_limit' => 'nullable|numeric',
         ]);
         Supplier::create($validated);
+
         return redirect()->route('suppliers.index')->with('success', 'Supplier created successfully.');
     }
 
@@ -58,6 +60,7 @@ class SupplierController extends Controller
     public function edit($id)
     {
         $supplier = Supplier::findOrFail($id);
+
         return view('suppliers.create', compact('supplier'));
     }
 
@@ -79,6 +82,7 @@ class SupplierController extends Controller
         ]);
         $supplier = Supplier::findOrFail($id);
         $supplier->update($validated);
+
         return redirect()->route('suppliers.index')->with('success', 'Supplier updated successfully.');
     }
 
@@ -89,6 +93,7 @@ class SupplierController extends Controller
     {
         $supplier = Supplier::findOrFail($id);
         $supplier->delete();
+
         return redirect()->route('suppliers.index')->with('success', 'Supplier deleted successfully.');
     }
 }

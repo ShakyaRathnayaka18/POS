@@ -10,6 +10,7 @@ class BrandController extends Controller
     public function index()
     {
         $brands = Brand::all();
+
         return view('brands.index', compact('brands'));
     }
 
@@ -21,6 +22,7 @@ class BrandController extends Controller
             'logo' => 'nullable|string',
         ]);
         Brand::create($validated);
+
         return redirect()->route('brands.index')->with('success', 'Brand created successfully.');
     }
 
@@ -32,12 +34,14 @@ class BrandController extends Controller
             'logo' => 'nullable|string',
         ]);
         $brand->update($validated);
+
         return redirect()->route('brands.index')->with('success', 'Brand updated successfully.');
     }
 
     public function destroy(Brand $brand)
     {
         $brand->delete();
+
         return redirect()->route('brands.index')->with('success', 'Brand deleted successfully.');
     }
-} 
+}

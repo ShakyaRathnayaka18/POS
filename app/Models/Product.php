@@ -8,10 +8,16 @@ class Product extends Model
 {
     protected $fillable = [
         'product_name',
-        'sku', 'barcode', 'description',
-        'initial_stock', 'minimum_stock', 'maximum_stock',
-        'product_image', 'category_id', 'brand_id',
-        'cost_price', 'selling_price', 'tax_rate', 'unit'
+        'sku',
+        'item_code',
+        'description',
+        'initial_stock',
+        'minimum_stock',
+        'maximum_stock',
+        'product_image',
+        'category_id',
+        'brand_id',
+        'unit',
     ];
 
     public function category()
@@ -22,5 +28,15 @@ class Product extends Model
     public function brand()
     {
         return $this->belongsTo(Brand::class);
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(Stock::class);
+    }
+
+    public function availableStocks()
+    {
+        return $this->hasMany(Stock::class)->where('available_quantity', '>', 0);
     }
 }

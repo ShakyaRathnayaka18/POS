@@ -59,10 +59,20 @@
                             <i class="fas fa-truck  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Suppliers
                         </a>
-                        <a href="{{ route('purchase-orders.index') }}"
+                        <a href="{{ route('good-receive-notes.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-file-invoice  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
-                            Purchase Orders
+                            Good Receive Notes
+                        </a>
+                        <a href="{{ route('batches.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-layer-group  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Batches
+                        </a>
+                        <a href="{{ route('stocks.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-boxes  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Stocks
                         </a>
                         <a href="{{ route('stock-in.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">

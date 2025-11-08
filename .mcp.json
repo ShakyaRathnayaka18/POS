@@ -1,0 +1,41 @@
+{
+    "mcpServers": {
+        "mysql": {
+            "type": "stdio",
+            "command": "E:\\mysql-mcp-server\\build\\index.js",
+            "args": [],
+            "env": {
+                "DB_HOST": "localhost",
+                "DB_PORT": "3306",
+                "DB_NAME": "pos",
+                "DB_USER": "root",
+                "DB_PASSWORD": "cmx3212"
+            }
+        },
+        "filesystem": {
+            "command": "cmd",
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "E:\\wamp64\\www\\POS"
+            ]
+        },
+        
+        "context7": {
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "@upstash/context7-mcp"]
+        },
+        "playwright": {
+            "command": "cmd",
+            "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+        },
+           "excel": {
+            "command": "cmd",
+            "args": ["/c", "npx", "--yes", "@negokaz/excel-mcp-server"],
+            "env": {
+                "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
+            }
+     }
+}

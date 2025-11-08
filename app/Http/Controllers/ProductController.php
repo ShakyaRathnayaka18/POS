@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -16,12 +16,11 @@ class ProductController extends Controller
         // Search by product name or SKU
         if ($request->filled('search')) {
             $search = $request->input('search');
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('product_name', 'like', "%$search%")
-                  ->orWhere('sku', 'like', "%$search%")
-                  ->orWhere('barcode', 'like', "%$search%")
-                  ->orWhere('description', 'like', "%$search%")
-                ;
+                    ->orWhere('sku', 'like', "%$search%")
+                    ->orWhere('barcode', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%");
             });
         }
 
@@ -51,6 +50,7 @@ class ProductController extends Controller
         $categories = Category::all();
         $brands = Brand::all();
         $filters = $request->only(['search', 'category_id', 'brand_id', 'status']);
+
         return view('products.index', compact('products', 'categories', 'brands', 'filters'));
     }
 
@@ -76,6 +76,7 @@ class ProductController extends Controller
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');
         }
         Product::create($validated);
+
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
@@ -83,7 +84,7 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
-            'sku' => 'required|string|max:255|unique:products,sku,' . $product->id,
+            'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
             'barcode' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
@@ -101,12 +102,14 @@ class ProductController extends Controller
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');
         }
         $product->update($validated);
+
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
 
     public function destroy(Product $product)
     {
         $product->delete();
+
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
-} 
+}

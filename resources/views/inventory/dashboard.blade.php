@@ -83,9 +83,9 @@
                 <i class="fas fa-plus text-blue-600 mr-3"></i>
                 <span class="font-medium text-gray-900 dark:text-white">Add Product</span>
             </a>
-            <a href="{{ route('purchase-orders.create') }}" class="flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
+            <a href="{{ route('good-receive-notes.create') }}" class="flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                 <i class="fas fa-file-invoice text-purple-600 mr-3"></i>
-                <span class="font-medium text-gray-900 dark:text-white">New PO</span>
+                <span class="font-medium text-gray-900 dark:text-white">New GRN</span>
             </a>
             <a href="{{ route('suppliers.create') }}" class="flex items-center p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700">
                 <i class="fas fa-truck text-orange-600 mr-3"></i>
