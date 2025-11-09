@@ -6,24 +6,21 @@ use App\Models\Sale;
 use App\Models\SalesReturn;
 use App\Services\SalesReturnService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class SalesReturnController extends Controller
 {
-    protected SalesReturnService $returnService;
-
-    public function __construct(SalesReturnService $returnService)
+    public function __construct(protected SalesReturnService $returnService)
     {
-        $this->returnService = $returnService;
     }
 
     public function index()
     {
-        $returns = SalesReturn::with('sale')
+        $returns = SalesReturn::with(['sale.customer', 'processedBy'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('returns.sales-returns.index', compact('returns'));
+        return view('sales-returns.index', ['returns' => $returns]);
     }
 
     public function create(Request $request)
@@ -32,26 +29,31 @@ class SalesReturnController extends Controller
         if ($request->has('sale_id')) {
             $sale = Sale::find($request->sale_id);
         }
-
-        $sales = Sale::all();
+        // In a real app, you'd likely have a search for sales, not load all of them.
+        $sales = Sale::orderBy('created_at', 'desc')->limit(100)->get();
         $returnNumber = $this->returnService->generateReturnNumber();
 
-        return view('returns.sales-returns.create', compact('returnNumber', 'sale', 'sales'));
+        return view('sales-returns.create', compact('returnNumber', 'sale', 'sales'));
     }
 
     public function getReturnableItems(Sale $sale)
     {
-        $items = $this->returnService->getReturnableItemsForSale($sale->id);
-        return response()->json($items);
+        try {
+            $items = $this->returnService->getReturnableItemsForSale($sale->id);
+            return response()->json([
+                'sale' => $sale,
+                'items' => $items,
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'return_number' => 'required|unique:sales_returns',
+            'return_number' => 'required|unique:sales_returns,return_number',
             'sale_id' => 'required|exists:sales,id',
-            'customer_name' => 'nullable|string|max:191',
-            'customer_phone' => 'nullable|string|max:191',
             'return_date' => 'required|date',
             'return_reason' => 'required|string|max:191',
             'notes' => 'nullable|string',
@@ -63,69 +65,86 @@ class SalesReturnController extends Controller
             'items.*.selling_price' => 'required|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
             'items.*.condition' => 'required|in:Good,Damaged,Defective,Used',
-            'items.*.restore_to_stock' => 'required|boolean',
             'items.*.notes' => 'nullable|string',
         ]);
 
-        $subtotal = 0;
-        $totalTax = 0;
-
-        foreach ($validated['items'] as $item) {
-            $itemTotal = $item['quantity_returned'] * $item['selling_price'];
-            $subtotal += $itemTotal;
-            $totalTax += $itemTotal * (($item['tax'] ?? 0) / 100);
-        }
-
-        $returnData = [
-            'return_number' => $validated['return_number'],
-            'sale_id' => $validated['sale_id'],
-            'customer_name' => $validated['customer_name'],
-            'customer_phone' => $validated['customer_phone'],
-            'return_date' => $validated['return_date'],
-            'return_reason' => $validated['return_reason'],
-            'notes' => $validated['notes'],
-            'subtotal' => $subtotal,
-            'tax' => $totalTax,
-            'total' => $subtotal + $totalTax,
-            'refund_amount' => 0,
-            'status' => 'Pending',
-            'processed_by' => Auth::id(),
-        ];
-
-        $itemsData = array_map(function ($item) {
-            $item['item_total'] = $item['quantity_returned'] * $item['selling_price'];
-            return $item;
-        }, $validated['items']);
-
         try {
-            $this->returnService->createSalesReturn($returnData, $itemsData);
-            return redirect()->route('sales-returns.index')->with('success', 'Sales return created successfully.');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+            $sale = Sale::findOrFail($validated['sale_id']);
+            
+            $subtotal = 0;
+            $totalTax = 0;
+            $itemsData = [];
+
+            foreach ($validated['items'] as $itemData) {
+                $itemTotal = $itemData['quantity_returned'] * $itemData['selling_price'];
+                $subtotal += $itemTotal;
+                $totalTax += $itemTotal * (($itemData['tax'] ?? 0) / 100);
+
+                $itemData['item_total'] = $itemTotal;
+                $itemData['restore_to_stock'] = ($itemData['condition'] === 'Good');
+                $itemsData[] = $itemData;
+            }
+
+            $returnData = [
+                'return_number' => $validated['return_number'],
+                'sale_id' => $validated['sale_id'],
+                'customer_name' => $sale->customer_name, // From original sale
+                'customer_phone' => $sale->customer_phone, // From original sale
+                'return_date' => $validated['return_date'],
+                'return_reason' => $validated['return_reason'],
+                'notes' => $validated['notes'],
+                'subtotal' => $subtotal,
+                'tax' => $totalTax,
+                'total' => $subtotal + $totalTax,
+                'status' => 'Pending',
+            ];
+
+            $salesReturn = $this->returnService->createSalesReturn($returnData, $itemsData);
+
+            return redirect()->route('sales-returns.show', $salesReturn)
+                ->with('success', 'Sales return created successfully.');
+
+        } catch (Exception $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
     }
 
     public function show(SalesReturn $salesReturn)
     {
-        $salesReturn->load('sale', 'items.product', 'processedBy');
-        return view('returns.sales-returns.show', compact('salesReturn'));
+        $salesReturn->load('sale', 'items.product', 'items.saleItem', 'processedBy');
+        return view('sales-returns.show', compact('salesReturn'));
     }
 
     public function processRefund(Request $request, SalesReturn $salesReturn)
     {
+        if ($salesReturn->status !== 'Pending' && $salesReturn->status !== 'Approved') {
+            return back()->with('error', 'Only pending or approved returns can be refunded.');
+        }
+
         $validated = $request->validate([
-            'refund_method' => 'required|string|max:191',
-            'refund_amount' => 'required|numeric|min:0',
+            'refund_method' => 'required|string|in:Cash,Card,Store Credit',
+            'refund_amount' => 'required|numeric|min:0|max:' . $salesReturn->total,
         ]);
 
-        $this->returnService->processRefund($salesReturn, $validated['refund_method'], $validated['refund_amount']);
-
-        return back()->with('success', 'Refund processed successfully.');
+        try {
+            $this->returnService->processRefund($salesReturn, $validated['refund_method'], $validated['refund_amount']);
+            return back()->with('success', 'Refund processed successfully.');
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function cancel(SalesReturn $salesReturn)
     {
-        $this->returnService->cancelReturn($salesReturn);
-        return back()->with('success', 'Sales return cancelled.');
+        if ($salesReturn->status === 'Refunded' || $salesReturn->status === 'Completed') {
+            return back()->with('error', 'Cannot cancel a return that has been refunded or completed.');
+        }
+
+        try {
+            $this->returnService->cancelReturn($salesReturn);
+            return back()->with('success', 'Sales return cancelled and stock restored.');
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
     }
 }

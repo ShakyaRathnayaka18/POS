@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -10,7 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::rename('purchase_orders', 'good_receive_notes');
+        Schema::table('sales', function (Blueprint $table) {
+            //
+        });
     }
 
     /**
@@ -18,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::rename('good_receive_notes', 'purchase_orders');
+        Schema::table('sales', function (Blueprint $table) {
+            //
+        });
     }
 };

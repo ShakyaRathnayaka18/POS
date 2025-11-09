@@ -12,9 +12,13 @@ class Sale extends Model
     protected $fillable = [
         'sale_number',
         'user_id',
+        'customer_name',
+        'customer_phone',
         'subtotal',
         'tax',
         'total',
+        'payment_method',
+        'status',
     ];
 
     public function user()

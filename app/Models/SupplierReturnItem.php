@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SupplierReturnItem extends Model
 {
@@ -28,22 +29,22 @@ class SupplierReturnItem extends Model
         'item_total' => 'decimal:2',
     ];
 
-    public function supplierReturn()
+    public function supplierReturn(): BelongsTo
     {
         return $this->belongsTo(SupplierReturn::class);
     }
 
-    public function stock()
+    public function stock(): BelongsTo
     {
         return $this->belongsTo(Stock::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function batch()
+    public function batch(): BelongsTo
     {
         return $this->belongsTo(Batch::class);
     }

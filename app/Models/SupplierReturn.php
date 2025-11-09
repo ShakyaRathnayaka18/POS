@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SupplierReturn extends Model
 {
@@ -35,27 +37,27 @@ class SupplierReturn extends Model
         'total' => 'decimal:2',
     ];
 
-    public function goodReceiveNote()
+    public function goodReceiveNote(): BelongsTo
     {
         return $this->belongsTo(GoodReceiveNote::class);
     }
 
-    public function supplier()
+    public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
     }
 
-    public function items()
+    public function items(): HasMany
     {
         return $this->hasMany(SupplierReturnItem::class);
     }
 
-    public function createdBy()
+    public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function approvedBy()
+    public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by');
     }

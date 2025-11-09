@@ -102,6 +102,133 @@
     </div>
 
     <script>
-        // JavaScript to handle dynamic item adding and calculations will go here
+        document.addEventListener('DOMContentLoaded', function () {
+            const grnSelect = document.getElementById('grn_id');
+            const supplierNameInput = document.getElementById('supplier_name');
+            const supplierIdInput = document.getElementById('supplier_id');
+            const returnItemsBody = document.getElementById('return-items-body');
+            const addItemBtn = document.getElementById('add-item-btn');
+            let returnableStock = [];
+            let itemIndex = 0;
+
+            grnSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                const supplierId = selectedOption.dataset.supplierId;
+                const supplierName = selectedOption.dataset.supplierName;
+                const grnId = this.value;
+
+                supplierIdInput.value = supplierId;
+                supplierNameInput.value = supplierName;
+                returnItemsBody.innerHTML = '';
+                updateTotals();
+
+                if (grnId) {
+                    fetch(`/good-receive-notes/${grnId}/returnable-stock`)
+                        .then(response => response.json())
+                        .then(data => {
+                            returnableStock = data;
+                            addItemBtn.disabled = false;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching returnable stock:', error);
+                            addItemBtn.disabled = true;
+                        });
+                } else {
+                    returnableStock = [];
+                    addItemBtn.disabled = true;
+                }
+            });
+
+            addItemBtn.addEventListener('click', function () {
+                if (returnableStock.length === 0) return;
+
+                const uniqueId = `new-item-${itemIndex++}`;
+                const row = `
+                    <tr id="row-${uniqueId}">
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <select name="items[${uniqueId}][stock_id]" class="stock-select w-full border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                                <option value="">Select Product</option>
+                                ${returnableStock.map(stock => `<option value="${stock.id}" data-price="${stock.cost_price}" data-tax="${stock.tax}" data-available="${stock.available_quantity}">${stock.product.name} (Batch: ${stock.batch.batch_number})</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 available-qty">0</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="number" name="items[${uniqueId}][quantity_returned]" class="return-qty w-20 text-center border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300" min="1" value="1">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 cost-price">0.00</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <select name="items[${uniqueId}][condition]" class="w-full border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                                <option>Damaged</option>
+                                <option>Defective</option>
+                                <option>Wrong Item</option>
+                                <option>Overstocked</option>
+                            </select>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <input type="text" name="items[${uniqueId}][notes]" class="w-full border-gray-300 rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button type="button" class="remove-item-btn text-red-600 hover:text-red-900">Remove</button>
+                        </td>
+                    </tr>
+                `;
+                returnItemsBody.insertAdjacentHTML('beforeend', row);
+            });
+
+            returnItemsBody.addEventListener('change', function (e) {
+                if (e.target.classList.contains('stock-select')) {
+                    const selectedOption = e.target.options[e.target.selectedIndex];
+                    const row = e.target.closest('tr');
+                    const availableQty = selectedOption.dataset.available || 0;
+                    const price = selectedOption.dataset.price || 0;
+
+                    row.querySelector('.available-qty').textContent = availableQty;
+                    row.querySelector('.cost-price').textContent = parseFloat(price).toFixed(2);
+                    row.querySelector('.return-qty').max = availableQty;
+                    updateTotals();
+                }
+            });
+
+            returnItemsBody.addEventListener('input', function (e) {
+                if (e.target.classList.contains('return-qty')) {
+                    updateTotals();
+                }
+            });
+
+            returnItemsBody.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-item-btn')) {
+                    e.target.closest('tr').remove();
+                    updateTotals();
+                }
+            });
+
+            function updateTotals() {
+                let subtotal = 0;
+                let totalTax = 0;
+
+                document.querySelectorAll('#return-items-body tr').forEach(row => {
+                    const stockSelect = row.querySelector('.stock-select');
+                    const qtyInput = row.querySelector('.return-qty');
+                    if (!stockSelect || !qtyInput) return;
+
+                    const selectedOption = stockSelect.options[stockSelect.selectedIndex];
+                    const price = parseFloat(selectedOption.dataset.price) || 0;
+                    const taxRate = parseFloat(selectedOption.dataset.tax) || 0;
+                    const qty = parseInt(qtyInput.value, 10) || 0;
+
+                    const itemTotal = qty * price;
+                    subtotal += itemTotal;
+                    totalTax += itemTotal * (taxRate / 100);
+                });
+
+                const total = subtotal + totalTax;
+
+                document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+            }
+
+            // Initial state
+            addItemBtn.disabled = true;
+        });
     </script>
 @endsection

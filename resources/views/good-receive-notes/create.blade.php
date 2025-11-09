@@ -56,7 +56,7 @@
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Items</h2>
-                <button type="button" onclick="addItem()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                <button type="button" id="addItemBtn" onclick="addItem()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded" disabled>
                     <i class="fas fa-plus mr-2"></i>Add Item
                 </button>
             </div>
@@ -95,8 +95,10 @@ let currentSupplierId = null;
 document.getElementById('supplier_id').addEventListener('change', function() {
     const supplierId = this.value;
     currentSupplierId = supplierId;
+    const addItemBtn = document.getElementById('addItemBtn');
 
     if (supplierId) {
+        addItemBtn.disabled = false;
         // Fetch supplier products via AJAX
         fetch(`/suppliers/${supplierId}/products`)
             .then(response => response.json())
@@ -111,6 +113,7 @@ document.getElementById('supplier_id').addEventListener('change', function() {
                 alert('Error loading products for this supplier');
             });
     } else {
+        addItemBtn.disabled = true;
         products = [];
         document.getElementById('itemsContainer').innerHTML = '';
         itemIndex = 0;
@@ -243,10 +246,5 @@ function updateCalculations() {
     document.getElementById('taxDisplay').textContent = tax.toFixed(2);
     document.getElementById('totalDisplay').textContent = total.toFixed(2);
 }
-
-// Add first item on page load
-document.addEventListener('DOMContentLoaded', function() {
-    addItem();
-});
 </script>
 @endsection

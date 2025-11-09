@@ -7,6 +7,8 @@ use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\SupplierReturnController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -16,10 +18,6 @@ Route::get('/', function () {
 Route::get('/cashier', function () {
     return view('cashier.dashboard');
 })->name('cashier.dashboard');
-
-Route::get('/brands', function () {
-    return view('brands.index');
-})->name('brands.index');
 
 // Add resource route for categories
 Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -38,21 +36,28 @@ Route::get('/reports', function () {
     return view('reports.index');
 })->name('reports.index');
 
-Route::get('/returns', function () {
-    return view('returns.index');
-})->name('returns.index');
+// Sales Returns
+Route::get('/sales-returns', [SalesReturnController::class, 'index'])->name('sales-returns.index');
+Route::get('/sales-returns/create', [SalesReturnController::class, 'create'])->name('sales-returns.create');
+Route::post('/sales-returns', [SalesReturnController::class, 'store'])->name('sales-returns.store');
+Route::get('/sales-returns/{salesReturn}', [SalesReturnController::class, 'show'])->name('sales-returns.show');
+Route::post('/sales-returns/{salesReturn}/refund', [SalesReturnController::class, 'processRefund'])->name('sales-returns.refund');
+Route::post('/sales-returns/{salesReturn}/cancel', [SalesReturnController::class, 'cancel'])->name('sales-returns.cancel');
+Route::get('/sales-returns/get-returnable-items/{sale}', [SalesReturnController::class, 'getReturnableItems'])->name('sales.returnable-items');
+
+// Supplier Returns
+Route::get('/supplier-returns', [SupplierReturnController::class, 'index'])->name('supplier-returns.index');
+Route::get('/supplier-returns/create', [SupplierReturnController::class, 'create'])->name('supplier-returns.create');
+Route::post('/supplier-returns', [SupplierReturnController::class, 'store'])->name('supplier-returns.store');
+Route::get('/supplier-returns/{supplierReturn}', [SupplierReturnController::class, 'show'])->name('supplier-returns.show');
+Route::post('/supplier-returns/{supplierReturn}/approve', [SupplierReturnController::class, 'approve'])->name('supplier-returns.approve');
+Route::post('/supplier-returns/{supplierReturn}/complete', [SupplierReturnController::class, 'complete'])->name('supplier-returns.complete');
+Route::post('/supplier-returns/{supplierReturn}/cancel', [SupplierReturnController::class, 'cancel'])->name('supplier-returns.cancel');
+Route::get('/good-receive-notes/{grn}/returnable-stock', [SupplierReturnController::class, 'getReturnableStock'])->name('good-receive-notes.returnable-stock');
 
 Route::get('/sales', function () {
     return view('sales.index');
 })->name('sales.index');
-
-Route::get('/products-index', function () {
-    return view('products.index');
-})->name('products.index');
-
-Route::get('/products-create', function () {
-    return view('products.create');
-})->name('products.create');
 
 Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
 

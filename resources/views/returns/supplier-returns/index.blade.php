@@ -71,7 +71,7 @@
                 @empty
                     <tr>
                         <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300 text-center">
-                            No supplier returns found.
+                            No supplier returns found.<a href="{{ route('supplier-returns.create') }}" class="text-blue-600 hover:text-blue-800">Create one now</a>
                         </td>
                     </tr>
                 @endforelse
