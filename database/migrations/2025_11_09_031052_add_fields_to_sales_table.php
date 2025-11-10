@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            //
+            $table->string('customer_name')->nullable()->after('user_id');
+            $table->string('customer_phone', 20)->nullable()->after('customer_name');
+            $table->string('payment_method')->nullable()->after('total');
+            $table->string('status')->default('Pending')->after('payment_method');
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('sales', function (Blueprint $table) {
-            //
+            $table->dropColumn(['customer_name', 'customer_phone', 'payment_method', 'status']);
         });
     }
 };

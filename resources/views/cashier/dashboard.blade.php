@@ -3,92 +3,140 @@
 @section('title', 'Cashier Dashboard')
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div x-data="cashierPos()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Product Search & Cart -->
     <div class="lg:col-span-2 space-y-6">
         <!-- Product Search -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Search</h2>
             <div class="relative">
-                <input type="text" placeholder="Search products by name, barcode, or SKU..." class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                <input
+                    type="text"
+                    x-model="searchQuery"
+                    @input.debounce.300ms="searchProducts"
+                    @keydown.enter.prevent="selectFirstProduct"
+                    placeholder="Search products by name, barcode, or SKU..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+
+                <!-- Search Results Dropdown -->
+                <div
+                    x-show="searchResults.length > 0 && searchQuery.length > 0"
+                    x-transition
+                    class="absolute z-10 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-96 overflow-y-auto">
+                    <template x-for="product in searchResults" :key="product.id">
+                        <button
+                            @click="addToCart(product)"
+                            type="button"
+                            class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-medium text-gray-900 dark:text-white" x-text="product.product_name"></div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">
+                                        <span>SKU: </span><span x-text="product.sku"></span>
+                                        <span class="ml-2" x-show="product.barcode">Barcode: <span x-text="product.barcode"></span></span>
+                                    </div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                        <span x-text="product.category"></span> | <span x-text="product.brand"></span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-medium text-gray-900 dark:text-white" x-text="'$' + parseFloat(product.selling_price).toFixed(2)"></div>
+                                    <div class="text-xs" :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
+                                        <span x-text="product.available_quantity"></span> <span x-text="product.unit"></span> available
+                                    </div>
+                                </div>
+                            </div>
+                        </button>
+                    </template>
+                </div>
             </div>
-            
-            <!-- Quick Product Grid -->
-            <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                <button class="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Coca Cola</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">$2.50</div>
-                </button>
-                <button class="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Bread</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">$1.25</div>
-                </button>
-                <button class="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Milk</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">$3.00</div>
-                </button>
-                <button class="p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 text-center">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">Eggs</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">$4.50</div>
-                </button>
+
+            <!-- Loading Indicator -->
+            <div x-show="isSearching" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                <i class="fas fa-spinner fa-spin mr-2"></i>Searching...
             </div>
         </div>
 
         <!-- Shopping Cart -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Shopping Cart</h2>
-            <div class="space-y-3">
-                <!-- Cart Item -->
-                <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-900 dark:text-white">Coca Cola</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">$2.50 each</div>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <i class="fas fa-minus text-xs"></i>
-                        </button>
-                        <span class="w-8 text-center font-medium dark:text-white">2</span>
-                        <button class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <i class="fas fa-plus text-xs"></i>
-                        </button>
-                        <span class="w-16 text-right font-medium dark:text-white">$5.00</span>
-                        <button class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
 
-                <!-- Another Cart Item -->
-                <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
-                    <div class="flex-1">
-                        <div class="font-medium text-gray-900 dark:text-white">Bread</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">$1.25 each</div>
+            <div x-show="cart.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+                <i class="fas fa-shopping-cart text-4xl mb-2"></i>
+                <p>Cart is empty. Search and add products to get started.</p>
+            </div>
+
+            <div x-show="cart.length > 0" class="space-y-3">
+                <!-- Cart Items -->
+                <template x-for="(item, index) in cart" :key="index">
+                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900 dark:text-white" x-text="item.product_name"></div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400">
+                                $<span x-text="parseFloat(item.selling_price).toFixed(2)"></span> each
+                                <span class="ml-2 text-xs">Tax: <span x-text="item.tax"></span>%</span>
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                Available: <span x-text="item.available_quantity"></span> <span x-text="item.unit"></span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button
+                                @click="decrementQuantity(index)"
+                                type="button"
+                                class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <input
+                                type="number"
+                                x-model.number="item.quantity"
+                                @input="validateQuantity(index)"
+                                min="1"
+                                :max="item.available_quantity"
+                                class="w-16 text-center font-medium dark:text-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1">
+                            <button
+                                @click="incrementQuantity(index)"
+                                type="button"
+                                :disabled="item.quantity >= item.available_quantity"
+                                class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                            <span class="w-20 text-right font-medium dark:text-white" x-text="'$' + calculateItemTotal(item).toFixed(2)"></span>
+                            <button
+                                @click="removeFromCart(index)"
+                                type="button"
+                                class="text-red-500 hover:text-red-700 ml-2">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <button class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <i class="fas fa-minus text-xs"></i>
-                        </button>
-                        <span class="w-8 text-center font-medium dark:text-white">1</span>
-                        <button class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
-                            <i class="fas fa-plus text-xs"></i>
-                        </button>
-                        <span class="w-16 text-right font-medium dark:text-white">$1.25</span>
-                        <button class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
+                </template>
             </div>
 
             <!-- Cart Actions -->
-            <div class="mt-4 flex space-x-2">
-                <button class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700">
+            <div x-show="cart.length > 0" class="mt-4 flex space-x-2">
+                <button
+                    @click="clearCart"
+                    type="button"
+                    class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
                     <i class="fas fa-trash mr-2"></i>Clear Cart
                 </button>
-                <button class="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
-                    <i class="fas fa-pause mr-2"></i>Hold
+                <button
+                    @click="showSaveCartModal = true"
+                    type="button"
+                    class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-save mr-2"></i>Save Cart
+                </button>
+            </div>
+
+            <!-- Load Cart Button -->
+            <div class="mt-4">
+                <button
+                    @click="showSavedCartsModal = true; loadSavedCarts()"
+                    type="button"
+                    class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
+                    <i class="fas fa-folder-open mr-2"></i>Load Saved Cart <span x-show="savedCarts.length > 0" class="ml-1 bg-green-800 px-2 py-0.5 rounded-full text-xs" x-text="savedCarts.length"></span>
                 </button>
             </div>
         </div>
@@ -102,20 +150,39 @@
             <div class="space-y-2">
                 <div class="flex justify-between">
                     <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span class="font-medium dark:text-white">$6.25</span>
+                    <span class="font-medium dark:text-white" x-text="'$' + totals.subtotal.toFixed(2)"></span>
                 </div>
                 <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Tax (8%):</span>
-                    <span class="font-medium dark:text-white">$0.50</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600 dark:text-gray-400">Discount:</span>
-                    <span class="font-medium text-green-600">-$0.00</span>
+                    <span class="text-gray-600 dark:text-gray-400">Tax:</span>
+                    <span class="font-medium dark:text-white" x-text="'$' + totals.tax.toFixed(2)"></span>
                 </div>
                 <hr class="border-gray-200 dark:border-gray-600">
                 <div class="flex justify-between text-lg font-bold">
                     <span class="dark:text-white">Total:</span>
-                    <span class="dark:text-white">$6.75</span>
+                    <span class="text-green-600 dark:text-green-400" x-text="'$' + totals.total.toFixed(2)"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Information (Optional) -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Customer Information (Optional)</h2>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name</label>
+                    <input
+                        type="text"
+                        x-model="customerName"
+                        placeholder="Walk-in Customer"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                    <input
+                        type="text"
+                        x-model="customerPhone"
+                        placeholder="Optional"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 </div>
             </div>
         </div>
@@ -124,45 +191,553 @@
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Payment Method</h2>
             <div class="space-y-3">
-                <button class="w-full p-3 border-2 border-primary-500 bg-primary-50 dark:bg-primary-900 rounded-lg text-left">
+                <button
+                    @click="paymentMethod = 'Cash'"
+                    type="button"
+                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
+                    :class="paymentMethod === 'Cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-money-bill-wave text-primary-600 mr-3"></i>
-                        <span class="font-medium text-primary-700 dark:text-primary-300">Cash</span>
+                        <i class="fas fa-money-bill-wave mr-3" :class="paymentMethod === 'Cash' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'Cash' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Cash</span>
                     </div>
                 </button>
-                <button class="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700">
+                <button
+                    @click="paymentMethod = 'Card'"
+                    type="button"
+                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
+                    :class="paymentMethod === 'Card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-credit-card text-gray-600 dark:text-gray-400 mr-3"></i>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Card</span>
+                        <i class="fas fa-credit-card mr-3" :class="paymentMethod === 'Card' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'Card' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Card</span>
                     </div>
                 </button>
-                <button class="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg text-left hover:bg-gray-50 dark:hover:bg-gray-700">
+                <button
+                    @click="paymentMethod = 'Credit'"
+                    type="button"
+                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
+                    :class="paymentMethod === 'Credit' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-handshake text-gray-600 dark:text-gray-400 mr-3"></i>
-                        <span class="font-medium text-gray-700 dark:text-gray-300">Credit</span>
+                        <i class="fas fa-handshake mr-3" :class="paymentMethod === 'Credit' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'Credit' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Credit</span>
                     </div>
                 </button>
             </div>
 
             <!-- Cash Payment Input -->
-            <div class="mt-4">
+            <div x-show="paymentMethod === 'Cash'" x-transition class="mt-4">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount Received</label>
-                <input type="number" step="0.01" placeholder="0.00" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                <input
+                    type="number"
+                    x-model.number="amountReceived"
+                    @input="calculateChange"
+                    step="0.01"
+                    placeholder="0.00"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    Change: <span class="font-medium">$0.00</span>
+                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'$' + changeAmount.toFixed(2)"></span>
                 </div>
             </div>
         </div>
 
         <!-- Action Buttons -->
         <div class="space-y-3">
-            <button class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium">
-                <i class="fas fa-check mr-2"></i>Complete Sale
+            <button
+                @click="completeSale"
+                type="button"
+                :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'Cash' && amountReceived < totals.total)"
+                class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <i :class="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-check'" class="mr-2"></i>
+                <span x-text="isProcessing ? 'Processing...' : 'Complete Sale'"></span>
             </button>
-            <button class="w-full bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
-                <i class="fas fa-print mr-2"></i>Print Receipt
-            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div x-show="errorMessage" x-transition class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
+            <p x-text="errorMessage"></p>
+        </div>
+    </div>
+
+    <!-- Save Cart Modal -->
+    <div x-show="showSaveCartModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-50" @click="showSaveCartModal = false"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Save Cart</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cart Name (Optional)</label>
+                        <input
+                            type="text"
+                            x-model="saveCartName"
+                            placeholder="Auto-generated if empty"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div class="flex space-x-2">
+                        <button
+                            @click="saveCart"
+                            type="button"
+                            :disabled="isSavingCart"
+                            class="flex-1 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 transition-colors disabled:opacity-50">
+                            <i :class="isSavingCart ? 'fas fa-spinner fa-spin' : 'fas fa-save'" class="mr-2"></i>
+                            <span x-text="isSavingCart ? 'Saving...' : 'Save'"></span>
+                        </button>
+                        <button
+                            @click="showSaveCartModal = false; saveCartName = ''"
+                            type="button"
+                            class="flex-1 bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Saved Carts Modal -->
+    <div x-show="showSavedCartsModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div class="fixed inset-0 bg-black opacity-50" @click="showSavedCartsModal = false"></div>
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Saved Carts</h3>
+
+                <div x-show="isLoadingSavedCarts" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-gray-400"></i>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2">Loading saved carts...</p>
+                </div>
+
+                <div x-show="!isLoadingSavedCarts && savedCarts.length === 0" class="text-center py-8">
+                    <i class="fas fa-inbox text-4xl text-gray-400"></i>
+                    <p class="text-gray-500 dark:text-gray-400 mt-2">No saved carts found.</p>
+                </div>
+
+                <div x-show="!isLoadingSavedCarts && savedCarts.length > 0" class="space-y-3 max-h-96 overflow-y-auto">
+                    <template x-for="savedCart in savedCarts" :key="savedCart.id">
+                        <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 dark:text-white" x-text="savedCart.cart_name || 'Unnamed Cart'"></h4>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        <i class="fas fa-shopping-cart mr-1"></i>
+                                        <span x-text="savedCart.items_count"></span> items
+                                        <span class="mx-2">|</span>
+                                        <i class="fas fa-clock mr-1"></i>
+                                        <span x-text="new Date(savedCart.created_at).toLocaleString()"></span>
+                                    </p>
+                                    <p x-show="savedCart.customer_name" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                        <i class="fas fa-user mr-1"></i>
+                                        <span x-text="savedCart.customer_name"></span>
+                                    </p>
+                                </div>
+                                <div class="flex space-x-2 ml-4">
+                                    <button
+                                        @click="loadCart(savedCart.id)"
+                                        type="button"
+                                        class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
+                                        <i class="fas fa-download"></i> Load
+                                    </button>
+                                    <button
+                                        @click="deleteSavedCart(savedCart.id)"
+                                        type="button"
+                                        class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 text-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="mt-4">
+                    <button
+                        @click="showSavedCartsModal = false"
+                        type="button"
+                        class="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors">
+                        Close
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+[x-cloak] { display: none !important; }
+</style>
+
+<script>
+function cashierPos() {
+    return {
+        searchQuery: '',
+        searchResults: [],
+        isSearching: false,
+        cart: [],
+        totals: {
+            subtotal: 0,
+            tax: 0,
+            total: 0
+        },
+        paymentMethod: 'Cash',
+        amountReceived: 0,
+        changeAmount: 0,
+        customerName: '',
+        customerPhone: '',
+        isProcessing: false,
+        errorMessage: '',
+        showSaveCartModal: false,
+        showSavedCartsModal: false,
+        saveCartName: '',
+        isSavingCart: false,
+        savedCarts: [],
+        isLoadingSavedCarts: false,
+
+        init() {
+            // Load saved carts count
+            this.loadSavedCarts();
+            // Focus on search input on load
+            this.$nextTick(() => {
+                document.querySelector('input[x-model="searchQuery"]')?.focus();
+            });
+        },
+
+        async searchProducts() {
+            if (this.searchQuery.length < 2) {
+                this.searchResults = [];
+                return;
+            }
+
+            this.isSearching = true;
+            this.errorMessage = '';
+
+            try {
+                const response = await fetch(`/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
+                const data = await response.json();
+                this.searchResults = data;
+            } catch (error) {
+                console.error('Search error:', error);
+                this.errorMessage = 'Error searching products. Please try again.';
+            } finally {
+                this.isSearching = false;
+            }
+        },
+
+        selectFirstProduct() {
+            if (this.searchResults.length > 0) {
+                this.addToCart(this.searchResults[0]);
+            }
+        },
+
+        addToCart(product) {
+            if (!product.in_stock || product.available_quantity <= 0) {
+                this.errorMessage = `${product.product_name} is out of stock.`;
+                return;
+            }
+
+            // Check if product already in cart
+            const existingIndex = this.cart.findIndex(item => item.id === product.id);
+
+            if (existingIndex !== -1) {
+                // Increment quantity if not exceeding available stock
+                const currentItem = this.cart[existingIndex];
+                if (currentItem.quantity < currentItem.available_quantity) {
+                    currentItem.quantity++;
+                    this.calculateTotals();
+                } else {
+                    this.errorMessage = `Maximum available quantity (${currentItem.available_quantity}) reached for ${product.product_name}.`;
+                }
+            } else {
+                // Add new item to cart
+                this.cart.push({
+                    ...product,
+                    quantity: 1
+                });
+                this.calculateTotals();
+            }
+
+            // Clear search
+            this.searchQuery = '';
+            this.searchResults = [];
+            this.errorMessage = '';
+
+            // Refocus search input
+            this.$nextTick(() => {
+                document.querySelector('input[x-model="searchQuery"]')?.focus();
+            });
+        },
+
+        removeFromCart(index) {
+            this.cart.splice(index, 1);
+            this.calculateTotals();
+            this.errorMessage = '';
+        },
+
+        incrementQuantity(index) {
+            if (this.cart[index].quantity < this.cart[index].available_quantity) {
+                this.cart[index].quantity++;
+                this.calculateTotals();
+            }
+        },
+
+        decrementQuantity(index) {
+            if (this.cart[index].quantity > 1) {
+                this.cart[index].quantity--;
+                this.calculateTotals();
+            } else {
+                this.removeFromCart(index);
+            }
+        },
+
+        validateQuantity(index) {
+            const item = this.cart[index];
+            if (item.quantity < 1) {
+                item.quantity = 1;
+            } else if (item.quantity > item.available_quantity) {
+                item.quantity = item.available_quantity;
+                this.errorMessage = `Maximum available quantity is ${item.available_quantity}.`;
+            }
+            this.calculateTotals();
+        },
+
+        calculateItemTotal(item) {
+            const subtotal = item.quantity * parseFloat(item.selling_price);
+            const tax = subtotal * (parseFloat(item.tax) / 100);
+            return subtotal + tax;
+        },
+
+        calculateTotals() {
+            let subtotal = 0;
+            let tax = 0;
+
+            this.cart.forEach(item => {
+                const itemSubtotal = item.quantity * parseFloat(item.selling_price);
+                const itemTax = itemSubtotal * (parseFloat(item.tax) / 100);
+                subtotal += itemSubtotal;
+                tax += itemTax;
+            });
+
+            this.totals.subtotal = subtotal;
+            this.totals.tax = tax;
+            this.totals.total = subtotal + tax;
+
+            this.calculateChange();
+        },
+
+        calculateChange() {
+            if (this.paymentMethod === 'Cash') {
+                this.changeAmount = this.amountReceived - this.totals.total;
+            } else {
+                this.changeAmount = 0;
+            }
+        },
+
+        clearCart() {
+            if (confirm('Are you sure you want to clear the cart?')) {
+                this.cart = [];
+                this.calculateTotals();
+                this.errorMessage = '';
+            }
+        },
+
+        async completeSale() {
+            // Validation
+            if (this.cart.length === 0) {
+                this.errorMessage = 'Cart is empty. Add products to complete sale.';
+                return;
+            }
+
+            if (!this.paymentMethod) {
+                this.errorMessage = 'Please select a payment method.';
+                return;
+            }
+
+            if (this.paymentMethod === 'Cash' && this.amountReceived < this.totals.total) {
+                this.errorMessage = 'Amount received is less than total amount.';
+                return;
+            }
+
+            this.isProcessing = true;
+            this.errorMessage = '';
+
+            try {
+                const response = await fetch('/sales', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        payment_method: this.paymentMethod,
+                        customer_name: this.customerName || null,
+                        customer_phone: this.customerPhone || null,
+                        amount_received: this.paymentMethod === 'Cash' ? this.amountReceived : null,
+                        items: this.cart.map(item => ({
+                            product_id: item.id,
+                            quantity: item.quantity
+                        }))
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Success - redirect to receipt
+                    window.location.href = `/sales/${data.sale.id}`;
+                } else {
+                    this.errorMessage = data.message || 'Error processing sale. Please try again.';
+                }
+            } catch (error) {
+                console.error('Sale error:', error);
+                this.errorMessage = 'Error processing sale. Please try again.';
+            } finally {
+                this.isProcessing = false;
+            }
+        },
+
+        async saveCart() {
+            if (this.cart.length === 0) {
+                this.errorMessage = 'Cart is empty. Nothing to save.';
+                return;
+            }
+
+            this.isSavingCart = true;
+            this.errorMessage = '';
+
+            try {
+                const response = await fetch('/api/saved-carts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        cart_name: this.saveCartName || null,
+                        customer_name: this.customerName || null,
+                        customer_phone: this.customerPhone || null,
+                        payment_method: this.paymentMethod || null,
+                        items: this.cart
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Clear current cart
+                    this.cart = [];
+                    this.customerName = '';
+                    this.customerPhone = '';
+                    this.paymentMethod = 'Cash';
+                    this.amountReceived = 0;
+                    this.calculateTotals();
+
+                    // Close modal and reset
+                    this.showSaveCartModal = false;
+                    this.saveCartName = '';
+
+                    // Reload saved carts
+                    this.loadSavedCarts();
+
+                    alert('Cart saved successfully!');
+                } else {
+                    this.errorMessage = data.message || 'Failed to save cart.';
+                }
+            } catch (error) {
+                console.error('Save cart error:', error);
+                this.errorMessage = 'Failed to save cart. Please try again.';
+            } finally {
+                this.isSavingCart = false;
+            }
+        },
+
+        async loadSavedCarts() {
+            this.isLoadingSavedCarts = true;
+
+            try {
+                const response = await fetch('/api/saved-carts');
+                const data = await response.json();
+                this.savedCarts = data;
+            } catch (error) {
+                console.error('Load saved carts error:', error);
+            } finally {
+                this.isLoadingSavedCarts = false;
+            }
+        },
+
+        async loadCart(savedCartId) {
+            if (this.cart.length > 0) {
+                if (!confirm('Loading this cart will replace your current cart. Continue?')) {
+                    return;
+                }
+            }
+
+            this.errorMessage = '';
+
+            try {
+                const response = await fetch(`/api/saved-carts/${savedCartId}`);
+                const savedCart = await response.json();
+
+                // Map saved cart items to cart format
+                this.cart = savedCart.items.map(item => ({
+                    id: item.product.id,
+                    product_name: item.product.product_name,
+                    sku: item.product.sku,
+                    barcode: item.product.barcode,
+                    category: item.product.category?.name || 'N/A',
+                    brand: item.product.brand?.name || 'N/A',
+                    selling_price: item.price,
+                    tax: item.tax,
+                    unit: item.product.unit || 'pcs',
+                    available_quantity: item.stock?.available_quantity || item.product.available_stocks_sum_available_quantity || 0,
+                    quantity: item.quantity
+                }));
+
+                // Restore customer info and payment method
+                this.customerName = savedCart.customer_name || '';
+                this.customerPhone = savedCart.customer_phone || '';
+                this.paymentMethod = savedCart.payment_method || 'Cash';
+
+                // Calculate totals
+                this.calculateTotals();
+
+                // Close modal
+                this.showSavedCartsModal = false;
+
+                alert('Cart loaded successfully!');
+            } catch (error) {
+                console.error('Load cart error:', error);
+                this.errorMessage = 'Failed to load cart. Please try again.';
+            }
+        },
+
+        async deleteSavedCart(savedCartId) {
+            if (!confirm('Are you sure you want to delete this saved cart?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/saved-carts/${savedCartId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Reload saved carts
+                    this.loadSavedCarts();
+                    alert('Cart deleted successfully!');
+                } else {
+                    alert('Failed to delete cart.');
+                }
+            } catch (error) {
+                console.error('Delete cart error:', error);
+                alert('Failed to delete cart. Please try again.');
+            }
+        }
+    }
+}
+</script>
 @endsection

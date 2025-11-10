@@ -5,10 +5,13 @@ use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SaleController;
+use App\Http\Controllers\SalesReturnController;
+use App\Http\Controllers\SavedCartController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
-use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SupplierReturnController;
+use App\Http\Controllers\VendorCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -55,9 +58,20 @@ Route::post('/supplier-returns/{supplierReturn}/complete', [SupplierReturnContro
 Route::post('/supplier-returns/{supplierReturn}/cancel', [SupplierReturnController::class, 'cancel'])->name('supplier-returns.cancel');
 Route::get('/good-receive-notes/{grn}/returnable-stock', [SupplierReturnController::class, 'getReturnableStock'])->name('good-receive-notes.returnable-stock');
 
-Route::get('/sales', function () {
-    return view('sales.index');
-})->name('sales.index');
+// Sales routes
+Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
+Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+
+// API routes for cashier
+Route::get('/api/products/search', [SaleController::class, 'searchProducts'])->name('api.products.search');
+Route::get('/api/products/{product}/stock', [SaleController::class, 'getProductStock'])->name('api.products.stock');
+
+// Saved carts routes
+Route::get('/api/saved-carts', [SavedCartController::class, 'index'])->name('api.saved-carts.index');
+Route::post('/api/saved-carts', [SavedCartController::class, 'store'])->name('api.saved-carts.store');
+Route::get('/api/saved-carts/{savedCart}', [SavedCartController::class, 'show'])->name('api.saved-carts.show');
+Route::delete('/api/saved-carts/{savedCart}', [SavedCartController::class, 'destroy'])->name('api.saved-carts.destroy');
 
 Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
 
