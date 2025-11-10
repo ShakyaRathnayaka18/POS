@@ -30,8 +30,11 @@ class BrandSeeder extends Seeder
             ['brand_name' => 'Loose/Unbranded', 'description' => 'Generic unpackaged products sold by weight', 'logo' => null],
         ];
 
-        foreach ($brands as $brand) {
-            Brand::create($brand);
+        foreach ($brands as $brandData) {
+            $brand = Brand::firstOrNew(['brand_name' => $brandData['brand_name']]);
+            if (!$brand->exists) {
+                $brand->fill($brandData)->save();
+            }
         }
     }
 }

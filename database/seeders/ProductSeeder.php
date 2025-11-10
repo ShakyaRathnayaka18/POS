@@ -81,8 +81,11 @@ class ProductSeeder extends Seeder
             ['product_name' => 'JK Copier A4 Paper', 'sku' => 'JK-A4-500S', 'item_code' => 'ITEM-00030', 'description' => 'A4 copier paper 500 sheets (1 ream)', 'initial_stock' => 0, 'minimum_stock' => 30, 'maximum_stock' => 200, 'category_id' => $stationery->id, 'brand_id' => $jkCopier->id, 'unit' => 'ream'],
         ];
 
-        foreach ($products as $product) {
-            Product::create($product);
+        foreach ($products as $productData) {
+            $product = Product::firstOrNew(['item_code' => $productData['item_code']]);
+            if (!$product->exists) {
+                $product->fill($productData)->save();
+            }
         }
     }
 }

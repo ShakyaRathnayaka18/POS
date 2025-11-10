@@ -98,10 +98,15 @@
                             <i class="fas fa-chart-line  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Sales History
                         </a>
-                        <a href="{{ route('returns.index') }}"
+                        <a href="{{ route('sales-returns.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-undo  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
-                            Returns
+                            Sales Returns
+                        </a>
+                        <a href="{{ route('supplier-returns.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-truck-arrow-right  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Supplier Returns
                         </a>
                         <a href="{{ route('expenses.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">

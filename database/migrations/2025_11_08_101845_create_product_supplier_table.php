@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_supplier', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
-            $table->string('vendor_product_code')->index();
-            $table->decimal('vendor_cost_price', 10, 2)->nullable();
-            $table->boolean('is_preferred')->default(false);
-            $table->integer('lead_time_days')->nullable();
-            $table->timestamps();
+        if (!Schema::hasTable('product_supplier')) {
+            Schema::create('product_supplier', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('product_id')->constrained()->onDelete('cascade');
+                $table->foreignId('supplier_id')->constrained()->onDelete('cascade');
+                $table->string('vendor_product_code')->index();
+                $table->decimal('vendor_cost_price', 10, 2)->nullable();
+                $table->boolean('is_preferred')->default(false);
+                $table->integer('lead_time_days')->nullable();
+                $table->timestamps();
 
-            $table->unique(['supplier_id', 'vendor_product_code'], 'supplier_vendor_code_unique');
-        });
+                $table->unique(['supplier_id', 'vendor_product_code'], 'supplier_vendor_code_unique');
+            });
+        }
     }
 
     /**

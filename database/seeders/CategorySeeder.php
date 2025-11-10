@@ -40,8 +40,11 @@ class CategorySeeder extends Seeder
             ],
         ];
 
-        foreach ($categories as $category) {
-            Category::create($category);
+        foreach ($categories as $categoryData) {
+            $category = Category::firstOrNew(['cat_name' => $categoryData['cat_name']]);
+            if (!$category->exists) {
+                $category->fill($categoryData)->save();
+            }
         }
     }
 }
