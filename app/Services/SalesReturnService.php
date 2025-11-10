@@ -6,15 +6,15 @@ use App\Models\Sale;
 use App\Models\SalesReturn;
 use App\Models\Stock;
 use Illuminate\Support\Facades\DB;
-use Exception;
 
 class SalesReturnService
 {
     public function generateReturnNumber(): string
     {
         $lastReturn = SalesReturn::orderBy('id', 'desc')->first();
-        $nextId = $lastReturn ? (int)substr($lastReturn->return_number, 4) + 1 : 1;
-        return 'SLR-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+        $nextId = $lastReturn ? (int) substr($lastReturn->return_number, 4) + 1 : 1;
+
+        return 'SLR-'.str_pad($nextId, 6, '0', STR_PAD_LEFT);
     }
 
     public function createSalesReturn(array $returnData, array $items): SalesReturn
@@ -43,7 +43,7 @@ class SalesReturnService
             'status' => 'Refunded',
             'refund_method' => $refundMethod,
             'refund_amount' => $refundAmount,
-            'processed_by' => auth()->id(),
+            'processed_by' => auth()->check() ? auth()->id() : 1,
             'processed_at' => now(),
         ]);
     }
@@ -59,6 +59,7 @@ class SalesReturnService
                     }
                 }
             }
+
             return $return->update(['status' => 'Cancelled']);
         });
     }
@@ -66,7 +67,7 @@ class SalesReturnService
     public function getReturnableItemsForSale(int $saleId): array
     {
         $sale = Sale::with('items.product')->findOrFail($saleId);
-        
+
         $returnedItems = DB::table('sales_return_items')
             ->join('sales_returns', 'sales_return_items.sales_return_id', '=', 'sales_returns.id')
             ->where('sales_returns.sale_id', $saleId)

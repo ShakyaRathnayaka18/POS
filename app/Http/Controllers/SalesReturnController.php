@@ -5,18 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Models\SalesReturn;
 use App\Services\SalesReturnService;
-use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Http\Request;
 
 class SalesReturnController extends Controller
 {
-    public function __construct(protected SalesReturnService $returnService)
-    {
-    }
+    public function __construct(protected SalesReturnService $returnService) {}
 
     public function index()
     {
-        $returns = SalesReturn::with(['sale.customer', 'processedBy'])
+        $returns = SalesReturn::with(['sale', 'processedBy'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
@@ -39,7 +37,10 @@ class SalesReturnController extends Controller
     public function getReturnableItems(Sale $sale)
     {
         try {
+            // Load customer data with the sale
+            $sale->load('user');
             $items = $this->returnService->getReturnableItemsForSale($sale->id);
+
             return response()->json([
                 'sale' => $sale,
                 'items' => $items,
@@ -70,7 +71,7 @@ class SalesReturnController extends Controller
 
         try {
             $sale = Sale::findOrFail($validated['sale_id']);
-            
+
             $subtotal = 0;
             $totalTax = 0;
             $itemsData = [];
@@ -81,6 +82,7 @@ class SalesReturnController extends Controller
                 $totalTax += $itemTotal * (($itemData['tax'] ?? 0) / 100);
 
                 $itemData['item_total'] = $itemTotal;
+                $itemData['price'] = $itemData['selling_price']; // Set price to selling_price for compatibility
                 $itemData['restore_to_stock'] = ($itemData['condition'] === 'Good');
                 $itemsData[] = $itemData;
             }
@@ -112,6 +114,7 @@ class SalesReturnController extends Controller
     public function show(SalesReturn $salesReturn)
     {
         $salesReturn->load('sale', 'items.product', 'items.saleItem', 'processedBy');
+
         return view('sales-returns.show', compact('salesReturn'));
     }
 
@@ -123,11 +126,12 @@ class SalesReturnController extends Controller
 
         $validated = $request->validate([
             'refund_method' => 'required|string|in:Cash,Card,Store Credit',
-            'refund_amount' => 'required|numeric|min:0|max:' . $salesReturn->total,
+            'refund_amount' => 'required|numeric|min:0|max:'.$salesReturn->total,
         ]);
 
         try {
             $this->returnService->processRefund($salesReturn, $validated['refund_method'], $validated['refund_amount']);
+
             return back()->with('success', 'Refund processed successfully.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -142,6 +146,7 @@ class SalesReturnController extends Controller
 
         try {
             $this->returnService->cancelReturn($salesReturn);
+
             return back()->with('success', 'Sales return cancelled and stock restored.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());

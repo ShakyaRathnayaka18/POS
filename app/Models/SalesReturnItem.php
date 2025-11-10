@@ -16,6 +16,7 @@ class SalesReturnItem extends Model
         'stock_id',
         'product_id',
         'quantity_returned',
+        'price',
         'selling_price',
         'tax',
         'item_total',
@@ -25,6 +26,7 @@ class SalesReturnItem extends Model
     ];
 
     protected $casts = [
+        'price' => 'decimal:2',
         'selling_price' => 'decimal:2',
         'tax' => 'decimal:2',
         'item_total' => 'decimal:2',

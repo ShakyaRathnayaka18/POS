@@ -73,13 +73,27 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const saleSelect = document.getElementById('sale_id');
-    
+    const returnForm = document.getElementById('returnForm');
+
     if (saleSelect.value) {
         loadReturnableItems(saleSelect.value);
     }
 
     saleSelect.addEventListener('change', function() {
         loadReturnableItems(this.value);
+    });
+
+    // Filter out items with quantity 0 before submitting
+    returnForm.addEventListener('submit', function(e) {
+        const itemsContainer = document.getElementById('itemsContainer');
+        const itemDivs = itemsContainer.querySelectorAll(':scope > div');
+
+        itemDivs.forEach(itemDiv => {
+            const quantityInput = itemDiv.querySelector('[name*="[quantity_returned]"]');
+            if (quantityInput && parseInt(quantityInput.value) === 0) {
+                itemDiv.remove();
+            }
+        });
     });
 });
 
@@ -117,12 +131,19 @@ function loadReturnableItems(saleId) {
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condition</label>
-                                    <select name="items[${index}][condition]" class="w-full form-select">
+                                    <select name="items[${index}][condition]" onchange="handleConditionChange(this, ${index})" class="w-full form-select condition-select" data-index="${index}">
                                         <option value="Good">Good</option>
                                         <option value="Damaged">Damaged</option>
                                         <option value="Defective">Defective</option>
                                         <option value="Used">Used</option>
                                     </select>
+                                </div>
+                                <div class="md:col-span-4 mt-2">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="items[${index}][restore_to_stock]" value="1" checked class="form-checkbox restore-checkbox" data-index="${index}">
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Restore to Stock</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Items in good condition can be restored to inventory</p>
                                 </div>
                             </div>
                         </div>
@@ -148,7 +169,7 @@ function updateCalculations() {
         const quantity = parseFloat(itemEl.querySelector('[name*="[quantity_returned]"]').value) || 0;
         const price = parseFloat(itemEl.querySelector('[name*="[selling_price]"]').value) || 0;
         const taxRate = parseFloat(itemEl.querySelector('[name*="[tax]"]').value) || 0;
-        
+
         if (quantity > 0) {
             const itemSubtotal = quantity * price;
             subtotal += itemSubtotal;
@@ -159,6 +180,22 @@ function updateCalculations() {
     document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
     document.getElementById('taxDisplay').textContent = tax.toFixed(2);
     document.getElementById('totalDisplay').textContent = (subtotal + tax).toFixed(2);
+}
+
+function handleConditionChange(selectElement, index) {
+    const condition = selectElement.value;
+    const restoreCheckbox = document.querySelector(`.restore-checkbox[data-index="${index}"]`);
+
+    if (restoreCheckbox) {
+        // Only "Good" condition items can be restored to stock
+        if (condition === 'Good') {
+            restoreCheckbox.checked = true;
+            restoreCheckbox.disabled = false;
+        } else {
+            restoreCheckbox.checked = false;
+            restoreCheckbox.disabled = true;
+        }
+    }
 }
 </script>
 @endsection
