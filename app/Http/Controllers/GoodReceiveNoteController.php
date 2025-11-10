@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\GoodReceiveNote;
-use App\Models\Product;
 use App\Models\Supplier;
 use App\Services\GoodReceiveNoteService;
 use Illuminate\Http\Request;
@@ -32,9 +33,11 @@ class GoodReceiveNoteController extends Controller
     public function create()
     {
         $suppliers = Supplier::all();
+        $categories = Category::all();
+        $brands = Brand::all();
         $grnNumber = $this->grnService->generateGrnNumber();
 
-        return view('good-receive-notes.create', compact('suppliers', 'grnNumber'));
+        return view('good-receive-notes.create', compact('suppliers', 'categories', 'brands', 'grnNumber'));
     }
 
     /**

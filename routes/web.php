@@ -82,3 +82,6 @@ Route::get('/stock-create', function () {
 
 // Add resource route for suppliers
 Route::resource('suppliers', SupplierController::class);
+
+// Vendor codes management routes
+Route::resource('vendor-codes', VendorCodeController::class)->only(['index', 'store', 'update', 'destroy']);
