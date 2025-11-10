@@ -27,10 +27,14 @@
                     <select name="good_receive_note_id" id="good_receive_note_id" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
                         <option value="">Select GRN</option>
-                        {{-- This could be populated with an AJAX search or a pre-loaded list --}}
-                        @if($grn)
-                            <option value="{{ $grn->id }}" selected>{{ $grn->grn_number }} - {{ $grn->supplier->company_name }}</option>
-                        @endif
+                        @foreach($grns as $grnOption)
+                            <option value="{{ $grnOption->id }}"
+                                data-supplier-id="{{ $grnOption->supplier_id }}"
+                                data-supplier-name="{{ $grnOption->supplier->company_name }}"
+                                {{ ($grn && $grn->id == $grnOption->id) ? 'selected' : '' }}>
+                                {{ $grnOption->grn_number }} - {{ $grnOption->supplier->company_name }} ({{ $grnOption->received_date }})
+                            </option>
+                        @endforeach
                     </select>
                     @error('good_receive_note_id')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
@@ -120,6 +124,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     grnSelect.addEventListener('change', function() {
         currentGrnId = this.value;
+
+        // Update supplier information
+        const selectedOption = this.options[this.selectedIndex];
+        if (currentGrnId) {
+            const supplierId = selectedOption.getAttribute('data-supplier-id');
+            const supplierName = selectedOption.getAttribute('data-supplier-name');
+            document.getElementById('supplier_id').value = supplierId;
+            document.getElementById('supplier_name').value = supplierName;
+        } else {
+            document.getElementById('supplier_id').value = '';
+            document.getElementById('supplier_name').value = '';
+        }
+
         loadReturnableStock(currentGrnId);
     });
 

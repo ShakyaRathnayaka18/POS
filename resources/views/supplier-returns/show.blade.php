@@ -30,7 +30,7 @@
                 <div><span class="font-medium text-gray-700 dark:text-gray-300">Supplier:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->supplier->company_name }}</span></div>
                 <div><span class="font-medium text-gray-700 dark:text-gray-300">Return Date:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->return_date->format('F d, Y') }}</span></div>
                 <div><span class="font-medium text-gray-700 dark:text-gray-300">Return Reason:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->return_reason }}</span></div>
-                <div><span class="font-medium text-gray-700 dark:text-gray-300">Created By:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->createdBy->name ?? 'N/A' }}</span></div>
+                <div><span class="font-medium text-gray-700 dark:text-gray-300">Created By:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->createdBy->name ?? 'System' }}</span></div>
                 @if($supplierReturn->approvedBy)
                 <div><span class="font-medium text-gray-700 dark:text-gray-300">Approved By:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->approvedBy->name }}</span></div>
                 <div><span class="font-medium text-gray-700 dark:text-gray-300">Approved At:</span> <span class="text-gray-900 dark:text-gray-200">{{ $supplierReturn->approved_at->format('F d, Y H:i') }}</span></div>

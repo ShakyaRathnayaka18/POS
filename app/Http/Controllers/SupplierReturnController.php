@@ -5,14 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\GoodReceiveNote;
 use App\Models\SupplierReturn;
 use App\Services\SupplierReturnService;
-use Illuminate\Http\Request;
 use Exception;
+use Illuminate\Http\Request;
 
 class SupplierReturnController extends Controller
 {
-    public function __construct(protected SupplierReturnService $returnService)
-    {
-    }
+    public function __construct(protected SupplierReturnService $returnService) {}
 
     public function index()
     {
@@ -29,15 +27,22 @@ class SupplierReturnController extends Controller
         if ($request->has('grn_id')) {
             $grn = GoodReceiveNote::with('supplier')->find($request->grn_id);
         }
+
+        // Load all GRNs with their suppliers for the dropdown
+        $grns = GoodReceiveNote::with('supplier')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         $returnNumber = $this->returnService->generateReturnNumber();
 
-        return view('supplier-returns.create', compact('returnNumber', 'grn'));
+        return view('supplier-returns.create', compact('returnNumber', 'grn', 'grns'));
     }
 
     public function getReturnableStock(GoodReceiveNote $grn)
     {
         try {
             $stock = $this->returnService->getReturnableStockForGrn($grn->id);
+
             return response()->json($stock);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
@@ -80,7 +85,7 @@ class SupplierReturnController extends Controller
             $returnData['adjustment'] = 0; // Default adjustment
             $returnData['total'] = $subtotal + $totalTax;
             $returnData['status'] = 'Pending';
-            $returnData['created_by'] = auth()->id();
+            $returnData['created_by'] = auth()->id() ?? 1; // Default to 1 if no authentication
 
             $supplierReturn = $this->returnService->createSupplierReturn($returnData, $validated['items']);
 
@@ -95,21 +100,24 @@ class SupplierReturnController extends Controller
     public function show(SupplierReturn $supplierReturn)
     {
         $supplierReturn->load(
-            'supplier', 
-            'goodReceiveNote', 
-            'items.product', 
-            'items.batch', 
-            'items.stock', 
-            'createdBy', 
+            'supplier',
+            'goodReceiveNote',
+            'items.product',
+            'items.batch',
+            'items.stock',
+            'createdBy',
             'approvedBy'
         );
+
         return view('supplier-returns.show', compact('supplierReturn'));
     }
 
     public function approve(SupplierReturn $supplierReturn)
     {
         try {
-            $this->returnService->approveReturn($supplierReturn, auth()->id());
+            $approvedBy = auth()->id() ?? 1; // Default to 1 if no authentication
+            $this->returnService->approveReturn($supplierReturn, $approvedBy);
+
             return back()->with('success', 'Return approved successfully.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -120,6 +128,7 @@ class SupplierReturnController extends Controller
     {
         try {
             $this->returnService->completeReturn($supplierReturn);
+
             return back()->with('success', 'Return marked as completed.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -130,6 +139,7 @@ class SupplierReturnController extends Controller
     {
         try {
             $this->returnService->cancelReturn($supplierReturn);
+
             return back()->with('success', 'Return cancelled and stock restored.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
