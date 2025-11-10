@@ -71,11 +71,40 @@ class ProductController extends Controller
             'minimum_stock' => 'nullable|integer',
             'maximum_stock' => 'nullable|integer',
             'product_image' => 'nullable|image|max:2048',
+            'supplier_id' => 'nullable|exists:suppliers,id',
+            'vendor_product_code' => 'nullable|string|max:255',
         ]);
+
         if ($request->hasFile('product_image')) {
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');
         }
-        Product::create($validated);
+
+        $product = Product::create($validated);
+
+        // If supplier_id is provided, create the product-supplier relationship
+        if ($request->filled('supplier_id')) {
+            $product->suppliers()->attach($request->supplier_id, [
+                'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
+                'vendor_cost_price' => $request->cost_price,
+                'is_preferred' => false,
+                'lead_time_days' => null,
+            ]);
+        }
+
+        // Handle AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Product created successfully.',
+                'product' => [
+                    'id' => $product->id,
+                    'product_name' => $product->product_name,
+                    'sku' => $product->sku,
+                    'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
+                    'vendor_cost_price' => $product->cost_price,
+                ],
+            ]);
+        }
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }

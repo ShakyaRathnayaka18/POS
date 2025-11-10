@@ -7,6 +7,7 @@ use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\VendorCodeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -77,3 +78,6 @@ Route::get('/stock-create', function () {
 
 // Add resource route for suppliers
 Route::resource('suppliers', SupplierController::class);
+
+// Vendor codes management routes
+Route::resource('vendor-codes', VendorCodeController::class)->only(['index', 'store', 'update', 'destroy']);
