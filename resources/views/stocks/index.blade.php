@@ -65,9 +65,9 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option value="">All Products</option>
                     @foreach($products as $product)
-                        <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
-                            {{ $product->product_name }}
-                        </option>
+                    <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
+                        {{ $product->product_name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -83,8 +83,8 @@
                 </select>
             </div>
 
-            <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            <div class="flex items-end gap-4">
+                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-black font-bold py-2 px-4 rounded-md transition-colors" style="border: 1px solid #60a5fa !important;">
                     <i class="fas fa-search mr-2"></i>Filter
                 </button>
                 <a href="{{ route('stocks.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
@@ -144,18 +144,18 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($stock->available_quantity == 0)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                    Out of Stock
-                                </span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                Out of Stock
+                            </span>
                             @elseif($stock->available_quantity <= ($stock->quantity / 2))
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                     Low Stock
                                 </span>
-                            @else
+                                @else
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                     In Stock
                                 </span>
-                            @endif
+                                @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <a href="{{ route('stocks.show', $stock) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>

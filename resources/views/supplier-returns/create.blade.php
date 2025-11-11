@@ -28,16 +28,16 @@
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
                         <option value="">Select GRN</option>
                         @foreach($grns as $grnOption)
-                            <option value="{{ $grnOption->id }}"
-                                data-supplier-id="{{ $grnOption->supplier_id }}"
-                                data-supplier-name="{{ $grnOption->supplier->company_name }}"
-                                {{ ($grn && $grn->id == $grnOption->id) ? 'selected' : '' }}>
-                                {{ $grnOption->grn_number }} - {{ $grnOption->supplier->company_name }} ({{ $grnOption->received_date }})
-                            </option>
+                        <option value="{{ $grnOption->id }}"
+                            data-supplier-id="{{ $grnOption->supplier_id }}"
+                            data-supplier-name="{{ $grnOption->supplier->company_name }}"
+                            {{ ($grn && $grn->id == $grnOption->id) ? 'selected' : '' }}>
+                            {{ $grnOption->grn_number }} - {{ $grnOption->supplier->company_name }} ({{ $grnOption->received_date }})
+                        </option>
                         @endforeach
                     </select>
                     @error('good_receive_note_id')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -53,7 +53,7 @@
                     <input type="date" name="return_date" id="return_date" value="{{ date('Y-m-d') }}" required
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
                     @error('return_date')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
@@ -97,12 +97,8 @@
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: $<span id="totalDisplay">0.00</span></p>
                 </div>
                 <div class="space-x-4">
-                    <a href="{{ route('supplier-returns.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">
-                        Cancel
-                    </a>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">
-                        Create Return
-                    </button>
+                    <a href="{{ route('supplier-returns.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">Cancel</a>
+                    <button type="submit" class="bg-blue-900 hover:bg-blue-900 text-black py-2 px-6 rounded border border-b-blue-900">Create Return</button>
                 </div>
             </div>
         </div>
@@ -110,82 +106,83 @@
 </div>
 
 <script>
-let itemIndex = 0;
-let returnableStock = [];
-let currentGrnId = '{{ $grn->id ?? '' }}';
+    let itemIndex = 0;
+    let returnableStock = [];
+    let currentGrnId = '{{ $grn->id ?? '
+    ' }}';
 
-document.addEventListener('DOMContentLoaded', function() {
-    const grnSelect = document.getElementById('good_receive_note_id');
-    
-    // If a GRN is pre-selected, load its stock
-    if (currentGrnId) {
-        loadReturnableStock(currentGrnId);
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const grnSelect = document.getElementById('good_receive_note_id');
 
-    grnSelect.addEventListener('change', function() {
-        currentGrnId = this.value;
-
-        // Update supplier information
-        const selectedOption = this.options[this.selectedIndex];
+        // If a GRN is pre-selected, load its stock
         if (currentGrnId) {
-            const supplierId = selectedOption.getAttribute('data-supplier-id');
-            const supplierName = selectedOption.getAttribute('data-supplier-name');
-            document.getElementById('supplier_id').value = supplierId;
-            document.getElementById('supplier_name').value = supplierName;
-        } else {
-            document.getElementById('supplier_id').value = '';
-            document.getElementById('supplier_name').value = '';
+            loadReturnableStock(currentGrnId);
         }
 
-        loadReturnableStock(currentGrnId);
+        grnSelect.addEventListener('change', function() {
+            currentGrnId = this.value;
+
+            // Update supplier information
+            const selectedOption = this.options[this.selectedIndex];
+            if (currentGrnId) {
+                const supplierId = selectedOption.getAttribute('data-supplier-id');
+                const supplierName = selectedOption.getAttribute('data-supplier-name');
+                document.getElementById('supplier_id').value = supplierId;
+                document.getElementById('supplier_name').value = supplierName;
+            } else {
+                document.getElementById('supplier_id').value = '';
+                document.getElementById('supplier_name').value = '';
+            }
+
+            loadReturnableStock(currentGrnId);
+        });
+
+        document.getElementById('addItemBtn').addEventListener('click', addItem);
     });
 
-    document.getElementById('addItemBtn').addEventListener('click', addItem);
-});
-
-function loadReturnableStock(grnId) {
-    const addItemBtn = document.getElementById('addItemBtn');
-    if (grnId) {
-        addItemBtn.disabled = true;
-        fetch(`/good-receive-notes/${grnId}/returnable-stock`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                returnableStock = data;
-                addItemBtn.disabled = false;
-                document.getElementById('itemsContainer').innerHTML = '';
-                itemIndex = 0;
-                // You might want to auto-fill supplier info here if not already done
-            })
-            .catch(error => {
-                console.error('Error fetching returnable stock:', error);
-                alert('Error loading stock for this GRN. Please ensure the GRN exists and has available stock.');
-                returnableStock = [];
-                addItemBtn.disabled = true;
-            });
-    } else {
-        returnableStock = [];
-        addItemBtn.disabled = true;
-        document.getElementById('itemsContainer').innerHTML = '';
-        itemIndex = 0;
-    }
-}
-
-function addItem() {
-    if (!currentGrnId) {
-        alert('Please select a GRN first');
-        return;
+    function loadReturnableStock(grnId) {
+        const addItemBtn = document.getElementById('addItemBtn');
+        if (grnId) {
+            addItemBtn.disabled = true;
+            fetch(`/good-receive-notes/${grnId}/returnable-stock`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    returnableStock = data;
+                    addItemBtn.disabled = false;
+                    document.getElementById('itemsContainer').innerHTML = '';
+                    itemIndex = 0;
+                    // You might want to auto-fill supplier info here if not already done
+                })
+                .catch(error => {
+                    console.error('Error fetching returnable stock:', error);
+                    alert('Error loading stock for this GRN. Please ensure the GRN exists and has available stock.');
+                    returnableStock = [];
+                    addItemBtn.disabled = true;
+                });
+        } else {
+            returnableStock = [];
+            addItemBtn.disabled = true;
+            document.getElementById('itemsContainer').innerHTML = '';
+            itemIndex = 0;
+        }
     }
 
-    if (returnableStock.length === 0) {
-        alert('This GRN has no returnable stock.');
-        return;
-    }
+    function addItem() {
+        if (!currentGrnId) {
+            alert('Please select a GRN first');
+            return;
+        }
 
-    const container = document.getElementById('itemsContainer');
-    const itemHtml = `
+        if (returnableStock.length === 0) {
+            alert('This GRN has no returnable stock.');
+            return;
+        }
+
+        const container = document.getElementById('itemsContainer');
+        const itemHtml = `
         <div class="border border-gray-300 dark:border-gray-600 rounded-md p-4 mb-4" id="item-${itemIndex}">
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-semibold text-gray-800 dark:text-white">Item #${itemIndex + 1}</h3>
@@ -226,55 +223,55 @@ function addItem() {
             </div>
         </div>
     `;
-    container.insertAdjacentHTML('beforeend', itemHtml);
-    itemIndex++;
-}
+        container.insertAdjacentHTML('beforeend', itemHtml);
+        itemIndex++;
+    }
 
-function handleStockChange(index, stockId) {
-    if (!stockId) return;
+    function handleStockChange(index, stockId) {
+        if (!stockId) return;
 
-    const stock = returnableStock.find(s => s.id == stockId);
-    if (!stock) return;
+        const stock = returnableStock.find(s => s.id == stockId);
+        if (!stock) return;
 
-    const itemContainer = document.getElementById(`item-${index}`);
-    if (!itemContainer) return;
+        const itemContainer = document.getElementById(`item-${index}`);
+        if (!itemContainer) return;
 
-    const costPriceInput = itemContainer.querySelector('[name*="[cost_price]"]');
-    costPriceInput.value = stock.cost_price;
-    
-    const taxInput = itemContainer.querySelector('[name*="[tax]"]');
-    taxInput.value = stock.tax;
+        const costPriceInput = itemContainer.querySelector('[name*="[cost_price]"]');
+        costPriceInput.value = stock.cost_price;
 
-    const quantityInput = itemContainer.querySelector('[name*="[quantity_returned]"]');
-    quantityInput.max = stock.available_quantity;
+        const taxInput = itemContainer.querySelector('[name*="[tax]"]');
+        taxInput.value = stock.tax;
 
-    updateCalculations();
-}
+        const quantityInput = itemContainer.querySelector('[name*="[quantity_returned]"]');
+        quantityInput.max = stock.available_quantity;
 
-function removeItem(index) {
-    document.getElementById(`item-${index}`).remove();
-    updateCalculations();
-}
+        updateCalculations();
+    }
 
-function updateCalculations() {
-    let subtotal = 0;
-    let tax = 0;
+    function removeItem(index) {
+        document.getElementById(`item-${index}`).remove();
+        updateCalculations();
+    }
 
-    document.querySelectorAll('#itemsContainer > div').forEach(item => {
-        const quantity = parseFloat(item.querySelector('[name*="[quantity_returned]"]')?.value || 0);
-        const costPrice = parseFloat(item.querySelector('[name*="[cost_price]"]')?.value || 0);
-        const taxRate = parseFloat(item.querySelector('[name*="[tax]"]')?.value || 0);
+    function updateCalculations() {
+        let subtotal = 0;
+        let tax = 0;
 
-        const itemSubtotal = quantity * costPrice;
-        const itemTax = itemSubtotal * (taxRate / 100);
+        document.querySelectorAll('#itemsContainer > div').forEach(item => {
+            const quantity = parseFloat(item.querySelector('[name*="[quantity_returned]"]')?.value || 0);
+            const costPrice = parseFloat(item.querySelector('[name*="[cost_price]"]')?.value || 0);
+            const taxRate = parseFloat(item.querySelector('[name*="[tax]"]')?.value || 0);
 
-        subtotal += itemSubtotal;
-        tax += itemTax;
-    });
+            const itemSubtotal = quantity * costPrice;
+            const itemTax = itemSubtotal * (taxRate / 100);
 
-    document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
-    document.getElementById('taxDisplay').textContent = tax.toFixed(2);
-    document.getElementById('totalDisplay').textContent = (subtotal + tax).toFixed(2);
-}
+            subtotal += itemSubtotal;
+            tax += itemTax;
+        });
+
+        document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
+        document.getElementById('taxDisplay').textContent = tax.toFixed(2);
+        document.getElementById('totalDisplay').textContent = (subtotal + tax).toFixed(2);
+    }
 </script>
 @endsection
