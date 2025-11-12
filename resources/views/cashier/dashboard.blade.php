@@ -41,7 +41,7 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-medium text-gray-900 dark:text-white" x-text="'$' + parseFloat(product.selling_price).toFixed(2)"></div>
+                                    <div class="font-medium text-gray-900 dark:text-white" x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></div>
                                     <div class="text-xs" :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
                                         <span x-text="product.available_quantity"></span> <span x-text="product.unit"></span> available
                                     </div>
@@ -74,14 +74,14 @@
                         <div class="flex-1">
                             <div class="font-medium text-gray-900 dark:text-white" x-text="item.product_name"></div>
                             <div class="text-sm text-gray-500 dark:text-gray-400">
-                                $<span x-text="parseFloat(item.selling_price).toFixed(2)"></span> each
+                                LKR <span x-text="parseFloat(item.selling_price).toFixed(2)"></span> each
                                 <span class="ml-2 text-xs">Tax: <span x-text="item.tax"></span>%</span>
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                 Available: <span x-text="item.available_quantity"></span> <span x-text="item.unit"></span>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
+                        <div class="flex items-center space-x-4">
                             <button
                                 @click="decrementQuantity(index)"
                                 type="button"
@@ -102,14 +102,18 @@
                                 class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <i class="fas fa-plus text-xs"></i>
                             </button>
-                            <span class="w-20 text-right font-medium dark:text-white" x-text="'$' + calculateItemTotal(item).toFixed(2)"></span>
+
+                            <!-- Added spacing for currency and removed the previous alignment problem -->
+                            <span class="w-20 text-right font-medium dark:text-white ml-4" x-text="'LKR ' + calculateItemTotal(item).toFixed(2)"></span>
+
                             <button
                                 @click="removeFromCart(index)"
                                 type="button"
-                                class="text-red-500 hover:text-red-700 ml-2">
+                                class="text-red-500 hover:text-red-700 ml-4">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
+
                     </div>
                 </template>
             </div>
@@ -150,16 +154,16 @@
             <div class="space-y-2">
                 <div class="flex justify-between">
                     <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span class="font-medium dark:text-white" x-text="'$' + totals.subtotal.toFixed(2)"></span>
+                    <span class="font-medium dark:text-white" x-text="'LKR ' + totals.subtotal.toFixed(2)"></span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600 dark:text-gray-400">Tax:</span>
-                    <span class="font-medium dark:text-white" x-text="'$' + totals.tax.toFixed(2)"></span>
+                    <span class="font-medium dark:text-white" x-text="'LKR ' + totals.tax.toFixed(2)"></span>
                 </div>
                 <hr class="border-gray-200 dark:border-gray-600">
                 <div class="flex justify-between text-lg font-bold">
                     <span class="dark:text-white">Total:</span>
-                    <span class="text-green-600 dark:text-green-400" x-text="'$' + totals.total.toFixed(2)"></span>
+                    <span class="text-green-600 dark:text-green-400" x-text="'LKR ' + totals.total.toFixed(2)"></span>
                 </div>
             </div>
         </div>
@@ -234,7 +238,7 @@
                     placeholder="0.00"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'$' + changeAmount.toFixed(2)"></span>
+                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'LKR' + changeAmount.toFixed(2)"></span>
                 </div>
             </div>
         </div>
@@ -361,383 +365,385 @@
 </div>
 
 <style>
-[x-cloak] { display: none !important; }
+    [x-cloak] {
+        display: none !important;
+    }
 </style>
 
 <script>
-function cashierPos() {
-    return {
-        searchQuery: '',
-        searchResults: [],
-        isSearching: false,
-        cart: [],
-        totals: {
-            subtotal: 0,
-            tax: 0,
-            total: 0
-        },
-        paymentMethod: 'Cash',
-        amountReceived: 0,
-        changeAmount: 0,
-        customerName: '',
-        customerPhone: '',
-        isProcessing: false,
-        errorMessage: '',
-        showSaveCartModal: false,
-        showSavedCartsModal: false,
-        saveCartName: '',
-        isSavingCart: false,
-        savedCarts: [],
-        isLoadingSavedCarts: false,
+    function cashierPos() {
+        return {
+            searchQuery: '',
+            searchResults: [],
+            isSearching: false,
+            cart: [],
+            totals: {
+                subtotal: 0,
+                tax: 0,
+                total: 0
+            },
+            paymentMethod: 'Cash',
+            amountReceived: 0,
+            changeAmount: 0,
+            customerName: '',
+            customerPhone: '',
+            isProcessing: false,
+            errorMessage: '',
+            showSaveCartModal: false,
+            showSavedCartsModal: false,
+            saveCartName: '',
+            isSavingCart: false,
+            savedCarts: [],
+            isLoadingSavedCarts: false,
 
-        init() {
-            // Load saved carts count
-            this.loadSavedCarts();
-            // Focus on search input on load
-            this.$nextTick(() => {
-                document.querySelector('input[x-model="searchQuery"]')?.focus();
-            });
-        },
-
-        async searchProducts() {
-            if (this.searchQuery.length < 2) {
-                this.searchResults = [];
-                return;
-            }
-
-            this.isSearching = true;
-            this.errorMessage = '';
-
-            try {
-                const response = await fetch(`/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
-                const data = await response.json();
-                this.searchResults = data;
-            } catch (error) {
-                console.error('Search error:', error);
-                this.errorMessage = 'Error searching products. Please try again.';
-            } finally {
-                this.isSearching = false;
-            }
-        },
-
-        selectFirstProduct() {
-            if (this.searchResults.length > 0) {
-                this.addToCart(this.searchResults[0]);
-            }
-        },
-
-        addToCart(product) {
-            if (!product.in_stock || product.available_quantity <= 0) {
-                this.errorMessage = `${product.product_name} is out of stock.`;
-                return;
-            }
-
-            // Check if product already in cart
-            const existingIndex = this.cart.findIndex(item => item.id === product.id);
-
-            if (existingIndex !== -1) {
-                // Increment quantity if not exceeding available stock
-                const currentItem = this.cart[existingIndex];
-                if (currentItem.quantity < currentItem.available_quantity) {
-                    currentItem.quantity++;
-                    this.calculateTotals();
-                } else {
-                    this.errorMessage = `Maximum available quantity (${currentItem.available_quantity}) reached for ${product.product_name}.`;
-                }
-            } else {
-                // Add new item to cart
-                this.cart.push({
-                    ...product,
-                    quantity: 1
+            init() {
+                // Load saved carts count
+                this.loadSavedCarts();
+                // Focus on search input on load
+                this.$nextTick(() => {
+                    document.querySelector('input[x-model="searchQuery"]')?.focus();
                 });
-                this.calculateTotals();
-            }
+            },
 
-            // Clear search
-            this.searchQuery = '';
-            this.searchResults = [];
-            this.errorMessage = '';
-
-            // Refocus search input
-            this.$nextTick(() => {
-                document.querySelector('input[x-model="searchQuery"]')?.focus();
-            });
-        },
-
-        removeFromCart(index) {
-            this.cart.splice(index, 1);
-            this.calculateTotals();
-            this.errorMessage = '';
-        },
-
-        incrementQuantity(index) {
-            if (this.cart[index].quantity < this.cart[index].available_quantity) {
-                this.cart[index].quantity++;
-                this.calculateTotals();
-            }
-        },
-
-        decrementQuantity(index) {
-            if (this.cart[index].quantity > 1) {
-                this.cart[index].quantity--;
-                this.calculateTotals();
-            } else {
-                this.removeFromCart(index);
-            }
-        },
-
-        validateQuantity(index) {
-            const item = this.cart[index];
-            if (item.quantity < 1) {
-                item.quantity = 1;
-            } else if (item.quantity > item.available_quantity) {
-                item.quantity = item.available_quantity;
-                this.errorMessage = `Maximum available quantity is ${item.available_quantity}.`;
-            }
-            this.calculateTotals();
-        },
-
-        calculateItemTotal(item) {
-            const subtotal = item.quantity * parseFloat(item.selling_price);
-            const tax = subtotal * (parseFloat(item.tax) / 100);
-            return subtotal + tax;
-        },
-
-        calculateTotals() {
-            let subtotal = 0;
-            let tax = 0;
-
-            this.cart.forEach(item => {
-                const itemSubtotal = item.quantity * parseFloat(item.selling_price);
-                const itemTax = itemSubtotal * (parseFloat(item.tax) / 100);
-                subtotal += itemSubtotal;
-                tax += itemTax;
-            });
-
-            this.totals.subtotal = subtotal;
-            this.totals.tax = tax;
-            this.totals.total = subtotal + tax;
-
-            this.calculateChange();
-        },
-
-        calculateChange() {
-            if (this.paymentMethod === 'Cash') {
-                this.changeAmount = this.amountReceived - this.totals.total;
-            } else {
-                this.changeAmount = 0;
-            }
-        },
-
-        clearCart() {
-            if (confirm('Are you sure you want to clear the cart?')) {
-                this.cart = [];
-                this.calculateTotals();
-                this.errorMessage = '';
-            }
-        },
-
-        async completeSale() {
-            // Validation
-            if (this.cart.length === 0) {
-                this.errorMessage = 'Cart is empty. Add products to complete sale.';
-                return;
-            }
-
-            if (!this.paymentMethod) {
-                this.errorMessage = 'Please select a payment method.';
-                return;
-            }
-
-            if (this.paymentMethod === 'Cash' && this.amountReceived < this.totals.total) {
-                this.errorMessage = 'Amount received is less than total amount.';
-                return;
-            }
-
-            this.isProcessing = true;
-            this.errorMessage = '';
-
-            try {
-                const response = await fetch('/sales', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        payment_method: this.paymentMethod,
-                        customer_name: this.customerName || null,
-                        customer_phone: this.customerPhone || null,
-                        amount_received: this.paymentMethod === 'Cash' ? this.amountReceived : null,
-                        items: this.cart.map(item => ({
-                            product_id: item.id,
-                            quantity: item.quantity
-                        }))
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Success - redirect to receipt
-                    window.location.href = `/sales/${data.sale.id}`;
-                } else {
-                    this.errorMessage = data.message || 'Error processing sale. Please try again.';
-                }
-            } catch (error) {
-                console.error('Sale error:', error);
-                this.errorMessage = 'Error processing sale. Please try again.';
-            } finally {
-                this.isProcessing = false;
-            }
-        },
-
-        async saveCart() {
-            if (this.cart.length === 0) {
-                this.errorMessage = 'Cart is empty. Nothing to save.';
-                return;
-            }
-
-            this.isSavingCart = true;
-            this.errorMessage = '';
-
-            try {
-                const response = await fetch('/api/saved-carts', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        cart_name: this.saveCartName || null,
-                        customer_name: this.customerName || null,
-                        customer_phone: this.customerPhone || null,
-                        payment_method: this.paymentMethod || null,
-                        items: this.cart
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    // Clear current cart
-                    this.cart = [];
-                    this.customerName = '';
-                    this.customerPhone = '';
-                    this.paymentMethod = 'Cash';
-                    this.amountReceived = 0;
-                    this.calculateTotals();
-
-                    // Close modal and reset
-                    this.showSaveCartModal = false;
-                    this.saveCartName = '';
-
-                    // Reload saved carts
-                    this.loadSavedCarts();
-
-                    alert('Cart saved successfully!');
-                } else {
-                    this.errorMessage = data.message || 'Failed to save cart.';
-                }
-            } catch (error) {
-                console.error('Save cart error:', error);
-                this.errorMessage = 'Failed to save cart. Please try again.';
-            } finally {
-                this.isSavingCart = false;
-            }
-        },
-
-        async loadSavedCarts() {
-            this.isLoadingSavedCarts = true;
-
-            try {
-                const response = await fetch('/api/saved-carts');
-                const data = await response.json();
-                this.savedCarts = data;
-            } catch (error) {
-                console.error('Load saved carts error:', error);
-            } finally {
-                this.isLoadingSavedCarts = false;
-            }
-        },
-
-        async loadCart(savedCartId) {
-            if (this.cart.length > 0) {
-                if (!confirm('Loading this cart will replace your current cart. Continue?')) {
+            async searchProducts() {
+                if (this.searchQuery.length < 2) {
+                    this.searchResults = [];
                     return;
                 }
-            }
 
-            this.errorMessage = '';
+                this.isSearching = true;
+                this.errorMessage = '';
 
-            try {
-                const response = await fetch(`/api/saved-carts/${savedCartId}`);
-                const savedCart = await response.json();
+                try {
+                    const response = await fetch(`/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
+                    const data = await response.json();
+                    this.searchResults = data;
+                } catch (error) {
+                    console.error('Search error:', error);
+                    this.errorMessage = 'Error searching products. Please try again.';
+                } finally {
+                    this.isSearching = false;
+                }
+            },
 
-                // Map saved cart items to cart format
-                this.cart = savedCart.items.map(item => ({
-                    id: item.product.id,
-                    product_name: item.product.product_name,
-                    sku: item.product.sku,
-                    barcode: item.product.barcode,
-                    category: item.product.category?.name || 'N/A',
-                    brand: item.product.brand?.name || 'N/A',
-                    selling_price: item.price,
-                    tax: item.tax,
-                    unit: item.product.unit || 'pcs',
-                    available_quantity: item.stock?.available_quantity || item.product.available_stocks_sum_available_quantity || 0,
-                    quantity: item.quantity
-                }));
+            selectFirstProduct() {
+                if (this.searchResults.length > 0) {
+                    this.addToCart(this.searchResults[0]);
+                }
+            },
 
-                // Restore customer info and payment method
-                this.customerName = savedCart.customer_name || '';
-                this.customerPhone = savedCart.customer_phone || '';
-                this.paymentMethod = savedCart.payment_method || 'Cash';
+            addToCart(product) {
+                if (!product.in_stock || product.available_quantity <= 0) {
+                    this.errorMessage = `${product.product_name} is out of stock.`;
+                    return;
+                }
 
-                // Calculate totals
-                this.calculateTotals();
+                // Check if product already in cart
+                const existingIndex = this.cart.findIndex(item => item.id === product.id);
 
-                // Close modal
-                this.showSavedCartsModal = false;
-
-                alert('Cart loaded successfully!');
-            } catch (error) {
-                console.error('Load cart error:', error);
-                this.errorMessage = 'Failed to load cart. Please try again.';
-            }
-        },
-
-        async deleteSavedCart(savedCartId) {
-            if (!confirm('Are you sure you want to delete this saved cart?')) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/saved-carts/${savedCartId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json',
+                if (existingIndex !== -1) {
+                    // Increment quantity if not exceeding available stock
+                    const currentItem = this.cart[existingIndex];
+                    if (currentItem.quantity < currentItem.available_quantity) {
+                        currentItem.quantity++;
+                        this.calculateTotals();
+                    } else {
+                        this.errorMessage = `Maximum available quantity (${currentItem.available_quantity}) reached for ${product.product_name}.`;
                     }
+                } else {
+                    // Add new item to cart
+                    this.cart.push({
+                        ...product,
+                        quantity: 1
+                    });
+                    this.calculateTotals();
+                }
+
+                // Clear search
+                this.searchQuery = '';
+                this.searchResults = [];
+                this.errorMessage = '';
+
+                // Refocus search input
+                this.$nextTick(() => {
+                    document.querySelector('input[x-model="searchQuery"]')?.focus();
+                });
+            },
+
+            removeFromCart(index) {
+                this.cart.splice(index, 1);
+                this.calculateTotals();
+                this.errorMessage = '';
+            },
+
+            incrementQuantity(index) {
+                if (this.cart[index].quantity < this.cart[index].available_quantity) {
+                    this.cart[index].quantity++;
+                    this.calculateTotals();
+                }
+            },
+
+            decrementQuantity(index) {
+                if (this.cart[index].quantity > 1) {
+                    this.cart[index].quantity--;
+                    this.calculateTotals();
+                } else {
+                    this.removeFromCart(index);
+                }
+            },
+
+            validateQuantity(index) {
+                const item = this.cart[index];
+                if (item.quantity < 1) {
+                    item.quantity = 1;
+                } else if (item.quantity > item.available_quantity) {
+                    item.quantity = item.available_quantity;
+                    this.errorMessage = `Maximum available quantity is ${item.available_quantity}.`;
+                }
+                this.calculateTotals();
+            },
+
+            calculateItemTotal(item) {
+                const subtotal = item.quantity * parseFloat(item.selling_price);
+                const tax = subtotal * (parseFloat(item.tax) / 100);
+                return subtotal + tax;
+            },
+
+            calculateTotals() {
+                let subtotal = 0;
+                let tax = 0;
+
+                this.cart.forEach(item => {
+                    const itemSubtotal = item.quantity * parseFloat(item.selling_price);
+                    const itemTax = itemSubtotal * (parseFloat(item.tax) / 100);
+                    subtotal += itemSubtotal;
+                    tax += itemTax;
                 });
 
-                const data = await response.json();
+                this.totals.subtotal = subtotal;
+                this.totals.tax = tax;
+                this.totals.total = subtotal + tax;
 
-                if (data.success) {
-                    // Reload saved carts
-                    this.loadSavedCarts();
-                    alert('Cart deleted successfully!');
+                this.calculateChange();
+            },
+
+            calculateChange() {
+                if (this.paymentMethod === 'Cash') {
+                    this.changeAmount = this.amountReceived - this.totals.total;
                 } else {
-                    alert('Failed to delete cart.');
+                    this.changeAmount = 0;
                 }
-            } catch (error) {
-                console.error('Delete cart error:', error);
-                alert('Failed to delete cart. Please try again.');
+            },
+
+            clearCart() {
+                if (confirm('Are you sure you want to clear the cart?')) {
+                    this.cart = [];
+                    this.calculateTotals();
+                    this.errorMessage = '';
+                }
+            },
+
+            async completeSale() {
+                // Validation
+                if (this.cart.length === 0) {
+                    this.errorMessage = 'Cart is empty. Add products to complete sale.';
+                    return;
+                }
+
+                if (!this.paymentMethod) {
+                    this.errorMessage = 'Please select a payment method.';
+                    return;
+                }
+
+                if (this.paymentMethod === 'Cash' && this.amountReceived < this.totals.total) {
+                    this.errorMessage = 'Amount received is less than total amount.';
+                    return;
+                }
+
+                this.isProcessing = true;
+                this.errorMessage = '';
+
+                try {
+                    const response = await fetch('/sales', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            payment_method: this.paymentMethod,
+                            customer_name: this.customerName || null,
+                            customer_phone: this.customerPhone || null,
+                            amount_received: this.paymentMethod === 'Cash' ? this.amountReceived : null,
+                            items: this.cart.map(item => ({
+                                product_id: item.id,
+                                quantity: item.quantity
+                            }))
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Success - redirect to receipt
+                        window.location.href = `/sales/${data.sale.id}`;
+                    } else {
+                        this.errorMessage = data.message || 'Error processing sale. Please try again.';
+                    }
+                } catch (error) {
+                    console.error('Sale error:', error);
+                    this.errorMessage = 'Error processing sale. Please try again.';
+                } finally {
+                    this.isProcessing = false;
+                }
+            },
+
+            async saveCart() {
+                if (this.cart.length === 0) {
+                    this.errorMessage = 'Cart is empty. Nothing to save.';
+                    return;
+                }
+
+                this.isSavingCart = true;
+                this.errorMessage = '';
+
+                try {
+                    const response = await fetch('/api/saved-carts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            cart_name: this.saveCartName || null,
+                            customer_name: this.customerName || null,
+                            customer_phone: this.customerPhone || null,
+                            payment_method: this.paymentMethod || null,
+                            items: this.cart
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Clear current cart
+                        this.cart = [];
+                        this.customerName = '';
+                        this.customerPhone = '';
+                        this.paymentMethod = 'Cash';
+                        this.amountReceived = 0;
+                        this.calculateTotals();
+
+                        // Close modal and reset
+                        this.showSaveCartModal = false;
+                        this.saveCartName = '';
+
+                        // Reload saved carts
+                        this.loadSavedCarts();
+
+                        alert('Cart saved successfully!');
+                    } else {
+                        this.errorMessage = data.message || 'Failed to save cart.';
+                    }
+                } catch (error) {
+                    console.error('Save cart error:', error);
+                    this.errorMessage = 'Failed to save cart. Please try again.';
+                } finally {
+                    this.isSavingCart = false;
+                }
+            },
+
+            async loadSavedCarts() {
+                this.isLoadingSavedCarts = true;
+
+                try {
+                    const response = await fetch('/api/saved-carts');
+                    const data = await response.json();
+                    this.savedCarts = data;
+                } catch (error) {
+                    console.error('Load saved carts error:', error);
+                } finally {
+                    this.isLoadingSavedCarts = false;
+                }
+            },
+
+            async loadCart(savedCartId) {
+                if (this.cart.length > 0) {
+                    if (!confirm('Loading this cart will replace your current cart. Continue?')) {
+                        return;
+                    }
+                }
+
+                this.errorMessage = '';
+
+                try {
+                    const response = await fetch(`/api/saved-carts/${savedCartId}`);
+                    const savedCart = await response.json();
+
+                    // Map saved cart items to cart format
+                    this.cart = savedCart.items.map(item => ({
+                        id: item.product.id,
+                        product_name: item.product.product_name,
+                        sku: item.product.sku,
+                        barcode: item.product.barcode,
+                        category: item.product.category?.name || 'N/A',
+                        brand: item.product.brand?.name || 'N/A',
+                        selling_price: item.price,
+                        tax: item.tax,
+                        unit: item.product.unit || 'pcs',
+                        available_quantity: item.stock?.available_quantity || item.product.available_stocks_sum_available_quantity || 0,
+                        quantity: item.quantity
+                    }));
+
+                    // Restore customer info and payment method
+                    this.customerName = savedCart.customer_name || '';
+                    this.customerPhone = savedCart.customer_phone || '';
+                    this.paymentMethod = savedCart.payment_method || 'Cash';
+
+                    // Calculate totals
+                    this.calculateTotals();
+
+                    // Close modal
+                    this.showSavedCartsModal = false;
+
+                    alert('Cart loaded successfully!');
+                } catch (error) {
+                    console.error('Load cart error:', error);
+                    this.errorMessage = 'Failed to load cart. Please try again.';
+                }
+            },
+
+            async deleteSavedCart(savedCartId) {
+                if (!confirm('Are you sure you want to delete this saved cart?')) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/saved-carts/${savedCartId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Reload saved carts
+                        this.loadSavedCarts();
+                        alert('Cart deleted successfully!');
+                    } else {
+                        alert('Failed to delete cart.');
+                    }
+                } catch (error) {
+                    console.error('Delete cart error:', error);
+                    alert('Failed to delete cart. Please try again.');
+                }
             }
         }
     }
-}
 </script>
 @endsection

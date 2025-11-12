@@ -130,7 +130,7 @@
                             {{ $product->brand->brand_name ?? '' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            ${{ number_format($product->selling_price, 2) }}</td>
+                            LKR {{ number_format($product->selling_price, 2) }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $product->initial_stock }}
                         </td>
@@ -512,7 +512,7 @@
         @if(session('error'))
         toastr.error("{{ session('error') }}");
         @endif
-        @if($errors - > any())
+        @if($errors -> any())
         toastr.error(`{!! implode('<br>', $errors->all()) !!}`);
         @endif
     });

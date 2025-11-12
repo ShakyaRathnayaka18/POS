@@ -140,7 +140,7 @@
                             {{ $vendorCode->vendor_product_code }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            ${{ number_format($vendorCode->vendor_cost_price ?? 0, 2) }}
+                            LKR {{ number_format($vendorCode->vendor_cost_price ?? 0, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $vendorCode->lead_time_days ? $vendorCode->lead_time_days . ' days' : '-' }}

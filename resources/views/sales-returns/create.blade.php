@@ -70,9 +70,9 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="flex justify-between items-center">
                 <div class="text-gray-800 dark:text-white">
-                    <p class="text-lg font-semibold">Subtotal: $<span id="subtotalDisplay">0.00</span></p>
-                    <p class="text-lg font-semibold">Tax: $<span id="taxDisplay">0.00</span></p>
-                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: $<span id="totalDisplay">0.00</span></p>
+                    <p class="text-lg font-semibold">Subtotal: LKR <span id="subtotalDisplay">0.00</span></p>
+                    <p class="text-lg font-semibold">Tax: LKR <span id="taxDisplay">0.00</span></p>
+                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: LKR<span id="totalDisplay">0.00</span></p>
                 </div>
                 <div class="space-x-4">
                     <a href="{{ route('sales-returns.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">Cancel</a>

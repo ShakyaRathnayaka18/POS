@@ -129,10 +129,10 @@
                             {{ $stock->batch->barcode ?? '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${{ number_format($stock->cost_price, 2) }}
+                            LKR {{ number_format($stock->cost_price, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${{ number_format($stock->selling_price, 2) }}
+                            LKR {{ number_format($stock->selling_price, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {{ $stock->quantity }}
