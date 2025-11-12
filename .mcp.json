@@ -36,6 +36,19 @@
             "env": {
                 "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
             }
+        },
+        "mcp-freepik": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "mcp-remote",
+                "https://api.freepik.com/mcp",
+                "--header",
+                "x-freepik-api-key:${FREEPIK_API_KEY}"
+            ],
+            "env": {
+                "FREEPIK_API_KEY": "FPSXf2c55528d958da64bb019b360a80747b"
+            }
         }
     }
 }

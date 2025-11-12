@@ -31,10 +31,6 @@ Route::get('/expenses', function () {
     return view('expenses.index');
 })->name('expenses.index');
 
-Route::get('/inventory', function () {
-    return view('inventory.dashboard');
-})->name('inventory.dashboard');
-
 Route::get('/reports', function () {
     return view('reports.index');
 })->name('reports.index');

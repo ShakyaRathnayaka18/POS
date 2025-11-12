@@ -16,11 +16,6 @@
                             <i class="fas fa-cash-register  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Cashier
                         </a>
-                        <a href="{{ route('inventory.dashboard') }}"
-                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
-                            <i class="fas fa-boxes  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
-                            Inventory
-                        </a>
                     </div>
                 </div>
 

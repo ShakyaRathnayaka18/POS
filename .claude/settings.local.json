@@ -53,7 +53,9 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(awk:*)",
-      "Bash(vendor/bin/pint:*)"
+      "Bash(vendor/bin/pint:*)",
+      "Bash(dir:*)",
+      "Bash(nul)"
     ]
   },
   "enableAllProjectMcpServers": true,

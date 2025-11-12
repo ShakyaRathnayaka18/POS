@@ -105,8 +105,17 @@
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
-                                        <img class="h-10 w-10 rounded-lg object-cover"
-                                            src="{{ $product->product_image ?? 'https://via.placeholder.com/40' }}" alt="">
+                                        <div class="h-10 w-10 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                                            @if($product->product_image && file_exists(public_path('storage/' . $product->product_image)))
+                                                <img class="h-10 w-10 rounded-lg object-cover"
+                                                    src="{{ asset('storage/' . $product->product_image) }}" alt="{{ $product->product_name }}">
+                                            @elseif($product->category && $product->category->icon && file_exists(public_path('images/category-icons/' . $product->category->icon)))
+                                                <img class="h-8 w-8 object-contain"
+                                                    src="{{ asset('images/category-icons/' . $product->category->icon) }}" alt="{{ $product->category->cat_name }}">
+                                            @else
+                                                <i class="fas fa-box text-gray-400 dark:text-gray-500 text-xl"></i>
+                                            @endif
+                                        </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900 dark:text-white">
                                                 {{ $product->product_name }}</div>
@@ -124,12 +133,21 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                     {{ $product->brand->brand_name ?? '' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                                    ${{ number_format($product->selling_price, 2) }}</td>
+                                    @php
+                                        $latestStock = $product->availableStocks()->latest()->first();
+                                        $price = $latestStock ? $latestStock->selling_price : null;
+                                    @endphp
+                                    @if($price)
+                                        ${{ number_format($price, 2) }}
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">N/A</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                     {{ $product->initial_stock }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                     <button class="edit-btn text-[#2f85c3] dark:text-white border border-[#2f85c3] dark:border-white rounded px-3 py-1 transition-colors duration-200 hover:bg-[#2f85c3] hover:text-white dark:hover:bg-white dark:hover:text-[#2f85c3] font-semibold"
-                                        data-product="{{ htmlspecialchars(json_encode($product)) }}">Edit</button>
+                                        data-product='@json($product)'>Edit</button>
                                     <form action="{{ route('products.destroy', $product) }}" method="POST"
                                         style="display:inline;" onsubmit="return confirm('Are you sure?');">
                                         @csrf
@@ -210,13 +228,6 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barcode</label>
-                                <input name="barcode" type="text"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="e.g. 1234567890">
-                            </div>
-                            <div>
-                                <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                                 <textarea name="description" rows="3"
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
@@ -245,41 +256,16 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost
-                                        Price <span class="text-red-500">*</span></label>
-                                    <input name="cost_price" type="number" step="0.01" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0.00">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling
-                                        Price <span class="text-red-500">*</span></label>
-                                    <input name="selling_price" type="number" step="0.01" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0.00">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax Rate
-                                        (%)</label>
-                                    <input name="tax_rate" type="number" step="0.01"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0">
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
-                                    <select name="unit"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                        <option>Piece</option>
-                                        <option>Kg</option>
-                                        <option>Liter</option>
-                                        <option>Box</option>
-                                    </select>
-                                </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                                <select name="unit"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option>Piece</option>
+                                    <option>Kg</option>
+                                    <option>Liter</option>
+                                    <option>Box</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-3 gap-4">
                                 <div>
@@ -303,6 +289,24 @@
                                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
                                         placeholder="0">
                                 </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product
+                                    Image</label>
+                                <label for="create_product_image"
+                                    class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100">
+                                    <div id="create_image_preview_container" class="hidden flex-col items-center justify-center pt-2 pb-2">
+                                        <img id="create_image_preview" src="" alt="Preview" class="max-h-28 object-contain rounded-lg">
+                                    </div>
+                                    <div id="create_upload_placeholder" class="flex flex-col items-center justify-center pt-2 pb-2">
+                                        <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+                                        <p class="mb-1 text-xs text-gray-500 dark:text-gray-400"><span
+                                                class="font-semibold">Click to upload</span> or drag and drop</p>
+                                        <p class="text-xs text-gray-400">PNG, JPG or JPEG (MAX. 2MB)</p>
+                                    </div>
+                                    <input id="create_product_image" name="product_image" type="file" class="hidden"
+                                        accept="image/*" onchange="previewImage('create')">
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -351,13 +355,6 @@
                             </div>
                             <div>
                                 <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barcode</label>
-                                <input id="edit_barcode" name="barcode" type="text"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="e.g. 1234567890">
-                            </div>
-                            <div>
-                                <label
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
                                 <textarea id="edit_description" name="description" rows="3"
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
@@ -386,41 +383,16 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost
-                                        Price <span class="text-red-500">*</span></label>
-                                    <input id="edit_cost_price" name="cost_price" type="number" step="0.01" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0.00">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling
-                                        Price <span class="text-red-500">*</span></label>
-                                    <input id="edit_selling_price" name="selling_price" type="number" step="0.01" required
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0.00">
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax Rate
-                                        (%)</label>
-                                    <input id="edit_tax_rate" name="tax_rate" type="number" step="0.01"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="0">
-                                </div>
-                                <div>
-                                    <label
-                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
-                                    <select id="edit_unit" name="unit"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                        <option>Piece</option>
-                                        <option>Kg</option>
-                                        <option>Liter</option>
-                                        <option>Box</option>
-                                    </select>
-                                </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
+                                <select id="edit_unit" name="unit"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option>Piece</option>
+                                    <option>Kg</option>
+                                    <option>Liter</option>
+                                    <option>Box</option>
+                                </select>
                             </div>
                             <div class="grid grid-cols-3 gap-4">
                                 <div>
@@ -448,16 +420,25 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product
                                     Image</label>
-                                <label
+                                <div id="edit_current_image_container" class="mb-2 hidden">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Current Image:</p>
+                                    <div class="flex items-center justify-center w-full h-32 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700">
+                                        <img id="edit_current_image" src="" alt="Current Product Image" class="max-h-28 object-contain rounded-lg">
+                                    </div>
+                                </div>
+                                <label for="edit_product_image"
                                     class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100">
-                                    <div class="flex flex-col items-center justify-center pt-2 pb-2">
+                                    <div id="edit_image_preview_container" class="hidden flex-col items-center justify-center pt-2 pb-2">
+                                        <img id="edit_image_preview" src="" alt="New Preview" class="max-h-28 object-contain rounded-lg">
+                                    </div>
+                                    <div id="edit_upload_placeholder" class="flex flex-col items-center justify-center pt-2 pb-2">
                                         <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
                                         <p class="mb-1 text-xs text-gray-500 dark:text-gray-400"><span
-                                                class="font-semibold">Click to upload</span> or drag and drop</p>
+                                                class="font-semibold">Click to upload new image</span> or drag and drop</p>
                                         <p class="text-xs text-gray-400">PNG, JPG or JPEG (MAX. 2MB)</p>
                                     </div>
                                     <input id="edit_product_image" name="product_image" type="file" class="hidden"
-                                        accept="image/*">
+                                        accept="image/*" onchange="previewImage('edit')">
                                 </label>
                             </div>
                         </div>
@@ -493,7 +474,8 @@
                             const product = JSON.parse(btn.getAttribute('data-product'));
                             openEditProductModal(product);
                         } catch (e) {
-                            // Silent error handling to avoid disrupting user experience
+                            console.error('Failed to parse product data:', e);
+                            console.error('Data attribute:', btn.getAttribute('data-product'));
                         }
                     });
                 });
@@ -524,6 +506,24 @@
                 }
             }
 
+            function previewImage(type) {
+                const input = document.getElementById(type + '_product_image');
+                const preview = document.getElementById(type + '_image_preview');
+                const previewContainer = document.getElementById(type + '_image_preview_container');
+                const placeholder = document.getElementById(type + '_upload_placeholder');
+
+                if (input.files && input.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        previewContainer.classList.remove('hidden');
+                        previewContainer.classList.add('flex');
+                        placeholder.classList.add('hidden');
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
             function openEditProductModal(product) {
                 try {
                     const form = document.getElementById('editProductForm');
@@ -532,17 +532,29 @@
                     }
                     document.getElementById('edit_product_name').value = product.product_name || '';
                     document.getElementById('edit_sku').value = product.sku || '';
-                    document.getElementById('edit_barcode').value = product.barcode || '';
                     document.getElementById('edit_description').value = product.description || '';
                     document.getElementById('edit_category_id').value = product.category_id || '';
                     document.getElementById('edit_brand_id').value = product.brand_id || '';
-                    document.getElementById('edit_cost_price').value = product.cost_price || '';
-                    document.getElementById('edit_selling_price').value = product.selling_price || '';
-                    document.getElementById('edit_tax_rate').value = product.tax_rate || '';
                     document.getElementById('edit_unit').value = product.unit || '';
                     document.getElementById('edit_initial_stock').value = product.initial_stock || '';
                     document.getElementById('edit_minimum_stock').value = product.minimum_stock || '';
                     document.getElementById('edit_maximum_stock').value = product.maximum_stock || '';
+
+                    // Show current product image if exists
+                    const currentImageContainer = document.getElementById('edit_current_image_container');
+                    const currentImage = document.getElementById('edit_current_image');
+                    if (product.product_image) {
+                        currentImage.src = '/storage/' + product.product_image;
+                        currentImageContainer.classList.remove('hidden');
+                    } else {
+                        currentImageContainer.classList.add('hidden');
+                    }
+
+                    // Reset new image preview
+                    document.getElementById('edit_image_preview_container').classList.add('hidden');
+                    document.getElementById('edit_upload_placeholder').classList.remove('hidden');
+                    document.getElementById('edit_product_image').value = '';
+
                     form.action = '{{ route("products.update", ":id") }}'.replace(':id', product.id);
                     openModal('editProductModal');
                 } catch (error) {

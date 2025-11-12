@@ -17,8 +17,12 @@
         @foreach($categories as $category)
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <div class="flex items-center justify-between mb-4">
-                <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                    <i class="{{ $category->icon ?? 'fas fa-box' }} text-blue-600 dark:text-blue-400"></i>
+                <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                    @if($category->icon && file_exists(public_path('images/category-icons/' . $category->icon)))
+                        <img src="{{ asset('images/category-icons/' . $category->icon) }}" alt="{{ $category->cat_name }}" class="w-12 h-12 object-contain">
+                    @else
+                        <i class="fas fa-box text-blue-600 dark:text-blue-400 text-2xl"></i>
+                    @endif
                 </div>
                 <div class="flex space-x-2">
                     <button class="text-gray-400 hover:text-gray-600" onclick="openEditModal({{ $category->id }}, '{{ addslashes($category->cat_name) }}', '{{ addslashes($category->description) }}', '{{ $category->icon }}')">
@@ -66,12 +70,33 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
-                    <select name="icon" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                        <option value="fas fa-wine-bottle">Beverages</option>
-                        <option value="fas fa-bread-slice">Food</option>
-                        <option value="fas fa-laptop">Electronics</option>
-                        <option value="fas fa-tshirt">Clothing</option>
+                    <select name="icon" id="create_icon" onchange="updateIconPreview('create')" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Select Icon</option>
+                        <option value="beverages.png">Beverages</option>
+                        <option value="bakery.png">Bakery</option>
+                        <option value="dairy.png">Dairy</option>
+                        <option value="meat.png">Meat</option>
+                        <option value="seafood.png">Seafood</option>
+                        <option value="fruits.png">Fruits</option>
+                        <option value="vegetables.png">Vegetables</option>
+                        <option value="frozen.png">Frozen Foods</option>
+                        <option value="snacks.png">Snacks</option>
+                        <option value="sweets.png">Sweets</option>
+                        <option value="spices.png">Spices</option>
+                        <option value="grains.png">Grains</option>
+                        <option value="canned.png">Canned Goods</option>
+                        <option value="cleaning.png">Cleaning Products</option>
+                        <option value="personal-care.png">Personal Care</option>
+                        <option value="baby.png">Baby Products</option>
+                        <option value="medicine.png">Health & Medicine</option>
+                        <option value="electronics.png">Electronics</option>
+                        <option value="pet-supplies.png">Pet Supplies</option>
+                        <option value="household.png">Household Items</option>
+                        <option value="stationery.png">Stationery</option>
                     </select>
+                    <div id="create_icon_preview" class="mt-2 flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg hidden">
+                        <img id="create_icon_image" src="" alt="Icon Preview" class="w-12 h-12 object-contain">
+                    </div>
                 </div>
                 <div class="flex items-center justify-end space-x-4 pt-4">
                     <button type="button" onclick="closeModal('categoryModal')" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">Cancel</button>
@@ -105,12 +130,33 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Icon</label>
-                    <select id="edit_icon" name="icon" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                        <option value="fas fa-wine-bottle">Beverages</option>
-                        <option value="fas fa-bread-slice">Food</option>
-                        <option value="fas fa-laptop">Electronics</option>
-                        <option value="fas fa-tshirt">Clothing</option>
+                    <select id="edit_icon" name="icon" onchange="updateIconPreview('edit')" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Select Icon</option>
+                        <option value="beverages.png">Beverages</option>
+                        <option value="bakery.png">Bakery</option>
+                        <option value="dairy.png">Dairy</option>
+                        <option value="meat.png">Meat</option>
+                        <option value="seafood.png">Seafood</option>
+                        <option value="fruits.png">Fruits</option>
+                        <option value="vegetables.png">Vegetables</option>
+                        <option value="frozen.png">Frozen Foods</option>
+                        <option value="snacks.png">Snacks</option>
+                        <option value="sweets.png">Sweets</option>
+                        <option value="spices.png">Spices</option>
+                        <option value="grains.png">Grains</option>
+                        <option value="canned.png">Canned Goods</option>
+                        <option value="cleaning.png">Cleaning Products</option>
+                        <option value="personal-care.png">Personal Care</option>
+                        <option value="baby.png">Baby Products</option>
+                        <option value="medicine.png">Health & Medicine</option>
+                        <option value="electronics.png">Electronics</option>
+                        <option value="pet-supplies.png">Pet Supplies</option>
+                        <option value="household.png">Household Items</option>
+                        <option value="stationery.png">Stationery</option>
                     </select>
+                    <div id="edit_icon_preview" class="mt-2 flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg hidden">
+                        <img id="edit_icon_image" src="" alt="Icon Preview" class="w-12 h-12 object-contain">
+                    </div>
                 </div>
                 <div class="flex items-center justify-end space-x-4 pt-4">
                     <button type="button" onclick="closeModal('editCategoryModal')" class="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">Cancel</button>
@@ -136,7 +182,27 @@ function openEditModal(id, name, description, icon) {
     document.getElementById('edit_description').value = description;
     document.getElementById('edit_icon').value = icon;
     document.getElementById('editCategoryForm').action = '/categories/' + id;
+
+    // Show icon preview if icon exists
+    if (icon) {
+        updateIconPreview('edit');
+    }
+
     openModal('editCategoryModal');
+}
+
+function updateIconPreview(type) {
+    const select = document.getElementById(type + '_icon');
+    const preview = document.getElementById(type + '_icon_preview');
+    const image = document.getElementById(type + '_icon_image');
+    const selectedIcon = select.value;
+
+    if (selectedIcon) {
+        image.src = '/images/category-icons/' + selectedIcon;
+        preview.classList.remove('hidden');
+    } else {
+        preview.classList.add('hidden');
+    }
 }
 </script>
 @endpush

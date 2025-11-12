@@ -19,7 +19,6 @@ class ProductController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('product_name', 'like', "%$search%")
                     ->orWhere('sku', 'like', "%$search%")
-                    ->orWhere('barcode', 'like', "%$search%")
                     ->orWhere('description', 'like', "%$search%");
             });
         }
@@ -59,13 +58,9 @@ class ProductController extends Controller
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'required|string|max:255|unique:products,sku',
-            'barcode' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
-            'cost_price' => 'required|numeric',
-            'selling_price' => 'required|numeric',
-            'tax_rate' => 'nullable|numeric',
             'unit' => 'nullable|string',
             'initial_stock' => 'nullable|integer',
             'minimum_stock' => 'nullable|integer',
@@ -85,7 +80,7 @@ class ProductController extends Controller
         if ($request->filled('supplier_id')) {
             $product->suppliers()->attach($request->supplier_id, [
                 'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
-                'vendor_cost_price' => $request->cost_price,
+                'vendor_cost_price' => 0,
                 'is_preferred' => false,
                 'lead_time_days' => null,
             ]);
@@ -101,7 +96,7 @@ class ProductController extends Controller
                     'product_name' => $product->product_name,
                     'sku' => $product->sku,
                     'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
-                    'vendor_cost_price' => $product->cost_price,
+                    'vendor_cost_price' => 0,
                 ],
             ]);
         }
@@ -114,13 +109,9 @@ class ProductController extends Controller
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
             'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
-            'barcode' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
-            'cost_price' => 'required|numeric',
-            'selling_price' => 'required|numeric',
-            'tax_rate' => 'nullable|numeric',
             'unit' => 'nullable|string',
             'initial_stock' => 'nullable|integer',
             'minimum_stock' => 'nullable|integer',
