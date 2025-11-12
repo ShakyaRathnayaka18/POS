@@ -64,7 +64,7 @@
                         <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Credit Limit</label>
                         <p class="mt-1 text-sm text-gray-900 dark:text-white">
                             @if($supplier->credit_limit)
-                                ₹{{ number_format($supplier->credit_limit, 2) }}
+                                LKR {{ number_format($supplier->credit_limit, 2) }}
                             @else
                                 N/A
                             @endif
@@ -137,7 +137,7 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                                         @if($product->pivot->vendor_cost_price)
-                                            ₹{{ number_format($product->pivot->vendor_cost_price, 2) }}
+                                            LKR {{ number_format($product->pivot->vendor_cost_price, 2) }}
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif

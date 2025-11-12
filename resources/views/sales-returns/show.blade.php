@@ -38,8 +38,8 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Financials</h2>
             <div class="space-y-3">
-                <div class="flex justify-between"><span class="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span> <span class="text-gray-900 dark:text-gray-200">${{ number_format($salesReturn->subtotal, 2) }}</span></div>
-                <div class="flex justify-between"><span class="font-medium text-gray-700 dark:text-gray-300">Tax:</span> <span class="text-gray-900 dark:text-gray-200">${{ number_format($salesReturn->tax, 2) }}</span></div>
+                <div class="flex justify-between"><span class="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span> <span class="text-gray-900 dark:text-gray-200">LKR {{ number_format($salesReturn->subtotal, 2) }}</span></div>
+                <div class="flex justify-between"><span class="font-medium text-gray-700 dark:text-gray-300">Tax:</span> <span class="text-gray-900 dark:text-gray-200">LKR {{ number_format($salesReturn->tax, 2) }}</span></div>
                 <div class="flex justify-between pt-3 border-t-2 border-gray-300 dark:border-gray-600">
                     <span class="font-bold text-gray-900 dark:text-white text-lg">Return Total:</span>
                     <span class="font-bold text-lg text-gray-900 dark:text-white">${{ number_format($salesReturn->total, 2) }}</span>

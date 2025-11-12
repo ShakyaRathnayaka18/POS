@@ -50,19 +50,19 @@
             <div class="space-y-3">
                 <div class="flex justify-between">
                     <span class="font-medium text-gray-700">Subtotal:</span>
-                    <span class="text-gray-900">${{ number_format($goodReceiveNote->subtotal, 2) }}</span>
+                    <span class="text-gray-900">LKR {{ number_format($goodReceiveNote->subtotal, 2) }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-medium text-gray-700">Tax:</span>
-                    <span class="text-gray-900">${{ number_format($goodReceiveNote->tax, 2) }}</span>
+                    <span class="text-gray-900">LKR {{ number_format($goodReceiveNote->tax, 2) }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="font-medium text-gray-700">Shipping:</span>
-                    <span class="text-gray-900">${{ number_format($goodReceiveNote->shipping, 2) }}</span>
+                    <span class="text-gray-900">LKR {{ number_format($goodReceiveNote->shipping, 2) }}</span>
                 </div>
                 <div class="flex justify-between pt-3 border-t-2 border-gray-300">
                     <span class="font-bold text-gray-900 text-lg">Total:</span>
-                    <span class="font-bold text-green-600 text-lg">${{ number_format($goodReceiveNote->total, 2) }}</span>
+                    <span class="font-bold text-green-600 text-lg">LKR {{ number_format($goodReceiveNote->total, 2) }}</span>
                 </div>
                 <div class="flex justify-between pt-3 border-t border-gray-200">
                     <span class="font-medium text-gray-700">Batches Created:</span>
@@ -107,8 +107,8 @@
                         <tr>
                             <td class="px-4 py-2 text-sm">{{ $stock->product->product_name }}</td>
                             <td class="px-4 py-2 text-sm text-gray-500">{{ $stock->product->sku }}</td>
-                            <td class="px-4 py-2 text-sm">${{ number_format($stock->cost_price, 2) }}</td>
-                            <td class="px-4 py-2 text-sm">${{ number_format($stock->selling_price, 2) }}</td>
+                            <td class="px-4 py-2 text-sm">LKR {{ number_format($stock->cost_price, 2) }}</td>
+                            <td class="px-4 py-2 text-sm">LKR {{ number_format($stock->selling_price, 2) }}</td>
                             <td class="px-4 py-2 text-sm">{{ $stock->tax }}%</td>
                             <td class="px-4 py-2 text-sm">{{ $stock->quantity }}</td>
                             <td class="px-4 py-2 text-sm">

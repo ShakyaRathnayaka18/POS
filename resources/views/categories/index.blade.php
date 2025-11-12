@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Categories</h1>
-        <button onclick="openModal('categoryModal')" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 border" style="border-color: #4ea9dd; border-width: 1px;">
+        <button onclick="openModal('categoryModal')" class="bg-blue-500 text-black px-4 py-2 rounded-md hover:bg-blue-600 font-medium transition-colors" style="border: 1px solid #60a5fa !important;">
             <i class="fas fa-plus mr-2"></i>Add Category
         </button>
     </div>
@@ -25,7 +25,7 @@
                     @endif
                 </div>
                 <div class="flex space-x-2">
-                    <button class="text-gray-400 hover:text-gray-600" onclick="openEditModal({{ $category->id }}, '{{ addslashes($category->cat_name) }}', '{{ addslashes($category->description) }}', '{{ $category->icon }}')">
+                    <button class="text-gray-400 hover:text-gray-600" onclick="openEditModal({{ $category->id }} '{{ addslashes($category->cat_name) }}', '{{ addslashes($category->description) }}', '{{ $category->icon }}')">
                         <i class="fas fa-edit"></i>
                     </button>
                     <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Are you sure?');">
@@ -169,41 +169,21 @@
 
 @push('scripts')
 <script>
-function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
-}
-
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
-}
-
-function openEditModal(id, name, description, icon) {
-    document.getElementById('edit_cat_name').value = name;
-    document.getElementById('edit_description').value = description;
-    document.getElementById('edit_icon').value = icon;
-    document.getElementById('editCategoryForm').action = '/categories/' + id;
-
-    // Show icon preview if icon exists
-    if (icon) {
-        updateIconPreview('edit');
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
     }
 
-    openModal('editCategoryModal');
-}
-
-function updateIconPreview(type) {
-    const select = document.getElementById(type + '_icon');
-    const preview = document.getElementById(type + '_icon_preview');
-    const image = document.getElementById(type + '_icon_image');
-    const selectedIcon = select.value;
-
-    if (selectedIcon) {
-        image.src = '/images/category-icons/' + selectedIcon;
-        preview.classList.remove('hidden');
-    } else {
-        preview.classList.add('hidden');
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
     }
-}
+
+    function openEditModal(id, name, description, icon) {
+        document.getElementById('edit_cat_name').value = name;
+        document.getElementById('edit_description').value = description;
+        document.getElementById('edit_icon').value = icon;
+        document.getElementById('editCategoryForm').action = '/categories/' + id;
+        openModal('editCategoryModal');
+    }
 </script>
 @endpush
 @endsection

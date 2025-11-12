@@ -17,7 +17,8 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="return_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Return Number</label>
-                    <input type="text" name="return_number" id="return_number" value="{{ $returnNumber }}" readonly class="w-full form-input bg-gray-100 dark:bg-gray-700">
+                    <input type="text" name="return_number" id="return_number" value="{{ $returnNumber }}" readonly
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                 </div>
 
                 <div>
@@ -25,24 +26,36 @@
                     <select name="sale_id" id="sale_id" required class="w-full form-select">
                         <option value="">Select a Sale</option>
                         @foreach($sales as $s)
-                            <option value="{{ $s->id }}" @if($sale && $sale->id == $s->id) selected @endif>Sale #{{ $s->id }} - {{ $s->created_at->format('Y-m-d H:i') }}</option>
+                        <option value="{{ $s->id }}" @if($sale && $sale->id == $s->id) selected @endif>Sale #{{ $s->id }} - {{ $s->created_at->format('Y-m-d H:i') }}</option>
                         @endforeach
                     </select>
                 </div>
 
                 <div>
                     <label for="return_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Return Date *</label>
-                    <input type="date" name="return_date" id="return_date" value="{{ date('Y-m-d') }}" required class="w-full form-input">
+                    <input type="date" name="return_date" id="return_date" value="{{ date('Y-m-d') }}" required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
+                    @error('return_date')
+                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div>
                     <label for="return_reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Return Reason *</label>
-                    <input type="text" name="return_reason" id="return_reason" required class="w-full form-input">
+                    <select name="return_reason" id="return_reason" required
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200">
+                        <option value="Damaged">Damaged</option>
+                        <option value="Wrong Item">Wrong Item</option>
+                        <option value="Defective">Defective</option>
+                        <option value="Overstocked">Overstocked</option>
+                    </select>
                 </div>
+
 
                 <div class="md:col-span-2">
                     <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Notes</label>
-                    <textarea name="notes" id="notes" rows="3" class="w-full form-input"></textarea>
+                    <textarea name="notes" id="notes" rows="3"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-200"></textarea>
                 </div>
             </div>
         </div>
@@ -57,13 +70,13 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div class="flex justify-between items-center">
                 <div class="text-gray-800 dark:text-white">
-                    <p class="text-lg font-semibold">Subtotal: $<span id="subtotalDisplay">0.00</span></p>
-                    <p class="text-lg font-semibold">Tax: $<span id="taxDisplay">0.00</span></p>
-                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: $<span id="totalDisplay">0.00</span></p>
+                    <p class="text-lg font-semibold">Subtotal: LKR <span id="subtotalDisplay">0.00</span></p>
+                    <p class="text-lg font-semibold">Tax: LKR <span id="taxDisplay">0.00</span></p>
+                    <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: LKR<span id="totalDisplay">0.00</span></p>
                 </div>
                 <div class="space-x-4">
                     <a href="{{ route('sales-returns.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded">Cancel</a>
-                    <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded">Create Return</button>
+                    <button type="submit" class="bg-blue-900 hover:bg-blue-900 text-black py-2 px-6 rounded border border-b-blue-900">Create Return</button>
                 </div>
             </div>
         </div>
@@ -71,48 +84,48 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const saleSelect = document.getElementById('sale_id');
-    const returnForm = document.getElementById('returnForm');
+    document.addEventListener('DOMContentLoaded', function() {
+        const saleSelect = document.getElementById('sale_id');
+        const returnForm = document.getElementById('returnForm');
 
-    if (saleSelect.value) {
-        loadReturnableItems(saleSelect.value);
-    }
+        if (saleSelect.value) {
+            loadReturnableItems(saleSelect.value);
+        }
 
-    saleSelect.addEventListener('change', function() {
-        loadReturnableItems(this.value);
-    });
+        saleSelect.addEventListener('change', function() {
+            loadReturnableItems(this.value);
+        });
 
-    // Filter out items with quantity 0 before submitting
-    returnForm.addEventListener('submit', function(e) {
-        const itemsContainer = document.getElementById('itemsContainer');
-        const itemDivs = itemsContainer.querySelectorAll(':scope > div');
+        // Filter out items with quantity 0 before submitting
+        returnForm.addEventListener('submit', function(e) {
+            const itemsContainer = document.getElementById('itemsContainer');
+            const itemDivs = itemsContainer.querySelectorAll(':scope > div');
 
-        itemDivs.forEach(itemDiv => {
-            const quantityInput = itemDiv.querySelector('[name*="[quantity_returned]"]');
-            if (quantityInput && parseInt(quantityInput.value) === 0) {
-                itemDiv.remove();
-            }
+            itemDivs.forEach(itemDiv => {
+                const quantityInput = itemDiv.querySelector('[name*="[quantity_returned]"]');
+                if (quantityInput && parseInt(quantityInput.value) === 0) {
+                    itemDiv.remove();
+                }
+            });
         });
     });
-});
 
-function loadReturnableItems(saleId) {
-    const itemsContainer = document.getElementById('itemsContainer');
-    itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Loading items...</p>';
+    function loadReturnableItems(saleId) {
+        const itemsContainer = document.getElementById('itemsContainer');
+        itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Loading items...</p>';
 
-    if (!saleId) {
-        itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Select a sale to see returnable items.</p>';
-        return;
-    }
+        if (!saleId) {
+            itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">Select a sale to see returnable items.</p>';
+            return;
+        }
 
-    fetch(`/sales-returns/get-returnable-items/${saleId}`)
-        .then(response => response.json())
-        .then(data => {
-            itemsContainer.innerHTML = '';
-            if (data.items && data.items.length > 0) {
-                data.items.forEach((item, index) => {
-                    const itemHtml = `
+        fetch(`/sales-returns/get-returnable-items/${saleId}`)
+            .then(response => response.json())
+            .then(data => {
+                itemsContainer.innerHTML = '';
+                if (data.items && data.items.length > 0) {
+                    data.items.forEach((item, index) => {
+                        const itemHtml = `
                         <div class="border dark:border-gray-700 rounded-md p-4">
                             <input type="hidden" name="items[${index}][sale_item_id]" value="${item.sale_item_id}">
                             <input type="hidden" name="items[${index}][stock_id]" value="${item.stock_id}">
@@ -148,54 +161,54 @@ function loadReturnableItems(saleId) {
                             </div>
                         </div>
                     `;
-                    itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
-                });
-            } else {
-                itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No returnable items for this sale.</p>';
+                        itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
+                    });
+                } else {
+                    itemsContainer.innerHTML = '<p class="text-gray-500 dark:text-gray-400">No returnable items for this sale.</p>';
+                }
+                updateCalculations();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                itemsContainer.innerHTML = '<p class="text-red-500">Error loading items.</p>';
+            });
+    }
+
+    function updateCalculations() {
+        let subtotal = 0;
+        let tax = 0;
+
+        document.querySelectorAll('#itemsContainer > div').forEach(itemEl => {
+            const quantity = parseFloat(itemEl.querySelector('[name*="[quantity_returned]"]').value) || 0;
+            const price = parseFloat(itemEl.querySelector('[name*="[selling_price]"]').value) || 0;
+            const taxRate = parseFloat(itemEl.querySelector('[name*="[tax]"]').value) || 0;
+
+            if (quantity > 0) {
+                const itemSubtotal = quantity * price;
+                subtotal += itemSubtotal;
+                tax += itemSubtotal * (taxRate / 100);
             }
-            updateCalculations();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            itemsContainer.innerHTML = '<p class="text-red-500">Error loading items.</p>';
         });
-}
 
-function updateCalculations() {
-    let subtotal = 0;
-    let tax = 0;
+        document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
+        document.getElementById('taxDisplay').textContent = tax.toFixed(2);
+        document.getElementById('totalDisplay').textContent = (subtotal + tax).toFixed(2);
+    }
 
-    document.querySelectorAll('#itemsContainer > div').forEach(itemEl => {
-        const quantity = parseFloat(itemEl.querySelector('[name*="[quantity_returned]"]').value) || 0;
-        const price = parseFloat(itemEl.querySelector('[name*="[selling_price]"]').value) || 0;
-        const taxRate = parseFloat(itemEl.querySelector('[name*="[tax]"]').value) || 0;
+    function handleConditionChange(selectElement, index) {
+        const condition = selectElement.value;
+        const restoreCheckbox = document.querySelector(`.restore-checkbox[data-index="${index}"]`);
 
-        if (quantity > 0) {
-            const itemSubtotal = quantity * price;
-            subtotal += itemSubtotal;
-            tax += itemSubtotal * (taxRate / 100);
-        }
-    });
-
-    document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
-    document.getElementById('taxDisplay').textContent = tax.toFixed(2);
-    document.getElementById('totalDisplay').textContent = (subtotal + tax).toFixed(2);
-}
-
-function handleConditionChange(selectElement, index) {
-    const condition = selectElement.value;
-    const restoreCheckbox = document.querySelector(`.restore-checkbox[data-index="${index}"]`);
-
-    if (restoreCheckbox) {
-        // Only "Good" condition items can be restored to stock
-        if (condition === 'Good') {
-            restoreCheckbox.checked = true;
-            restoreCheckbox.disabled = false;
-        } else {
-            restoreCheckbox.checked = false;
-            restoreCheckbox.disabled = true;
+        if (restoreCheckbox) {
+            // Only "Good" condition items can be restored to stock
+            if (condition === 'Good') {
+                restoreCheckbox.checked = true;
+                restoreCheckbox.disabled = false;
+            } else {
+                restoreCheckbox.checked = false;
+                restoreCheckbox.disabled = true;
+            }
         }
     }
-}
 </script>
 @endsection
