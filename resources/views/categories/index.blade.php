@@ -25,7 +25,7 @@
                     @endif
                 </div>
                 <div class="flex space-x-2">
-                    <button class="text-gray-400 hover:text-gray-600" onclick="openEditModal({{ $category->id }} '{{ addslashes($category->cat_name) }}', '{{ addslashes($category->description) }}', '{{ $category->icon }}')">
+                    <button class="text-gray-400 hover:text-gray-600 edit-category-btn" data-category='@json($category)'>
                         <i class="fas fa-edit"></i>
                     </button>
                     <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Are you sure?');">
@@ -177,13 +177,31 @@
         document.getElementById(modalId).classList.add('hidden');
     }
 
-    function openEditModal(id, name, description, icon) {
-        document.getElementById('edit_cat_name').value = name;
-        document.getElementById('edit_description').value = description;
-        document.getElementById('edit_icon').value = icon;
-        document.getElementById('editCategoryForm').action = '/categories/' + id;
-        openModal('editCategoryModal');
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.edit-category-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                try {
+                    const category = JSON.parse(this.getAttribute('data-category'));
+                    document.getElementById('edit_cat_name').value = category.cat_name;
+                    document.getElementById('edit_description').value = category.description || '';
+                    document.getElementById('edit_icon').value = category.icon || '';
+
+                    // Update icon preview if exists
+                    const iconPreview = document.getElementById('edit_icon_preview');
+                    const iconImage = document.getElementById('edit_icon_image');
+                    if (category.icon && iconPreview && iconImage) {
+                        iconImage.src = '/images/category-icons/' + category.icon;
+                        iconPreview.classList.remove('hidden');
+                    }
+
+                    document.getElementById('editCategoryForm').action = '/categories/' + category.id;
+                    openModal('editCategoryModal');
+                } catch (error) {
+                    console.error('Error parsing category data:', error);
+                }
+            });
+        });
+    });
 </script>
 @endpush
 @endsection
