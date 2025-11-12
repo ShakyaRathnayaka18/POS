@@ -147,10 +147,10 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900 dark:text-white">
-                                ${{ number_format($sale->total, 2) }}
+                                LKR {{ number_format($sale->total, 2) }}
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400">
-                                Tax: ${{ number_format($sale->tax, 2) }}
+                                Tax: LKR {{ number_format($sale->tax, 2) }}
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -224,7 +224,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Page Total</dt>
-                        <dd class="text-lg font-semibold text-gray-900 dark:text-white">${{ number_format($sales->sum('total'), 2) }}</dd>
+                        <dd class="text-lg font-semibold text-gray-900 dark:text-white">LKR {{ number_format($sales->sum('total'), 2) }}</dd>
                     </dl>
                 </div>
             </div>
@@ -252,7 +252,7 @@
                 <div class="ml-5 w-0 flex-1">
                     <dl>
                         <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Avg Sale</dt>
-                        <dd class="text-lg font-semibold text-gray-900 dark:text-white">${{ $sales->count() > 0 ? number_format($sales->sum('total') / $sales->count(), 2) : '0.00' }}</dd>
+                        <dd class="text-lg font-semibold text-gray-900 dark:text-white">LKR {{ $sales->count() > 0 ? number_format($sales->sum('total') / $sales->count(), 2) : '0.00' }}</dd>
                     </dl>
                 </div>
             </div>

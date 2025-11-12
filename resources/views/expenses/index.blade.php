@@ -23,7 +23,7 @@
                     <div class="ml-5 w-0 flex-1">
                         <dl>
                             <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Today's Expenses</dt>
-                            <dd class="text-lg font-medium text-gray-900 dark:text-white">$245.50</dd>
+                            <dd class="text-lg font-medium text-gray-900 dark:text-white">LKR 245.50</dd>
                         </dl>
                     </div>
                 </div>
@@ -85,7 +85,7 @@
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Utilities</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Electricity Bill</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$125.50</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">LKR 125.50</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Bank Transfer</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <i class="fas fa-file-pdf text-red-500"></i>
@@ -101,7 +101,7 @@
                             <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Office Supplies</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Printer Paper & Ink</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">$45.25</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">LKR 45.25</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">Cash</td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <i class="fas fa-file-image text-blue-500"></i>

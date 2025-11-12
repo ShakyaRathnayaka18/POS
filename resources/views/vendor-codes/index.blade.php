@@ -5,8 +5,8 @@
 @section('content')
 <div class="container mx-auto px-4 py-6">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Vendor Code Management</h1>
-        <button onclick="openModal('createModal')" class="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 border" style="border-color: #4ea9dd; border-width: 1px;">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-black">Vendor Code Management</h1>
+        <button onclick="openModal('createModal')" class="bg-blue-500 dark:bg-blue-700 hover:bg-blue-600 dark:hover:bg-blue-800 text-black py-2 px-4 rounded-md transition-colors shadow-md border border-blue-300 dark:border-blue-500">
             <i class="fas fa-plus mr-2"></i>Add Vendor Code
         </button>
     </div>
@@ -70,9 +70,9 @@
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
                     <option value="">All Suppliers</option>
                     @foreach($suppliers as $supplier)
-                        <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                            {{ $supplier->company_name }}
-                        </option>
+                    <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                        {{ $supplier->company_name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -83,9 +83,9 @@
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
                     <option value="">All Products</option>
                     @foreach($products as $product)
-                        <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
-                            {{ $product->product_name }}
-                        </option>
+                    <option value="{{ $product->id }}" {{ request('product_id') == $product->id ? 'selected' : '' }}>
+                        {{ $product->product_name }}
+                    </option>
                     @endforeach
                 </select>
             </div>
@@ -99,15 +99,15 @@
                     <option value="0" {{ request('is_preferred') == '0' ? 'selected' : '' }}>Standard Only</option>
                 </select>
             </div>
-
-            <div class="flex items-end gap-2">
-                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            <div class="flex items-end gap-4">
+                <button type="submit" class="flex-1 bg-blue-500 hover:bg-blue-600 text-black font-bold py-2 px-4 rounded-md transition-colors" style="border: 1px solid #60a5fa !important;">
                     <i class="fas fa-search mr-2"></i>Filter
                 </button>
                 <a href="{{ route('vendor-codes.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
                     <i class="fas fa-redo"></i>
                 </a>
             </div>
+
         </form>
     </div>
 
@@ -140,20 +140,20 @@
                             {{ $vendorCode->vendor_product_code }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            ${{ number_format($vendorCode->vendor_cost_price ?? 0, 2) }}
+                            LKR {{ number_format($vendorCode->vendor_cost_price ?? 0, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $vendorCode->lead_time_days ? $vendorCode->lead_time_days . ' days' : '-' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             @if($vendorCode->is_preferred)
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    <i class="fas fa-star mr-1"></i> Preferred
-                                </span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                <i class="fas fa-star mr-1"></i> Preferred
+                            </span>
                             @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
-                                    Standard
-                                </span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                                Standard
+                            </span>
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -205,7 +205,7 @@
                     <select name="product_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                         <option value="">Select Product</option>
                         @foreach($products as $product)
-                            <option value="{{ $product->id }}">{{ $product->product_name }} ({{ $product->sku }})</option>
+                        <option value="{{ $product->id }}">{{ $product->product_name }} ({{ $product->sku }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -214,7 +214,7 @@
                     <select name="supplier_id" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                         <option value="">Select Supplier</option>
                         @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
+                        <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -291,24 +291,24 @@
 
 @push('scripts')
 <script>
-function openModal(modalId) {
-    document.getElementById(modalId).classList.remove('hidden');
-}
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.remove('hidden');
+    }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.add('hidden');
-}
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.add('hidden');
+    }
 
-function openEditModal(vendorCode) {
-    document.getElementById('edit_product_name').value = vendorCode.product_name + ' (' + vendorCode.internal_sku + ')';
-    document.getElementById('edit_supplier_name').value = vendorCode.company_name;
-    document.getElementById('edit_vendor_product_code').value = vendorCode.vendor_product_code;
-    document.getElementById('edit_vendor_cost_price').value = vendorCode.vendor_cost_price || '';
-    document.getElementById('edit_lead_time_days').value = vendorCode.lead_time_days || '';
-    document.getElementById('edit_is_preferred').checked = vendorCode.is_preferred == 1;
-    document.getElementById('editForm').action = '/vendor-codes/' + vendorCode.id;
-    openModal('editModal');
-}
+    function openEditModal(vendorCode) {
+        document.getElementById('edit_product_name').value = vendorCode.product_name + ' (' + vendorCode.internal_sku + ')';
+        document.getElementById('edit_supplier_name').value = vendorCode.company_name;
+        document.getElementById('edit_vendor_product_code').value = vendorCode.vendor_product_code;
+        document.getElementById('edit_vendor_cost_price').value = vendorCode.vendor_cost_price || '';
+        document.getElementById('edit_lead_time_days').value = vendorCode.lead_time_days || '';
+        document.getElementById('edit_is_preferred').checked = vendorCode.is_preferred == 1;
+        document.getElementById('editForm').action = '/vendor-codes/' + vendorCode.id;
+        openModal('editModal');
+    }
 </script>
 @endpush
 @endsection

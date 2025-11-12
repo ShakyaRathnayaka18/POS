@@ -28,7 +28,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Revenue</dt>
-                                <dd class="text-lg font-medium text-gray-900 dark:text-white">$45,230</dd>
+                                <dd class="text-lg font-medium text-gray-900 dark:text-white">LKR 45,230</dd>
                                 <dd class="text-sm text-green-600">+12.5% from last month</dd>
                             </dl>
                         </div>
@@ -45,7 +45,7 @@
                         <div class="ml-5 w-0 flex-1">
                             <dl>
                                 <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Gross Profit</dt>
-                                <dd class="text-lg font-medium text-gray-900 dark:text-white">$18,920</dd>
+                                <dd class="text-lg font-medium text-gray-900 dark:text-white">LKR 18,920</dd>
                                 <dd class="text-sm text-green-600">+8.2% from last month</dd>
                             </dl>
                         </div>
@@ -114,7 +114,7 @@
                                 <div class="text-sm text-gray-500 dark:text-gray-400">245 sold</div>
                             </div>
                         </div>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">$612.50</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">LKR 612.50</span>
                     </div>
                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div class="flex items-center">
@@ -124,7 +124,7 @@
                                 <div class="text-sm text-gray-500 dark:text-gray-400">189 sold</div>
                             </div>
                         </div>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">$236.25</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">LKR 236.25</span>
                     </div>
                     <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                         <div class="flex items-center">
@@ -134,7 +134,7 @@
                                 <div class="text-sm text-gray-500 dark:text-gray-400">156 sold</div>
                             </div>
                         </div>
-                        <span class="text-sm font-medium text-gray-900 dark:text-white">$468.00</span>
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">LKR 468.00</span>
                     </div>
                 </div>
             </div>

@@ -23,21 +23,26 @@
     <div id="receipt" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
         <!-- Store Header -->
         <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Terminal POS</h1>
-            <p class="text-gray-600 dark:text-gray-400">Point of Sale System</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Thank you for your purchase!</p>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
+            <p class="text-gray-600 dark:text-gray-400">No 09, Kandy Rd, Hasalaka</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Tp- 055225706</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Shop smart, save big</p>
+        </div>
+
+        <!-- Store Logo -->
+        <div class="text-center mb-6">
+            <img src="{{ asset('images/h_mart.png') }}" alt="Store Logo" class="w-24 mx-auto">
         </div>
 
         <!-- Sale Information -->
         <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
             <div>
-                <p class="text-gray-600 dark:text-gray-400">Receipt Number:</p>
+                <p class="text-gray-600 dark:text-gray-400">Invoice No:</p>
                 <p class="font-bold text-gray-900 dark:text-white">{{ $sale->sale_number }}</p>
             </div>
             <div class="text-right">
                 <p class="text-gray-600 dark:text-gray-400">Date:</p>
-                <p class="font-bold text-gray-900 dark:text-white">{{ $sale->created_at->format('F d, Y') }}</p>
-                <p class="text-gray-600 dark:text-gray-400 text-xs">{{ $sale->created_at->format('h:i A') }}</p>
+                <p class="font-bold text-gray-900 dark:text-white">{{ $sale->created_at->format('Y-m-d H:i:s') }}</p>
             </div>
             <div>
                 <p class="text-gray-600 dark:text-gray-400">Cashier:</p>
@@ -53,10 +58,10 @@
         <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg no-print">
             <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Customer Information</h3>
             @if($sale->customer_name)
-                <p class="text-sm text-gray-700 dark:text-gray-300">Name: <span class="font-medium">{{ $sale->customer_name }}</span></p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">Name: <span class="font-medium">{{ $sale->customer_name }}</span></p>
             @endif
             @if($sale->customer_phone)
-                <p class="text-sm text-gray-700 dark:text-gray-300">Phone: <span class="font-medium">{{ $sale->customer_phone }}</span></p>
+            <p class="text-sm text-gray-700 dark:text-gray-300">Phone: <span class="font-medium">{{ $sale->customer_phone }}</span></p>
             @endif
         </div>
         @endif
@@ -66,67 +71,49 @@
             <table class="w-full">
                 <thead class="border-b-2 border-gray-300 dark:border-gray-600">
                     <tr>
-                        <th class="text-left py-2 text-gray-700 dark:text-gray-300">Item</th>
+                        <th class="text-left py-2 text-gray-700 dark:text-gray-300">Product</th>
                         <th class="text-center py-2 text-gray-700 dark:text-gray-300">Qty</th>
                         <th class="text-right py-2 text-gray-700 dark:text-gray-300">Price</th>
-                        <th class="text-right py-2 text-gray-700 dark:text-gray-300">Tax</th>
                         <th class="text-right py-2 text-gray-700 dark:text-gray-300">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($sale->items as $item)
                     <tr class="border-b border-gray-200 dark:border-gray-700">
-                        <td class="py-3">
-                            <div class="font-medium text-gray-900 dark:text-white">{{ $item->product->product_name }}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">
-                                SKU: {{ $item->product->sku }}
-                                @if($item->stock && $item->stock->batch)
-                                    | Batch: {{ $item->stock->batch->batch_number }}
-                                @endif
-                            </div>
-                        </td>
-                        <td class="py-3 text-center text-gray-900 dark:text-white">{{ $item->quantity }}</td>
-                        <td class="py-3 text-right text-gray-900 dark:text-white">${{ number_format($item->price, 2) }}</td>
-                        <td class="py-3 text-right text-gray-900 dark:text-white">${{ number_format($item->tax, 2) }}</td>
-                        <td class="py-3 text-right font-medium text-gray-900 dark:text-white">${{ number_format($item->total, 2) }}</td>
+                        <td class="py-3">{{ $item->product->product_name }}</td>
+                        <td class="py-3 text-center">{{ $item->quantity }}</td>
+                        <td class="py-3 text-right">{{ number_format($item->price, 2) }}</td>
+                        <td class="py-3 text-right font-medium">{{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
 
-        <!-- Totals -->
+        <!-- Totals Section -->
         <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 space-y-2">
             <div class="flex justify-between text-gray-700 dark:text-gray-300">
                 <span>Subtotal:</span>
-                <span class="font-medium">${{ number_format($sale->subtotal, 2) }}</span>
+                <span class="font-medium">{{ number_format($sale->subtotal, 2) }}</span>
             </div>
             <div class="flex justify-between text-gray-700 dark:text-gray-300">
                 <span>Tax:</span>
-                <span class="font-medium">${{ number_format($sale->tax, 2) }}</span>
+                <span class="font-medium">{{ number_format($sale->tax, 2) }}</span>
             </div>
             <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-2">
                 <span>Total:</span>
-                <span class="text-green-600 dark:text-green-400">${{ number_format($sale->total, 2) }}</span>
+                <span class="text-green-600 dark:text-green-400">{{ number_format($sale->total, 2) }}</span>
             </div>
         </div>
-
-        <!-- Payment Summary (for Cash) -->
-        @if($sale->payment_method === 'Cash')
-        <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm">
-            <div class="flex justify-between mb-1">
-                <span class="text-gray-700 dark:text-gray-300">Payment Method:</span>
-                <span class="font-medium text-gray-900 dark:text-white">Cash</span>
-            </div>
-        </div>
-        @endif
 
         <!-- Footer -->
+        <!-- Footer -->
         <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p class="mb-2">{{ $sale->items->count() }} item(s) purchased</p>
-            <p class="mb-2">Status: <span class="font-semibold text-green-600 dark:text-green-400">{{ $sale->status }}</span></p>
-            <p class="text-xs mt-4">This is an official receipt from Terminal POS</p>
-            <p class="text-xs">For support or inquiries, please contact store management</p>
+            <p class="mb-2">Thank you for shopping at @H Mart</p>
+            <p class="text-xs">For inquiries, please contact store management</p>
+            <p class="text-xs mt-4">Powered by VertexCore AI</p>
+            <p class="text-xs mt-2">Visit us at: vertexcoreai.com</p>
+            <p class="text-xs mt-2">Contact us: +94 77 853 6074</p>
         </div>
     </div>
 
@@ -140,45 +127,46 @@
 
 <!-- Print Styles -->
 <style>
-@media print {
-    body * {
-        visibility: hidden;
-    }
+    @media print {
+        body * {
+            visibility: hidden;
+        }
 
-    #receipt,
-    #receipt * {
-        visibility: visible;
-    }
+        #receipt,
+        #receipt * {
+            visibility: visible;
+            font-family: 'Courier New', Courier, monospace; /* Adding monospaced font */
+        }
 
-    #receipt {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        box-shadow: none;
-        background: white !important;
-        color: black !important;
-    }
+        #receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            box-shadow: none;
+            background: white !important;
+            color: black !important;
+        }
 
-    /* Hide customer information in print */
-    .no-print,
-    .no-print * {
-        display: none !important;
-        visibility: hidden !important;
-    }
+        /* Hide customer information in print */
+        .no-print,
+        .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+        }
 
-    /* Hide dark mode styles in print */
-    .dark\:bg-gray-800,
-    .dark\:bg-gray-700,
-    .dark\:text-white,
-    .dark\:text-gray-300,
-    .dark\:text-gray-400,
-    .dark\:border-gray-600,
-    .dark\:border-gray-700 {
-        background: white !important;
-        color: black !important;
-        border-color: #e5e7eb !important;
+        /* Hide dark mode styles in print */
+        .dark\:bg-gray-800,
+        .dark\:bg-gray-700,
+        .dark\:text-white,
+        .dark\:text-gray-300,
+        .dark\:text-gray-400,
+        .dark\:border-gray-600,
+        .dark\:border-gray-700 {
+            background: white !important;
+            color: black !important;
+            border-color: #e5e7eb !important;
+        }
     }
-}
 </style>
 @endsection
