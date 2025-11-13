@@ -101,7 +101,7 @@
             @endcan
 
             @if($payroll->isApproved())
-                <form action="{{ route('payroll.mark-as-paid', $payroll) }}" method="POST" onsubmit="return confirm('Mark this payroll as paid?');">
+                <form action="{{ route('payroll.mark-paid', $payroll) }}" method="POST" onsubmit="return confirm('Mark this payroll as paid?');">
                     @csrf
                     <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         <i class="fas fa-money-bill-wave mr-2"></i>Mark as Paid

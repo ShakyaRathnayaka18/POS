@@ -179,6 +179,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/employees/{employee}/reactivate', [EmployeeController::class, 'reactivate'])->name('employees.reactivate');
     });
 
+    // Employee's own payroll (must be before wildcard routes)
+    Route::middleware(['permission:view own payroll'])->group(function () {
+        Route::get('/payroll/my-payroll', [PayrollController::class, 'myPayroll'])->name('payroll.my-payroll');
+    });
+
     // Payroll Management Routes
     Route::middleware(['permission:view payroll'])->group(function () {
         Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
@@ -200,10 +205,5 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:view payroll reports'])->group(function () {
         Route::get('/payroll/reports/overview', [PayrollController::class, 'reports'])->name('payroll.reports');
         Route::get('/payroll/{payroll}/export', [PayrollController::class, 'export'])->name('payroll.export');
-    });
-
-    // Employee's own payroll
-    Route::middleware(['permission:view own payroll'])->group(function () {
-        Route::get('/my-payroll', [PayrollController::class, 'myPayroll'])->name('payroll.my-payroll');
     });
 });

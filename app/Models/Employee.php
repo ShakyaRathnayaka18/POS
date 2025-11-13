@@ -101,13 +101,10 @@ class Employee extends Model
 
     public static function generateEmployeeNumber(): string
     {
-        $date = now()->format('Ymd');
-        $lastEmployee = self::whereDate('created_at', today())
-            ->orderBy('id', 'desc')
-            ->first();
+        $lastEmployee = self::orderBy('id', 'desc')->first();
 
-        $sequence = $lastEmployee ? (int) substr($lastEmployee->employee_number, -4) + 1 : 1;
+        $sequence = $lastEmployee ? (int) substr($lastEmployee->employee_number, 3) + 1 : 1;
 
-        return 'EMP'.$date.str_pad($sequence, 4, '0', STR_PAD_LEFT);
+        return 'EMP'.str_pad($sequence, 3, '0', STR_PAD_LEFT);
     }
 }

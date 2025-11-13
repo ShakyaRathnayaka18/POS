@@ -106,7 +106,7 @@
                                 @endif
                             @endcan
                             @if($period->isApproved())
-                                <form action="{{ route('payroll.mark-as-paid', $period) }}" method="POST" class="inline">
+                                <form action="{{ route('payroll.mark-paid', $period) }}" method="POST" class="inline">
                                     @csrf
                                     <button type="submit" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 mr-3">
                                         <i class="fas fa-money-bill-wave"></i> Mark Paid
