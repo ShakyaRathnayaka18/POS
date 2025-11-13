@@ -97,6 +97,11 @@ class RoleSeeder extends Seeder
             P::DELETE_ROLES,
             P::VIEW_PERMISSIONS,
             P::MANAGE_PERMISSIONS,
+            // Shifts
+            P::MANAGE_OWN_SHIFTS,
+            P::VIEW_SHIFTS,
+            P::MANAGE_SHIFTS,
+            P::APPROVE_SHIFTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::ADMIN->value.' with '.$admin->permissions->count().' permissions');
 
@@ -140,6 +145,10 @@ class RoleSeeder extends Seeder
             // Reports
             P::VIEW_REPORTS,
             P::VIEW_EXPENSES,
+            // Shifts
+            P::MANAGE_OWN_SHIFTS,
+            P::VIEW_SHIFTS,
+            P::APPROVE_SHIFTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::MANAGER->value.' with '.$manager->permissions->count().' permissions');
 
@@ -160,6 +169,8 @@ class RoleSeeder extends Seeder
             // Sales Returns - Create & View
             P::VIEW_SALES_RETURNS,
             P::CREATE_SALES_RETURNS,
+            // Shifts - Manage own shifts
+            P::MANAGE_OWN_SHIFTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::CASHIER->value.' with '.$cashier->permissions->count().' permissions');
 

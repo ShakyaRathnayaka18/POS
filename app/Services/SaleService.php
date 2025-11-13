@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public function __construct(protected StockService $stockService) {}
+    public function __construct(protected StockService $stockService, protected ShiftService $shiftService) {}
 
     /**
      * Generate a unique sale number
@@ -104,10 +104,14 @@ class SaleService
             $totals['tax'] = round($totals['tax'], 2);
             $totals['total'] = round($totals['total'], 2);
 
+            // Get active shift for the user
+            $activeShift = $this->shiftService->getCurrentActiveShift($saleData['user_id']);
+
             // Create sale record
             $sale = Sale::create([
                 'sale_number' => $saleData['sale_number'],
                 'user_id' => $saleData['user_id'],
+                'shift_id' => $activeShift?->id,
                 'customer_name' => $saleData['customer_name'] ?? null,
                 'customer_phone' => $saleData['customer_phone'] ?? null,
                 'subtotal' => $totals['subtotal'],

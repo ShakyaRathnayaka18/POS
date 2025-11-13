@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\SaleItem;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Stock;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 class SaleItemSeeder extends Seeder
 {
@@ -18,7 +17,7 @@ class SaleItemSeeder extends Seeder
     public function run()
     {
         $sales = Sale::whereDoesntHave('items')->get();
-        
+
         foreach ($sales as $sale) {
             $saleSubtotal = 0;
             $saleTax = 0;
@@ -30,7 +29,7 @@ class SaleItemSeeder extends Seeder
                 // Find a random stock item that has quantity
                 $stock = Stock::where('available_quantity', '>', 0)->inRandomOrder()->first();
 
-                if (!$stock) {
+                if (! $stock) {
                     // No more stock available to sell
                     break;
                 }

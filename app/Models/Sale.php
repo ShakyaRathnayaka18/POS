@@ -12,6 +12,7 @@ class Sale extends Model
     protected $fillable = [
         'sale_number',
         'user_id',
+        'shift_id',
         'customer_name',
         'customer_phone',
         'subtotal',
@@ -24,6 +25,11 @@ class Sale extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
     }
 
     public function items()

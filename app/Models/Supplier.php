@@ -25,7 +25,7 @@ class Supplier extends Model
                 'vendor_product_code',
                 'vendor_cost_price',
                 'is_preferred',
-                'lead_time_days'
+                'lead_time_days',
             ])
             ->withTimestamps();
     }

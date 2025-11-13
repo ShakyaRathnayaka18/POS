@@ -13,7 +13,7 @@ class SaleFactory extends Factory
     public function definition()
     {
         return [
-            'sale_number' => 'SALE-' . $this->faker->unique()->numberBetween(1000, 9999),
+            'sale_number' => 'SALE-'.$this->faker->unique()->numberBetween(1000, 9999),
             'customer_name' => $this->faker->name,
             'customer_phone' => $this->faker->phoneNumber,
             'subtotal' => 0, // Will be calculated later

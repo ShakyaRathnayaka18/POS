@@ -72,7 +72,7 @@ class SupplierSeeder extends Seeder
 
         foreach ($suppliers as $supplierData) {
             $supplier = Supplier::firstOrNew(['company_name' => $supplierData['company_name']]);
-            if (!$supplier->exists) {
+            if (! $supplier->exists) {
                 $supplier->fill($supplierData)->save();
             }
         }

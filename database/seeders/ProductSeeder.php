@@ -83,7 +83,7 @@ class ProductSeeder extends Seeder
 
         foreach ($products as $productData) {
             $product = Product::firstOrNew(['item_code' => $productData['item_code']]);
-            if (!$product->exists) {
+            if (! $product->exists) {
                 $product->fill($productData)->save();
             }
         }

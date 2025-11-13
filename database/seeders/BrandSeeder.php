@@ -32,7 +32,7 @@ class BrandSeeder extends Seeder
 
         foreach ($brands as $brandData) {
             $brand = Brand::firstOrNew(['brand_name' => $brandData['brand_name']]);
-            if (!$brand->exists) {
+            if (! $brand->exists) {
                 $brand->fill($brandData)->save();
             }
         }

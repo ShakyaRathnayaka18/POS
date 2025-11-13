@@ -105,7 +105,7 @@
                 @endcanany
 
                 <!-- Sales & Transactions Section -->
-                @canany(['view sales', 'view sales returns', 'view supplier returns', 'view expenses'])
+                @canany(['view sales', 'view sales returns', 'view supplier returns', 'view expenses', 'manage own shifts'])
                 <div class="space-y-3">
                     <h3 class="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                         Sales & Transactions
@@ -116,6 +116,13 @@
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-chart-line  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Sales History
+                        </a>
+                        @endcan
+                        @can('manage own shifts')
+                        <a href="{{ route('shifts.my-shifts') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-user-clock  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            My Shifts
                         </a>
                         @endcan
                         @can('view sales returns')
@@ -144,20 +151,29 @@
                 @endcanany
 
                 <!-- Reports & Analytics Section -->
-                @can('view reports')
+                @canany(['view reports', 'view shifts'])
                 <div class="space-y-3">
                     <h3 class="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                         Reports & Analytics
                     </h3>
                     <div class="space-y-1">
+                        @can('view reports')
                         <a href="{{ route('reports.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-chart-bar  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Analytics
                         </a>
+                        @endcan
+                        @can('view shifts')
+                        <a href="{{ route('shifts.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-clock  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            All Shifts
+                        </a>
+                        @endcan
                     </div>
                 </div>
-                @endcan
+                @endcanany
 
                 <!-- Admin Section -->
                 @canany(['view users', 'view roles', 'view permissions'])

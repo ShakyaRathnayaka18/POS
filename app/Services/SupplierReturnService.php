@@ -4,17 +4,17 @@ namespace App\Services;
 
 use App\Models\Stock;
 use App\Models\SupplierReturn;
-use App\Models\SupplierReturnItem;
-use Illuminate\Support\Facades\DB;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class SupplierReturnService
 {
     public function generateReturnNumber(): string
     {
         $lastReturn = SupplierReturn::orderBy('id', 'desc')->first();
-        $nextId = $lastReturn ? (int)substr($lastReturn->return_number, 3) + 1 : 1;
-        return 'SR-' . str_pad($nextId, 6, '0', STR_PAD_LEFT);
+        $nextId = $lastReturn ? (int) substr($lastReturn->return_number, 3) + 1 : 1;
+
+        return 'SR-'.str_pad($nextId, 6, '0', STR_PAD_LEFT);
     }
 
     public function createSupplierReturn(array $returnData, array $items): SupplierReturn
@@ -26,7 +26,7 @@ class SupplierReturnService
                 $stock = Stock::findOrFail($item['stock_id']);
 
                 if ($stock->available_quantity < $item['quantity_returned']) {
-                    throw new Exception('Not enough available quantity for stock ID: ' . $stock->id);
+                    throw new Exception('Not enough available quantity for stock ID: '.$stock->id);
                 }
 
                 $itemTotal = $item['quantity_returned'] * $item['cost_price'];
@@ -76,6 +76,7 @@ class SupplierReturnService
                     $stock->increment('quantity', $item->quantity_returned);
                 }
             }
+
             return $return->update(['status' => 'Cancelled']);
         });
     }
@@ -85,16 +86,16 @@ class SupplierReturnService
         return Stock::whereHas('batch', function ($query) use ($grnId) {
             $query->where('good_receive_note_id', $grnId);
         })
-        ->where('available_quantity', '>', 0)
-        ->with(['product', 'batch'])
-        ->get()
-        ->toArray();
+            ->where('available_quantity', '>', 0)
+            ->with(['product', 'batch'])
+            ->get()
+            ->toArray();
     }
 
     public function returnEntireBatch(int $batchId, array $returnData): SupplierReturn
     {
         $stocks = Stock::where('batch_id', $batchId)->where('available_quantity', '>', 0)->get();
-        
+
         $items = $stocks->map(function ($stock) {
             return [
                 'stock_id' => $stock->id,

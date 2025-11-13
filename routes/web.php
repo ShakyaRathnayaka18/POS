@@ -9,6 +9,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SavedCartController;
+use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierReturnController;
@@ -31,6 +32,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/cashier', function () {
             return view('cashier.dashboard');
         })->name('cashier.dashboard');
+    });
+
+    // Shift Management - cashier routes
+    Route::middleware(['permission:manage own shifts'])->group(function () {
+        Route::post('/shifts/clock-in', [ShiftController::class, 'clockIn'])->name('shifts.clock-in');
+        Route::post('/shifts/{shift}/clock-out', [ShiftController::class, 'clockOut'])->name('shifts.clock-out');
+        Route::get('/shifts/current', [ShiftController::class, 'current'])->name('shifts.current');
+        Route::get('/my-shifts', [ShiftController::class, 'userShifts'])->name('shifts.my-shifts');
+    });
+
+    // Shift Management - manager/admin routes
+    Route::middleware(['permission:view shifts'])->group(function () {
+        Route::get('/shifts', [ShiftController::class, 'index'])->name('shifts.index');
+        Route::get('/shifts/{shift}', [ShiftController::class, 'show'])->name('shifts.show');
+    });
+
+    Route::middleware(['permission:approve shifts'])->group(function () {
+        Route::post('/shifts/{shift}/approve', [ShiftController::class, 'approve'])->name('shifts.approve');
     });
 
     // Products Management - requires appropriate permissions

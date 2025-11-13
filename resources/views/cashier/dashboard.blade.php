@@ -3,9 +3,58 @@
 @section('title', 'Cashier Dashboard')
 
 @section('content')
-<div x-data="cashierPos()" x-init="init()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Product Search & Cart -->
-    <div class="lg:col-span-2 space-y-6">
+<div x-data="cashierPos()" x-init="init()">
+    <!-- Shift Status Bar -->
+    <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+        <div class="flex justify-between items-center">
+            <div>
+                <template x-if="activeShift">
+                    <div class="flex items-center gap-4">
+                        <span class="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
+                            <i class="fas fa-clock mr-1"></i> Active Shift
+                        </span>
+                        <span class="text-gray-700 dark:text-gray-300">
+                            Started: <span x-text="activeShift ? new Date(activeShift.clock_in_at).toLocaleTimeString() : ''"></span>
+                        </span>
+                        <span class="text-gray-700 dark:text-gray-300">
+                            Duration: <span x-text="shiftDuration"></span>
+                        </span>
+                        <span class="text-gray-700 dark:text-gray-300">
+                            Sales: <span x-text="shiftStats ? shiftStats.total_sales_count : 0"></span>
+                        </span>
+                    </div>
+                </template>
+                <template x-if="!activeShift">
+                    <span class="text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-exclamation-circle mr-2"></i>No active shift - Please clock in to start
+                    </span>
+                </template>
+            </div>
+            <div class="flex gap-2">
+                @can('manage own shifts')
+                    <template x-if="!activeShift">
+                        <button @click="showClockInModal = true"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Clock In
+                        </button>
+                    </template>
+                    <template x-if="activeShift">
+                        <button @click="showClockOutModal = true"
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Clock Out
+                        </button>
+                    </template>
+                    <a href="{{ route('shifts.my-shifts') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold">
+                        <i class="fas fa-history mr-2"></i>My Shifts
+                    </a>
+                @endcan
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Product Search & Cart -->
+        <div class="lg:col-span-2 space-y-6">
         <!-- Product Search -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Search</h2>
@@ -396,9 +445,27 @@
             savedCarts: [],
             isLoadingSavedCarts: false,
 
+            // Shift management properties
+            activeShift: null,
+            shiftStats: null,
+            shiftDuration: '00:00',
+            showClockInModal: false,
+            showClockOutModal: false,
+            openingCash: '',
+            closingCash: '',
+            shiftNotes: '',
+
             init() {
                 // Load saved carts count
                 this.loadSavedCarts();
+                // Fetch active shift
+                this.fetchActiveShift();
+                // Update shift timer every minute
+                setInterval(() => {
+                    if (this.activeShift) {
+                        this.updateShiftDuration();
+                    }
+                }, 60000);
                 // Focus on search input on load
                 this.$nextTick(() => {
                     document.querySelector('input[x-model="searchQuery"]')?.focus();
@@ -742,8 +809,165 @@
                     console.error('Delete cart error:', error);
                     alert('Failed to delete cart. Please try again.');
                 }
+            },
+
+            // Shift Management Methods
+            async fetchActiveShift() {
+                try {
+                    const response = await fetch('/shifts/current', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.activeShift = data.data.shift;
+                        this.shiftStats = data.data.statistics;
+                        this.updateShiftDuration();
+                    } else {
+                        this.activeShift = null;
+                        this.shiftStats = null;
+                    }
+                } catch (error) {
+                    console.error('Fetch active shift error:', error);
+                }
+            },
+
+            updateShiftDuration() {
+                if (!this.activeShift || !this.activeShift.clock_in_at) return;
+                const start = new Date(this.activeShift.clock_in_at);
+                const now = new Date();
+                const diff = Math.floor((now - start) / 1000 / 60); // minutes
+                const hours = Math.floor(diff / 60);
+                const minutes = diff % 60;
+                this.shiftDuration = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            },
+
+            async clockIn() {
+                try {
+                    const response = await fetch('/shifts/clock-in', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            opening_cash: this.openingCash || null,
+                            notes: this.shiftNotes || null
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        toastr.success(data.message);
+                        this.showClockInModal = false;
+                        await this.fetchActiveShift();
+                        this.openingCash = '';
+                        this.shiftNotes = '';
+                    } else {
+                        toastr.error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Clock in error:', error);
+                    toastr.error('Failed to clock in. Please try again.');
+                }
+            },
+
+            async clockOut() {
+                if (!this.activeShift) return;
+
+                try {
+                    const response = await fetch(`/shifts/${this.activeShift.id}/clock-out`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            closing_cash: this.closingCash || null,
+                            notes: this.shiftNotes || null
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        toastr.success(data.message);
+                        this.showClockOutModal = false;
+                        this.activeShift = null;
+                        this.shiftStats = null;
+                        this.closingCash = '';
+                        this.shiftNotes = '';
+                    } else {
+                        toastr.error(data.message);
+                    }
+                } catch (error) {
+                    console.error('Clock out error:', error);
+                    toastr.error('Failed to clock out. Please try again.');
+                }
             }
         }
     }
 </script>
+
+<!-- Clock In Modal -->
+<div x-show="showClockInModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock In</h3>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opening Cash (Optional)</label>
+                <input type="number" x-model="openingCash" step="0.01" placeholder="0.00"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
+                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button @click="clockIn()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold">
+                    <i class="fas fa-check mr-2"></i>Confirm Clock In
+                </button>
+                <button @click="showClockInModal = false; openingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Clock Out Modal -->
+<div x-show="showClockOutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock Out</h3>
+        <template x-if="shiftStats">
+            <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded">
+                <p class="text-sm text-gray-700 dark:text-gray-300">Total Sales: <span class="font-semibold" x-text="'$' + (shiftStats.total_sales || 0).toFixed(2)"></span></p>
+                <p class="text-sm text-gray-700 dark:text-gray-300">Transactions: <span class="font-semibold" x-text="shiftStats.total_sales_count || 0"></span></p>
+                <p class="text-sm text-gray-700 dark:text-gray-300">Expected Cash: <span class="font-semibold" x-text="'$' + (shiftStats.expected_cash || 0).toFixed(2)"></span></p>
+            </div>
+        </template>
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Closing Cash (Optional)</label>
+                <input type="number" x-model="closingCash" step="0.01" placeholder="0.00"
+                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
+                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
+            </div>
+            <div class="flex gap-2">
+                <button @click="clockOut()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Confirm Clock Out
+                </button>
+                <button @click="showClockOutModal = false; closingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 @endsection

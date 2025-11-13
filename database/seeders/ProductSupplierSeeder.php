@@ -99,7 +99,7 @@ class ProductSupplierSeeder extends Seeder
                     'vendor_cost_price' => $cost,
                     'is_preferred' => $preferred,
                     'lead_time_days' => $leadTime,
-                ]
+                ],
             ]);
         }
     }

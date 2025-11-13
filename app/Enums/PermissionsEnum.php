@@ -93,6 +93,12 @@ enum PermissionsEnum: string
     // Cart Management (for cashiers)
     case MANAGE_SAVED_CARTS = 'manage saved carts';
 
+    // Shift Management
+    case MANAGE_OWN_SHIFTS = 'manage own shifts';
+    case VIEW_SHIFTS = 'view shifts';
+    case MANAGE_SHIFTS = 'manage shifts';
+    case APPROVE_SHIFTS = 'approve shifts';
+
     /**
      * Get all permission values as an array
      */
@@ -193,6 +199,12 @@ enum PermissionsEnum: string
                 self::DELETE_ROLES,
                 self::VIEW_PERMISSIONS,
                 self::MANAGE_PERMISSIONS,
+            ],
+            'Shifts' => [
+                self::MANAGE_OWN_SHIFTS,
+                self::VIEW_SHIFTS,
+                self::MANAGE_SHIFTS,
+                self::APPROVE_SHIFTS,
             ],
         ];
     }
