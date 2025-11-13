@@ -20,6 +20,13 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
 
+        // Seed permissions and roles first
+        $this->call([
+            PermissionSeeder::class,
+            RoleSeeder::class,
+            UserSeeder::class,
+        ]);
+
         // Seed categories, brands, suppliers, products, and product-supplier relationships
         $this->call([
             CategorySeeder::class,
