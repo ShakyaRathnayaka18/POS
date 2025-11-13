@@ -175,6 +175,45 @@
                 </div>
                 @endcanany
 
+                <!-- Human Resources Section -->
+                @canany(['view employees', 'view payroll', 'view own payroll'])
+                <div class="space-y-3">
+                    <h3 class="px-3 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                        Human Resources
+                    </h3>
+                    <div class="space-y-1">
+                        @can('view employees')
+                        <a href="{{ route('employees.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-user-tie  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Employees
+                        </a>
+                        @endcan
+                        @can('view payroll')
+                        <a href="{{ route('payroll.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-money-check-alt  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Payroll
+                        </a>
+                        @endcan
+                        @can('view payroll reports')
+                        <a href="{{ route('payroll.reports') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-file-invoice-dollar  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Payroll Reports
+                        </a>
+                        @endcan
+                        @can('view own payroll')
+                        <a href="{{ route('payroll.my-payroll') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-wallet  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            My Payroll
+                        </a>
+                        @endcan
+                    </div>
+                </div>
+                @endcanany
+
                 <!-- Admin Section -->
                 @canany(['view users', 'view roles', 'view permissions'])
                 <div class="space-y-3">
