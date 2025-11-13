@@ -3,7 +3,9 @@
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\GoodReceiveNoteController;
+use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
@@ -168,5 +170,40 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/roles/{role}/edit', [RoleController::class, 'edit'])->name('roles.edit');
         Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
         Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
+    });
+
+    // Employee Management Routes
+    Route::middleware(['permission:view employees'])->group(function () {
+        Route::resource('employees', EmployeeController::class);
+        Route::post('/employees/{employee}/terminate', [EmployeeController::class, 'terminate'])->name('employees.terminate');
+        Route::post('/employees/{employee}/reactivate', [EmployeeController::class, 'reactivate'])->name('employees.reactivate');
+    });
+
+    // Payroll Management Routes
+    Route::middleware(['permission:view payroll'])->group(function () {
+        Route::get('/payroll', [PayrollController::class, 'index'])->name('payroll.index');
+        Route::get('/payroll/create', [PayrollController::class, 'create'])->name('payroll.create');
+        Route::post('/payroll', [PayrollController::class, 'store'])->name('payroll.store');
+        Route::get('/payroll/{payroll}', [PayrollController::class, 'show'])->name('payroll.show');
+        Route::delete('/payroll/{payroll}', [PayrollController::class, 'destroy'])->name('payroll.destroy');
+    });
+
+    Route::middleware(['permission:process payroll'])->group(function () {
+        Route::post('/payroll/{payroll}/process', [PayrollController::class, 'process'])->name('payroll.process');
+    });
+
+    Route::middleware(['permission:approve payroll'])->group(function () {
+        Route::post('/payroll/{payroll}/approve', [PayrollController::class, 'approve'])->name('payroll.approve');
+        Route::post('/payroll/{payroll}/mark-paid', [PayrollController::class, 'markAsPaid'])->name('payroll.mark-paid');
+    });
+
+    Route::middleware(['permission:view payroll reports'])->group(function () {
+        Route::get('/payroll/reports/overview', [PayrollController::class, 'reports'])->name('payroll.reports');
+        Route::get('/payroll/{payroll}/export', [PayrollController::class, 'export'])->name('payroll.export');
+    });
+
+    // Employee's own payroll
+    Route::middleware(['permission:view own payroll'])->group(function () {
+        Route::get('/my-payroll', [PayrollController::class, 'myPayroll'])->name('payroll.my-payroll');
     });
 });

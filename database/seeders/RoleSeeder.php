@@ -102,6 +102,16 @@ class RoleSeeder extends Seeder
             P::VIEW_SHIFTS,
             P::MANAGE_SHIFTS,
             P::APPROVE_SHIFTS,
+            // Employees
+            P::VIEW_EMPLOYEES,
+            P::CREATE_EMPLOYEES,
+            P::EDIT_EMPLOYEES,
+            P::DELETE_EMPLOYEES,
+            // Payroll
+            P::VIEW_PAYROLL,
+            P::PROCESS_PAYROLL,
+            P::APPROVE_PAYROLL,
+            P::VIEW_PAYROLL_REPORTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::ADMIN->value.' with '.$admin->permissions->count().' permissions');
 
@@ -149,6 +159,12 @@ class RoleSeeder extends Seeder
             P::MANAGE_OWN_SHIFTS,
             P::VIEW_SHIFTS,
             P::APPROVE_SHIFTS,
+            // Employees
+            P::VIEW_EMPLOYEES,
+            // Payroll
+            P::VIEW_PAYROLL,
+            P::APPROVE_PAYROLL,
+            P::VIEW_PAYROLL_REPORTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::MANAGER->value.' with '.$manager->permissions->count().' permissions');
 
@@ -171,6 +187,8 @@ class RoleSeeder extends Seeder
             P::CREATE_SALES_RETURNS,
             // Shifts - Manage own shifts
             P::MANAGE_OWN_SHIFTS,
+            // Payroll - View own only
+            P::VIEW_OWN_PAYROLL,
         ]);
         $this->command->info('Created role: '.RolesEnum::CASHIER->value.' with '.$cashier->permissions->count().' permissions');
 
@@ -214,6 +232,11 @@ class RoleSeeder extends Seeder
             P::VIEW_REPORTS,
             P::VIEW_EXPENSES,
             P::MANAGE_EXPENSES,
+            // Employees & Payroll - Full access
+            P::VIEW_EMPLOYEES,
+            P::VIEW_PAYROLL,
+            P::PROCESS_PAYROLL,
+            P::VIEW_PAYROLL_REPORTS,
         ]);
         $this->command->info('Created role: '.RolesEnum::ACCOUNTANT->value.' with '.$accountant->permissions->count().' permissions');
 

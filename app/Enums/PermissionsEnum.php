@@ -99,6 +99,19 @@ enum PermissionsEnum: string
     case MANAGE_SHIFTS = 'manage shifts';
     case APPROVE_SHIFTS = 'approve shifts';
 
+    // Employee Management
+    case VIEW_EMPLOYEES = 'view employees';
+    case CREATE_EMPLOYEES = 'create employees';
+    case EDIT_EMPLOYEES = 'edit employees';
+    case DELETE_EMPLOYEES = 'delete employees';
+
+    // Payroll Management
+    case VIEW_PAYROLL = 'view payroll';
+    case PROCESS_PAYROLL = 'process payroll';
+    case APPROVE_PAYROLL = 'approve payroll';
+    case VIEW_OWN_PAYROLL = 'view own payroll';
+    case VIEW_PAYROLL_REPORTS = 'view payroll reports';
+
     /**
      * Get all permission values as an array
      */
@@ -205,6 +218,19 @@ enum PermissionsEnum: string
                 self::VIEW_SHIFTS,
                 self::MANAGE_SHIFTS,
                 self::APPROVE_SHIFTS,
+            ],
+            'Employees' => [
+                self::VIEW_EMPLOYEES,
+                self::CREATE_EMPLOYEES,
+                self::EDIT_EMPLOYEES,
+                self::DELETE_EMPLOYEES,
+            ],
+            'Payroll' => [
+                self::VIEW_PAYROLL,
+                self::PROCESS_PAYROLL,
+                self::APPROVE_PAYROLL,
+                self::VIEW_OWN_PAYROLL,
+                self::VIEW_PAYROLL_REPORTS,
             ],
         ];
     }
