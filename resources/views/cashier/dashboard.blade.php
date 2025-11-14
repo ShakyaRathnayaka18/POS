@@ -298,7 +298,7 @@
                 @click="completeSale"
                 type="button"
                 :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'Cash' && amountReceived < totals.total)"
-                class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                class="w-full bg-primary-600 text-black py-3 px-4 rounded-md hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i :class="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-check'" class="mr-2"></i>
                 <span x-text="isProcessing ? 'Processing...' : 'Complete Sale'"></span>
             </button>

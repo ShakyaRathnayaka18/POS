@@ -6,6 +6,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SalaryController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SavedCartController;
@@ -169,4 +170,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/roles/{role}', [RoleController::class, 'update'])->name('roles.update');
         Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
     });
+
+   // Employee Salary Management - Admin and Superadmin only
+    Route::get('/salary', [SalaryController::class, 'index'])->name('salary.show');
+    Route::get('/salary/manage', [SalaryController::class, 'create'])->name('salary.index');
+    Route::post('/salary/save', [SalaryController::class, 'store'])->name('salary.create');
 });

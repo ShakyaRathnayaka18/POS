@@ -132,7 +132,7 @@
                             Sales Returns
                         </a>
                         @endcan
-                        @can('view supplier returns')
+                        @can(abilities: 'view supplier returns')
                         <a href="{{ route('supplier-returns.index') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-truck-arrow-right  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
@@ -196,6 +196,12 @@
                             Roles & Permissions
                         </a>
                         @endcanany
+                        <a href="{{ route('salary.show') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
+                            @if (!in_array(Auth::user()->name, ['admin', 'superadmin'])) style="display: none;" @endif>
+                            <i class="fas fa-dollar-sign mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Employee Salary
+                        </a>
                     </div>
                 </div>
                 @endcanany

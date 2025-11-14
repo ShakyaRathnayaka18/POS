@@ -28,14 +28,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed categories, brands, suppliers, products, and product-supplier relationships
-        $this->call([
-            CategorySeeder::class,
-            BrandSeeder::class,
-            SupplierSeeder::class,
-            ProductSeeder::class,
-            ProductSupplierSeeder::class,
-            SaleSeeder::class,
-            SaleItemSeeder::class,
-        ]);
+        // $this->call([
+        //     CategorySeeder::class,
+        //     BrandSeeder::class,
+        //     SupplierSeeder::class,
+        //     ProductSeeder::class,
+        //     ProductSupplierSeeder::class,
+        //     SaleSeeder::class,
+        //     SaleItemSeeder::class,
+        // ]);
     }
 }
