@@ -4,6 +4,7 @@ use App\Http\Controllers\BatchController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
@@ -67,10 +68,31 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 
+    // Expenses Management
     Route::middleware(['permission:view expenses'])->group(function () {
-        Route::get('/expenses', function () {
-            return view('expenses.index');
-        })->name('expenses.index');
+        Route::get('/expenses', [ExpenseController::class, 'index'])->name('expenses.index');
+    });
+
+    Route::middleware(['permission:manage expenses'])->group(function () {
+        Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
+        Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
+
+        // Expense Category Management (AJAX)
+        Route::post('/expense-categories', [ExpenseController::class, 'storeCategory'])->name('expense-categories.store');
+        Route::get('/api/expense-categories', [ExpenseController::class, 'getCategories'])->name('api.expense-categories.index');
+    });
+
+    Route::middleware(['permission:view expenses'])->group(function () {
+        Route::get('/expenses/{expense}', [ExpenseController::class, 'show'])->name('expenses.show');
+    });
+
+    Route::middleware(['permission:manage expenses'])->group(function () {
+        Route::get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])->name('expenses.edit');
+        Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+        Route::post('/expenses/{expense}/approve', [ExpenseController::class, 'approve'])->name('expenses.approve');
+        Route::post('/expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('expenses.reject');
+        Route::post('/expenses/{expense}/mark-as-paid', [ExpenseController::class, 'markAsPaid'])->name('expenses.mark-as-paid');
     });
 
     Route::middleware(['permission:view reports'])->group(function () {
@@ -119,9 +141,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/saved-carts/{savedCart}', [SavedCartController::class, 'show'])->name('api.saved-carts.show');
     Route::delete('/api/saved-carts/{savedCart}', [SavedCartController::class, 'destroy'])->name('api.saved-carts.destroy');
 
-    // Good Receive Notes (GRN) routes - requires view good receive notes permission
-    Route::middleware(['permission:view good receive notes'])->group(function () {
+    // Good Receive Notes (GRN) routes - requires view grns permission
+    Route::middleware(['permission:view grns'])->group(function () {
         Route::get('suppliers/{supplier}/products', [GoodReceiveNoteController::class, 'getSupplierProducts'])->name('suppliers.products');
+        Route::get('suppliers/{supplier}/credit-info', [GoodReceiveNoteController::class, 'getSupplierCreditInfo'])->name('suppliers.credit-info');
         Route::resource('good-receive-notes', GoodReceiveNoteController::class);
     });
 
@@ -205,5 +228,81 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['permission:view payroll reports'])->group(function () {
         Route::get('/payroll/reports/overview', [PayrollController::class, 'reports'])->name('payroll.reports');
         Route::get('/payroll/{payroll}/export', [PayrollController::class, 'export'])->name('payroll.export');
+    });
+
+    // Supplier Credits Routes
+    Route::middleware(['permission:view supplier credits'])->group(function () {
+        Route::get('/supplier-credits', [\App\Http\Controllers\SupplierCreditController::class, 'index'])->name('supplier-credits.index');
+        Route::get('/supplier-credits/{supplierCredit}', [\App\Http\Controllers\SupplierCreditController::class, 'show'])->name('supplier-credits.show');
+    });
+
+    // Supplier Payments Routes
+    Route::middleware(['permission:view supplier payments'])->group(function () {
+        Route::get('/supplier-payments', [\App\Http\Controllers\SupplierPaymentController::class, 'index'])->name('supplier-payments.index');
+    });
+
+    Route::middleware(['permission:create supplier payments'])->group(function () {
+        Route::get('/supplier-payments/create', [\App\Http\Controllers\SupplierPaymentController::class, 'create'])->name('supplier-payments.create');
+        Route::post('/supplier-payments', [\App\Http\Controllers\SupplierPaymentController::class, 'store'])->name('supplier-payments.store');
+    });
+
+    Route::middleware(['permission:view supplier payments'])->group(function () {
+        Route::get('/supplier-payments/{supplierPayment}', [\App\Http\Controllers\SupplierPaymentController::class, 'show'])->name('supplier-payments.show');
+    });
+
+    // Accounting - Chart of Accounts Routes
+    Route::middleware(['permission:view chart of accounts'])->group(function () {
+        Route::get('/accounts', [\App\Http\Controllers\AccountController::class, 'index'])->name('accounts.index');
+        Route::get('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'show'])->name('accounts.show');
+    });
+
+    Route::middleware(['permission:create accounts'])->group(function () {
+        Route::get('/accounts/create', [\App\Http\Controllers\AccountController::class, 'create'])->name('accounts.create');
+        Route::post('/accounts', [\App\Http\Controllers\AccountController::class, 'store'])->name('accounts.store');
+    });
+
+    Route::middleware(['permission:edit accounts'])->group(function () {
+        Route::get('/accounts/{account}/edit', [\App\Http\Controllers\AccountController::class, 'edit'])->name('accounts.edit');
+        Route::put('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
+    });
+
+    Route::middleware(['permission:delete accounts'])->group(function () {
+        Route::delete('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
+    });
+
+    // Accounting - Journal Entries Routes
+    Route::middleware(['permission:view journal entries'])->group(function () {
+        Route::get('/journal-entries', [\App\Http\Controllers\JournalEntryController::class, 'index'])->name('journal-entries.index');
+        Route::get('/journal-entries/{journalEntry}', [\App\Http\Controllers\JournalEntryController::class, 'show'])->name('journal-entries.show');
+    });
+
+    Route::middleware(['permission:create journal entries'])->group(function () {
+        Route::get('/journal-entries/create', [\App\Http\Controllers\JournalEntryController::class, 'create'])->name('journal-entries.create');
+        Route::post('/journal-entries', [\App\Http\Controllers\JournalEntryController::class, 'store'])->name('journal-entries.store');
+    });
+
+    Route::middleware(['permission:post journal entries'])->group(function () {
+        Route::post('/journal-entries/{journalEntry}/post', [\App\Http\Controllers\JournalEntryController::class, 'post'])->name('journal-entries.post');
+    });
+
+    Route::middleware(['permission:void journal entries'])->group(function () {
+        Route::post('/journal-entries/{journalEntry}/void', [\App\Http\Controllers\JournalEntryController::class, 'void'])->name('journal-entries.void');
+    });
+
+    // Accounting - Financial Reports Routes
+    Route::middleware(['permission:view income statement'])->group(function () {
+        Route::get('/reports/income-statement', [\App\Http\Controllers\ReportController::class, 'incomeStatement'])->name('reports.income-statement');
+    });
+
+    Route::middleware(['permission:view balance sheet'])->group(function () {
+        Route::get('/reports/balance-sheet', [\App\Http\Controllers\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    });
+
+    Route::middleware(['permission:view trial balance'])->group(function () {
+        Route::get('/reports/trial-balance', [\App\Http\Controllers\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+    });
+
+    Route::middleware(['permission:view general ledger'])->group(function () {
+        Route::get('/reports/general-ledger', [\App\Http\Controllers\ReportController::class, 'generalLedger'])->name('reports.general-ledger');
     });
 });

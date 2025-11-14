@@ -7,12 +7,14 @@ use App\Models\Category;
 use App\Models\GoodReceiveNote;
 use App\Models\Supplier;
 use App\Services\GoodReceiveNoteService;
+use App\Services\SupplierCreditService;
 use Illuminate\Http\Request;
 
 class GoodReceiveNoteController extends Controller
 {
     public function __construct(
-        protected GoodReceiveNoteService $grnService
+        protected GoodReceiveNoteService $grnService,
+        protected SupplierCreditService $creditService
     ) {}
 
     /**
@@ -66,6 +68,19 @@ class GoodReceiveNoteController extends Controller
     }
 
     /**
+     * Get supplier credit information.
+     */
+    public function getSupplierCreditInfo(Supplier $supplier)
+    {
+        return response()->json([
+            'company_name' => $supplier->company_name,
+            'credit_limit' => $supplier->credit_limit,
+            'current_credit_used' => $supplier->current_credit_used,
+            'available_credit' => $supplier->available_credit,
+        ]);
+    }
+
+    /**
      * Store a newly created GRN.
      */
     public function store(Request $request)
@@ -74,6 +89,10 @@ class GoodReceiveNoteController extends Controller
             'grn_number' => 'required|unique:good_receive_notes',
             'supplier_id' => 'required|exists:suppliers,id',
             'received_date' => 'required|date',
+            'invoice_number' => 'required|string|max:255',
+            'invoice_date' => 'required|date',
+            'payment_type' => 'required|in:cash,credit',
+            'credit_terms' => 'required_if:payment_type,credit',
             'notes' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -90,6 +109,10 @@ class GoodReceiveNoteController extends Controller
             'grn_number' => $validated['grn_number'],
             'supplier_id' => $validated['supplier_id'],
             'received_date' => $validated['received_date'],
+            'invoice_number' => $validated['invoice_number'],
+            'invoice_date' => $validated['invoice_date'],
+            'payment_type' => $validated['payment_type'],
+            'is_credit' => $validated['payment_type'] === 'credit',
             'notes' => $validated['notes'] ?? null,
             'subtotal' => 0,
             'tax' => 0,
@@ -108,10 +131,28 @@ class GoodReceiveNoteController extends Controller
 
         $grnData['total'] = $grnData['subtotal'] + $grnData['tax'];
 
-        $grn = $this->grnService->createGrnWithBatches($grnData, $validated['items']);
+        try {
+            $grn = $this->grnService->createGrnWithBatches($grnData, $validated['items']);
 
-        return redirect()->route('good-receive-notes.show', $grn)
-            ->with('success', 'Good Receive Note created successfully!');
+            // If payment type is credit, create supplier credit
+            if ($validated['payment_type'] === 'credit') {
+                $creditData = [
+                    'invoice_number' => $validated['invoice_number'],
+                    'invoice_date' => $validated['invoice_date'],
+                    'credit_terms' => $validated['credit_terms'],
+                ];
+
+                $this->creditService->createCreditFromGrn($grn, $creditData);
+            }
+
+            return redirect()->route('good-receive-notes.show', $grn)
+                ->with('success', 'Good Receive Note created successfully!'.
+                    ($validated['payment_type'] === 'credit' ? ' Supplier credit has been recorded.' : ''));
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Error creating GRN: '.$e->getMessage());
+        }
     }
 
     /**

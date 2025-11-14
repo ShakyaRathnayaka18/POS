@@ -27,15 +27,22 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
         ]);
 
-        // Seed categories, brands, suppliers, products, and product-supplier relationships
+        // Seed accounting data
         $this->call([
-            CategorySeeder::class,
-            BrandSeeder::class,
-            SupplierSeeder::class,
-            ProductSeeder::class,
-            ProductSupplierSeeder::class,
-            SaleSeeder::class,
-            SaleItemSeeder::class,
+            AccountTypeSeeder::class,
+            ChartOfAccountsSeeder::class,
+            FiscalPeriodSeeder::class,
         ]);
+
+        // Seed categories, brands, suppliers, products, and product-supplier relationships
+        // $this->call([
+        //     CategorySeeder::class,
+        //     BrandSeeder::class,
+        //     SupplierSeeder::class,
+        //     ProductSeeder::class,
+        //     ProductSupplierSeeder::class,
+        //     SaleSeeder::class,
+        //     SaleItemSeeder::class,
+        // ]);
     }
 }

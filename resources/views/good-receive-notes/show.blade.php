@@ -30,6 +30,37 @@
                     <span class="text-gray-900">{{ $goodReceiveNote->received_date->format('F d, Y') }}</span>
                 </div>
                 <div>
+                    <span class="font-medium text-gray-700">Invoice Number:</span>
+                    <span class="text-gray-900">{{ $goodReceiveNote->invoice_number ?? '-' }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Invoice Date:</span>
+                    <span class="text-gray-900">{{ $goodReceiveNote->invoice_date ? $goodReceiveNote->invoice_date->format('F d, Y') : '-' }}</span>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Payment Type:</span>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                        {{ $goodReceiveNote->payment_type === 'cash' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
+                        {{ ucfirst($goodReceiveNote->payment_type ?? 'cash') }}
+                    </span>
+                </div>
+                @if($goodReceiveNote->is_credit && $goodReceiveNote->supplierCredit)
+                <div>
+                    <span class="font-medium text-gray-700">Credit Status:</span>
+                    <a href="{{ route('supplier-credits.show', $goodReceiveNote->supplierCredit) }}"
+                        class="text-blue-600 hover:text-blue-800 hover:underline">
+                        {{ $goodReceiveNote->supplierCredit->credit_number }} -
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $goodReceiveNote->supplierCredit->status->badgeColor() }}">
+                            {{ $goodReceiveNote->supplierCredit->status->description() }}
+                        </span>
+                    </a>
+                </div>
+                <div>
+                    <span class="font-medium text-gray-700">Outstanding:</span>
+                    <span class="text-gray-900 font-semibold">LKR {{ number_format($goodReceiveNote->supplierCredit->outstanding_amount, 2) }}</span>
+                </div>
+                @endif
+                <div>
                     <span class="font-medium text-gray-700">Status:</span>
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                         {{ $goodReceiveNote->status === 'Received' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">

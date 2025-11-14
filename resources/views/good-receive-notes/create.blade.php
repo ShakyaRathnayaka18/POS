@@ -46,9 +46,94 @@
                 </div>
 
                 <div>
+                    <label for="invoice_number" class="block text-sm font-medium text-gray-700 mb-2">Invoice Number *</label>
+                    <input type="text" name="invoice_number" id="invoice_number" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('invoice_number')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label for="invoice_date" class="block text-sm font-medium text-gray-700 mb-2">Invoice Date *</label>
+                    <input type="date" name="invoice_date" id="invoice_date" value="{{ date('Y-m-d') }}" required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    @error('invoice_date')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="md:col-span-2">
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
                     <textarea name="notes" id="notes" rows="3"
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Information Section -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Payment Information</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Payment Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Payment Type *</label>
+                    <div class="flex gap-6">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="payment_type" value="cash" checked
+                                class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                                onchange="toggleCreditFields()">
+                            <span class="ml-2 text-gray-700">Cash</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="payment_type" value="credit"
+                                class="form-radio h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
+                                onchange="toggleCreditFields()">
+                            <span class="ml-2 text-gray-700">Credit</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Credit Terms (hidden by default) -->
+                <div id="creditTermsField" class="hidden">
+                    <label for="credit_terms" class="block text-sm font-medium text-gray-700 mb-2">Credit Terms *</label>
+                    <select name="credit_terms" id="credit_terms"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Select Credit Terms</option>
+                        <option value="due_on_receipt">Due on Receipt (0 days)</option>
+                        <option value="net_7">Net 7 Days</option>
+                        <option value="net_15">Net 15 Days</option>
+                        <option value="net_30">Net 30 Days</option>
+                        <option value="net_60">Net 60 Days</option>
+                        <option value="net_90">Net 90 Days</option>
+                    </select>
+                    @error('credit_terms')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Credit Limit Warning (hidden by default) -->
+            <div id="creditWarning" class="hidden mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-yellow-800">
+                            <span id="supplierName"></span> Credit Information
+                        </p>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>Credit Limit: LKR <span id="creditLimit">0.00</span></p>
+                            <p>Current Used: LKR <span id="currentUsed">0.00</span></p>
+                            <p>Available Credit: LKR <span id="availableCredit" class="font-bold">0.00</span></p>
+                            <p class="mt-1">GRN Total: LKR <span id="grnTotal" class="font-bold">0.00</span></p>
+                            <p id="creditExceededWarning" class="hidden mt-2 text-red-600 font-semibold">
+                                <i class="fas fa-times-circle mr-1"></i>Warning: This purchase exceeds available credit!
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -252,6 +337,74 @@ function updateCalculations() {
     document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
     document.getElementById('taxDisplay').textContent = tax.toFixed(2);
     document.getElementById('totalDisplay').textContent = total.toFixed(2);
+    document.getElementById('grnTotal').textContent = total.toFixed(2);
+
+    // Check credit limit if payment type is credit
+    checkCreditLimit();
+}
+
+// Toggle credit fields based on payment type
+function toggleCreditFields() {
+    const paymentType = document.querySelector('input[name="payment_type"]:checked').value;
+    const creditTermsField = document.getElementById('creditTermsField');
+    const creditWarning = document.getElementById('creditWarning');
+    const creditTermsSelect = document.getElementById('credit_terms');
+
+    if (paymentType === 'credit') {
+        creditTermsField.classList.remove('hidden');
+        creditTermsSelect.required = true;
+        loadSupplierCreditInfo();
+    } else {
+        creditTermsField.classList.add('hidden');
+        creditWarning.classList.add('hidden');
+        creditTermsSelect.required = false;
+    }
+}
+
+// Load supplier credit information
+let supplierCreditInfo = null;
+
+function loadSupplierCreditInfo() {
+    const supplierId = document.getElementById('supplier_id').value;
+
+    if (!supplierId) {
+        alert('Please select a supplier first');
+        document.querySelector('input[name="payment_type"][value="cash"]').checked = true;
+        toggleCreditFields();
+        return;
+    }
+
+    // Fetch supplier credit info
+    fetch(`/suppliers/${supplierId}/credit-info`)
+        .then(response => response.json())
+        .then(data => {
+            supplierCreditInfo = data;
+            document.getElementById('supplierName').textContent = data.company_name + "'s";
+            document.getElementById('creditLimit').textContent = parseFloat(data.credit_limit).toFixed(2);
+            document.getElementById('currentUsed').textContent = parseFloat(data.current_credit_used).toFixed(2);
+            document.getElementById('availableCredit').textContent = parseFloat(data.available_credit).toFixed(2);
+            document.getElementById('creditWarning').classList.remove('hidden');
+            checkCreditLimit();
+        })
+        .catch(error => {
+            console.error('Error fetching supplier credit info:', error);
+            alert('Error loading supplier credit information');
+        });
+}
+
+// Check if GRN total exceeds available credit
+function checkCreditLimit() {
+    if (!supplierCreditInfo) return;
+
+    const total = parseFloat(document.getElementById('totalDisplay').textContent);
+    const availableCredit = parseFloat(supplierCreditInfo.available_credit);
+    const warningElement = document.getElementById('creditExceededWarning');
+
+    if (total > availableCredit) {
+        warningElement.classList.remove('hidden');
+    } else {
+        warningElement.classList.add('hidden');
+    }
 }
 
 // Add first item on page load

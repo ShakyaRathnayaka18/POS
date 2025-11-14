@@ -112,6 +112,47 @@ enum PermissionsEnum: string
     case VIEW_OWN_PAYROLL = 'view own payroll';
     case VIEW_PAYROLL_REPORTS = 'view payroll reports';
 
+    // Supplier Credits Management
+    case VIEW_SUPPLIER_CREDITS = 'view supplier credits';
+    case CREATE_SUPPLIER_CREDITS = 'create supplier credits';
+    case EDIT_SUPPLIER_CREDITS = 'edit supplier credits';
+    case DELETE_SUPPLIER_CREDITS = 'delete supplier credits';
+
+    // Supplier Payments Management
+    case VIEW_SUPPLIER_PAYMENTS = 'view supplier payments';
+    case CREATE_SUPPLIER_PAYMENTS = 'create supplier payments';
+    case EDIT_SUPPLIER_PAYMENTS = 'edit supplier payments';
+    case DELETE_SUPPLIER_PAYMENTS = 'delete supplier payments';
+
+    // Creditor Reports
+    case VIEW_CREDITOR_REPORTS = 'view creditor reports';
+    case VIEW_CREDITOR_AGING = 'view creditor aging';
+    case VIEW_SUPPLIER_STATEMENTS = 'view supplier statements';
+    case MANAGE_PAYMENT_REMINDERS = 'manage payment reminders';
+
+    // Accounting - Chart of Accounts
+    case VIEW_CHART_OF_ACCOUNTS = 'view chart of accounts';
+    case CREATE_ACCOUNTS = 'create accounts';
+    case EDIT_ACCOUNTS = 'edit accounts';
+    case DELETE_ACCOUNTS = 'delete accounts';
+
+    // Accounting - Journal Entries
+    case VIEW_JOURNAL_ENTRIES = 'view journal entries';
+    case CREATE_JOURNAL_ENTRIES = 'create journal entries';
+    case POST_JOURNAL_ENTRIES = 'post journal entries';
+    case VOID_JOURNAL_ENTRIES = 'void journal entries';
+
+    // Accounting - Financial Reports
+    case VIEW_INCOME_STATEMENT = 'view income statement';
+    case VIEW_BALANCE_SHEET = 'view balance sheet';
+    case VIEW_TRIAL_BALANCE = 'view trial balance';
+    case VIEW_GENERAL_LEDGER = 'view general ledger';
+
+    // Accounting - Fiscal Periods
+    case VIEW_FISCAL_PERIODS = 'view fiscal periods';
+    case MANAGE_FISCAL_PERIODS = 'manage fiscal periods';
+    case CLOSE_FISCAL_PERIODS = 'close fiscal periods';
+
     /**
      * Get all permission values as an array
      */
@@ -231,6 +272,47 @@ enum PermissionsEnum: string
                 self::APPROVE_PAYROLL,
                 self::VIEW_OWN_PAYROLL,
                 self::VIEW_PAYROLL_REPORTS,
+            ],
+            'Supplier Credits' => [
+                self::VIEW_SUPPLIER_CREDITS,
+                self::CREATE_SUPPLIER_CREDITS,
+                self::EDIT_SUPPLIER_CREDITS,
+                self::DELETE_SUPPLIER_CREDITS,
+            ],
+            'Supplier Payments' => [
+                self::VIEW_SUPPLIER_PAYMENTS,
+                self::CREATE_SUPPLIER_PAYMENTS,
+                self::EDIT_SUPPLIER_PAYMENTS,
+                self::DELETE_SUPPLIER_PAYMENTS,
+            ],
+            'Creditor Reports' => [
+                self::VIEW_CREDITOR_REPORTS,
+                self::VIEW_CREDITOR_AGING,
+                self::VIEW_SUPPLIER_STATEMENTS,
+                self::MANAGE_PAYMENT_REMINDERS,
+            ],
+            'Chart of Accounts' => [
+                self::VIEW_CHART_OF_ACCOUNTS,
+                self::CREATE_ACCOUNTS,
+                self::EDIT_ACCOUNTS,
+                self::DELETE_ACCOUNTS,
+            ],
+            'Journal Entries' => [
+                self::VIEW_JOURNAL_ENTRIES,
+                self::CREATE_JOURNAL_ENTRIES,
+                self::POST_JOURNAL_ENTRIES,
+                self::VOID_JOURNAL_ENTRIES,
+            ],
+            'Financial Reports' => [
+                self::VIEW_INCOME_STATEMENT,
+                self::VIEW_BALANCE_SHEET,
+                self::VIEW_TRIAL_BALANCE,
+                self::VIEW_GENERAL_LEDGER,
+            ],
+            'Fiscal Periods' => [
+                self::VIEW_FISCAL_PERIODS,
+                self::MANAGE_FISCAL_PERIODS,
+                self::CLOSE_FISCAL_PERIODS,
             ],
         ];
     }

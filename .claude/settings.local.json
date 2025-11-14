@@ -55,7 +55,18 @@
       "Bash(awk:*)",
       "Bash(vendor/bin/pint:*)",
       "Bash(dir:*)",
-      "Bash(nul)"
+      "Bash(nul)",
+      "Bash(if [ -d \"E:\\Herd\\POS\\app\\Services\" ])",
+      "Bash(then echo \"Services directory exists\")",
+      "Bash(else mkdir -p \"E:\\Herd\\POS\\app\\Services\")",
+      "Bash(fi)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pipx:*)",
+      "Bash(imagesorcery-mcp:*)",
+      "Bash(C:Usersuser.localbinimagesorcery-mcp.exe --post-install)",
+      "Bash(if [ ! -d \"E:\\Herd\\POS\\resources\\views\\expenses\" ])",
+      "Bash(then mkdir -p \"E:\\Herd\\POS\\resources\\views\\expenses\")",
+      "Bash(where:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

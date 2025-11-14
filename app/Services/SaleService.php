@@ -139,6 +139,18 @@ class SaleService
 
             $this->stockService->deductStock($stockAllocations);
 
+            // Create accounting journal entry after sale and items are created
+            DB::afterCommit(function () use ($sale) {
+                try {
+                    app(\App\Services\TransactionIntegrationService::class)->createSaleJournalEntry($sale);
+                } catch (Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to create journal entry for sale: '.$e->getMessage(), [
+                        'sale_id' => $sale->id,
+                        'sale_number' => $sale->sale_number,
+                    ]);
+                }
+            });
+
             return $sale->load(['items.product', 'items.stock.batch', 'user']);
         });
     }
