@@ -113,7 +113,7 @@
             <p class="text-xs">For inquiries, please contact store management</p>
             <p class="text-xs mt-4">Powered by VertexCore AI</p>
             <p class="text-xs mt-2">Visit us at: vertexcoreai.com</p>
-            <p class="text-xs mt-2">Contact us: +94 77 853 6074</p>
+            <p class="text-xs mt-2">Contact us:  +94 77 803 6074</p>
         </div>
     </div>
 

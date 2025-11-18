@@ -3,6 +3,7 @@
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -161,6 +162,10 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('users', UserController::class);
     });
 
+    Route::middleware(['permission:view dashboard'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.stratmenu');
+    });
+
     // Unified Roles & Permissions Management - Admin only
     Route::middleware(['permission:view roles|view permissions'])->group(function () {
         Route::get('/roles-permissions', [RoleController::class, 'index'])->name('roles-permissions.index');
@@ -171,7 +176,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/roles/{role}', [RoleController::class, 'destroy'])->name('roles.destroy');
     });
 
-   // Employee Salary Management - Admin and Superadmin only
+    // Employee Salary Management - Admin and Superadmin only
     Route::get('/salary', [SalaryController::class, 'index'])->name('salary.show');
     Route::get('/salary/manage', [SalaryController::class, 'create'])->name('salary.index');
     Route::post('/salary/save', [SalaryController::class, 'store'])->name('salary.create');

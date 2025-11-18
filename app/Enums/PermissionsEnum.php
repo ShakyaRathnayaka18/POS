@@ -10,50 +10,50 @@ enum PermissionsEnum: string
     case EDIT_PRODUCTS = 'edit products';
     case DELETE_PRODUCTS = 'delete products';
 
-    // Category Management
+        // Category Management
     case VIEW_CATEGORIES = 'view categories';
     case CREATE_CATEGORIES = 'create categories';
     case EDIT_CATEGORIES = 'edit categories';
     case DELETE_CATEGORIES = 'delete categories';
 
-    // Brand Management
+        // Brand Management
     case VIEW_BRANDS = 'view brands';
     case CREATE_BRANDS = 'create brands';
     case EDIT_BRANDS = 'edit brands';
     case DELETE_BRANDS = 'delete brands';
 
-    // Vendor Code Management
+        // Vendor Code Management
     case VIEW_VENDOR_CODES = 'view vendor codes';
     case CREATE_VENDOR_CODES = 'create vendor codes';
     case EDIT_VENDOR_CODES = 'edit vendor codes';
     case DELETE_VENDOR_CODES = 'delete vendor codes';
 
-    // Supplier Management
+        // Supplier Management
     case VIEW_SUPPLIERS = 'view suppliers';
     case CREATE_SUPPLIERS = 'create suppliers';
     case EDIT_SUPPLIERS = 'edit suppliers';
     case DELETE_SUPPLIERS = 'delete suppliers';
 
-    // Inventory Management (GRN - Good Receive Notes)
+        // Inventory Management (GRN - Good Receive Notes)
     case VIEW_GRNS = 'view grns';
     case CREATE_GRNS = 'create grns';
     case EDIT_GRNS = 'edit grns';
     case DELETE_GRNS = 'delete grns';
 
-    // Batch Management
+        // Batch Management
     case VIEW_BATCHES = 'view batches';
     case VIEW_EXPIRING_BATCHES = 'view expiring batches';
 
-    // Stock Management
+        // Stock Management
     case VIEW_STOCKS = 'view stocks';
     case MANAGE_STOCK_IN = 'manage stock in';
 
-    // Sales (POS)
+        // Sales (POS)
     case CREATE_SALES = 'create sales';
     case VIEW_SALES = 'view sales';
     case VIEW_SALE_DETAILS = 'view sale details';
 
-    // Sales Returns
+        // Sales Returns
     case VIEW_SALES_RETURNS = 'view sales returns';
     case CREATE_SALES_RETURNS = 'create sales returns';
     case EDIT_SALES_RETURNS = 'edit sales returns';
@@ -61,7 +61,7 @@ enum PermissionsEnum: string
     case REFUND_SALES_RETURNS = 'refund sales returns';
     case CANCEL_SALES_RETURNS = 'cancel sales returns';
 
-    // Supplier Returns
+        // Supplier Returns
     case VIEW_SUPPLIER_RETURNS = 'view supplier returns';
     case CREATE_SUPPLIER_RETURNS = 'create supplier returns';
     case EDIT_SUPPLIER_RETURNS = 'edit supplier returns';
@@ -70,19 +70,19 @@ enum PermissionsEnum: string
     case COMPLETE_SUPPLIER_RETURNS = 'complete supplier returns';
     case CANCEL_SUPPLIER_RETURNS = 'cancel supplier returns';
 
-    // Reports & Analytics
+        // Reports & Analytics
     case VIEW_REPORTS = 'view reports';
     case VIEW_EXPENSES = 'view expenses';
     case MANAGE_EXPENSES = 'manage expenses';
 
-    // User Management
+        // User Management
     case VIEW_USERS = 'view users';
     case CREATE_USERS = 'create users';
     case EDIT_USERS = 'edit users';
     case DELETE_USERS = 'delete users';
     case ASSIGN_ROLES = 'assign roles';
 
-    // Role & Permission Management
+        // Role & Permission Management
     case VIEW_ROLES = 'view roles';
     case CREATE_ROLES = 'create roles';
     case EDIT_ROLES = 'edit roles';
@@ -90,21 +90,25 @@ enum PermissionsEnum: string
     case VIEW_PERMISSIONS = 'view permissions';
     case MANAGE_PERMISSIONS = 'manage permissions';
 
-    // Cart Management (for cashiers)
+        // Cart Management (for cashiers)
     case MANAGE_SAVED_CARTS = 'manage saved carts';
 
-    // Shift Management
+        // Shift Management
     case MANAGE_OWN_SHIFTS = 'manage own shifts';
     case VIEW_SHIFTS = 'view shifts';
     case MANAGE_SHIFTS = 'manage shifts';
     case APPROVE_SHIFTS = 'approve shifts';
+
+    // Dashboard Management
+    case VIEW_DASHBOARD = 'view dashboard';
+
 
     /**
      * Get all permission values as an array
      */
     public static function values(): array
     {
-        return array_map(fn ($case) => $case->value, self::cases());
+        return array_map(fn($case) => $case->value, self::cases());
     }
 
     /**
@@ -205,6 +209,9 @@ enum PermissionsEnum: string
                 self::VIEW_SHIFTS,
                 self::MANAGE_SHIFTS,
                 self::APPROVE_SHIFTS,
+            ],
+            'Dashboard' => [
+                self::VIEW_DASHBOARD,
             ],
         ];
     }
