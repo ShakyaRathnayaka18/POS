@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -15,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('product_name');
             $table->string('sku')->unique();
-            $table->string('barcode')->nullable();
+            $table->string('item_code')->nullable();
             $table->text('description')->nullable();
             $table->integer('initial_stock')->default(0);
             $table->integer('minimum_stock')->default(0);
@@ -23,11 +24,20 @@ return new class extends Migration
             $table->string('product_image')->nullable();
             $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
             $table->foreignId('brand_id')->constrained('brands')->onDelete('cascade');
-            $table->decimal('cost_price', 10, 2);
-            $table->decimal('selling_price', 10, 2);
-            $table->decimal('tax_rate', 5, 2)->default(0.00);
             $table->string('unit')->default('pcs');
             $table->timestamps();
+        });
+
+        // Generate item codes for existing products
+        DB::table('products')->orderBy('id')->get()->each(function ($product, $index) {
+            DB::table('products')
+                ->where('id', $product->id)
+                ->update(['item_code' => 'ITEM-'.str_pad($index + 1, 5, '0', STR_PAD_LEFT)]);
+        });
+
+        // Make item_code unique after populating
+        Schema::table('products', function (Blueprint $table) {
+            $table->string('item_code')->unique()->change();
         });
     }
 

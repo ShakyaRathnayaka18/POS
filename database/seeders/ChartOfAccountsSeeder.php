@@ -100,6 +100,22 @@ class ChartOfAccountsSeeder extends Seeder
                 'description' => 'Unpaid employee salaries',
                 'is_active' => true,
             ],
+            [
+                'account_code' => '2210',
+                'account_name' => 'EPF Payable',
+                'account_type_id' => $liabilityType->id,
+                'parent_account_id' => null,
+                'description' => 'Employee Provident Fund contributions payable',
+                'is_active' => true,
+            ],
+            [
+                'account_code' => '2220',
+                'account_name' => 'ETF Payable',
+                'account_type_id' => $liabilityType->id,
+                'parent_account_id' => null,
+                'description' => 'Employees Trust Fund contributions payable',
+                'is_active' => true,
+            ],
 
             // EQUITY (3000-3999)
             [
@@ -272,6 +288,8 @@ class ChartOfAccountsSeeder extends Seeder
             '1300' => '1000', // Inventory -> Current Assets
             '2100' => '2000', // Accounts Payable -> Current Liabilities
             '2200' => '2000', // Salaries Payable -> Current Liabilities
+            '2210' => '2000', // EPF Payable -> Current Liabilities
+            '2220' => '2000', // ETF Payable -> Current Liabilities
             '3100' => '3000', // Capital -> Owner's Equity
             '3200' => '3000', // Retained Earnings -> Owner's Equity
             '4100' => '4000', // Product Sales -> Sales Revenue

@@ -19,7 +19,7 @@
 </head>
 
 <body class="h-full">
-    <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="min-h-full flex items-center justify-center py-0 px-4 sm:px-8 lg:px-8">
         @yield('content')
     </div>
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Employee;
+use App\Models\PayrollSettings;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
@@ -120,27 +121,33 @@ class EmployeeService
     }
 
     /**
-     * Calculate monthly EPF employee contribution (8%).
+     * Calculate monthly EPF employee contribution (configurable percentage).
      */
     public function calculateEPFEmployee(float $grossPay): float
     {
-        return round($grossPay * 0.08, 2);
+        $settings = PayrollSettings::current();
+
+        return round($grossPay * ((float) $settings->epf_employee_percentage / 100), 2);
     }
 
     /**
-     * Calculate monthly EPF employer contribution (12%).
+     * Calculate monthly EPF employer contribution (configurable percentage).
      */
     public function calculateEPFEmployer(float $grossPay): float
     {
-        return round($grossPay * 0.12, 2);
+        $settings = PayrollSettings::current();
+
+        return round($grossPay * ((float) $settings->epf_employer_percentage / 100), 2);
     }
 
     /**
-     * Calculate monthly ETF employer contribution (3%).
+     * Calculate monthly ETF employer contribution (configurable percentage).
      */
     public function calculateETF(float $grossPay): float
     {
-        return round($grossPay * 0.03, 2);
+        $settings = PayrollSettings::current();
+
+        return round($grossPay * ((float) $settings->etf_employer_percentage / 100), 2);
     }
 
     /**

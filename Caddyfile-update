@@ -1,0 +1,55 @@
+# Caddyfile Update for POS Application
+# Add this configuration to your existing Caddyfile at /etc/caddy/Caddyfile
+
+vertexcoreai.com {
+    # phpMyAdmin (existing)
+    reverse_proxy /phpmyadmin* 127.0.0.1:8080
+
+    # POS Laravel Application (NEW)
+    # Route /vpos/hmart to Apache backend
+    reverse_proxy /vpos/hmart* 127.0.0.1:8080 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-Port {server_port}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Real-IP {remote_host}
+    }
+
+    # Next.js app (existing - keep as default/fallback)
+    reverse_proxy 127.0.0.1:3000 {
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+        header_up X-Forwarded-Port {server_port}
+    }
+}
+
+# NOTES:
+# 1. Order matters! More specific routes (/vpos/hmart*, /phpmyadmin*) must come BEFORE generic routes
+# 2. The asterisk (*) after /vpos/hmart matches /vpos/hmart/anything
+# 3. Apache will receive requests at http://127.0.0.1:8080/vpos/hmart/...
+# 4. Caddy handles SSL/TLS automatically with Let's Encrypt
+# 5. Headers passed ensure Laravel knows the original request details
+
+# DEPLOYMENT STEPS:
+# 1. Backup current Caddyfile:
+#    sudo cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.backup
+#
+# 2. Edit Caddyfile:
+#    sudo nano /etc/caddy/Caddyfile
+#
+# 3. Add the /vpos/hmart* reverse_proxy block BEFORE the Next.js reverse_proxy
+#
+# 4. Test Caddy configuration:
+#    sudo caddy validate --config /etc/caddy/Caddyfile
+#
+# 5. Reload Caddy (zero-downtime):
+#    sudo caddy reload --config /etc/caddy/Caddyfile
+#
+# 6. Or restart Caddy service:
+#    sudo systemctl reload caddy
+#
+# 7. Check Caddy status:
+#    sudo systemctl status caddy
+#
+# 8. Monitor Caddy logs:
+#    sudo journalctl -u caddy -f

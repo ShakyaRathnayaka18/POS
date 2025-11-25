@@ -218,6 +218,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:process payroll'])->group(function () {
         Route::post('/payroll/{payroll}/process', [PayrollController::class, 'process'])->name('payroll.process');
+        Route::put('/payroll/settings', [PayrollController::class, 'updateSettings'])->name('payroll.settings.update');
     });
 
     Route::middleware(['permission:approve payroll'])->group(function () {

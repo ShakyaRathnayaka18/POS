@@ -160,7 +160,7 @@
                 @canany(['view employees', 'view payroll', 'view own payroll'])
                 <div class="space-y-1">
                     <button @click="openSections.includes('hr') ? openSections = openSections.filter(s => s !== 'hr') : openSections.push('hr')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                        <span>Human Resources</span>
+                        <span>Payroll</span>
                         <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('hr') ? 'rotate-180' : ''"></i>
                     </button>
                     <div x-show="openSections.includes('hr')" x-collapse class="space-y-1">
@@ -294,7 +294,7 @@
             <!-- Footer Section -->
             <div class="border-t border-gray-100 dark:border-gray-800 p-4">
                 <div class="text-xs text-gray-400 dark:text-gray-500 text-center">
-                    Terminal POS v1.0
+                    VPOS v1.0
                 </div>
             </div>
         </div>

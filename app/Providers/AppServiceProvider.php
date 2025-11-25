@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Models\Expense;
 use App\Models\GoodReceiveNote;
+use App\Models\PayrollPeriod;
 use App\Models\Sale;
 use App\Models\SupplierPayment;
 use App\Observers\ExpenseObserver;
 use App\Observers\GoodReceiveNoteObserver;
+use App\Observers\PayrollPeriodObserver;
 use App\Observers\SaleObserver;
 use App\Observers\SupplierPaymentObserver;
 use Illuminate\Support\Facades\Schema;
@@ -35,5 +37,6 @@ class AppServiceProvider extends ServiceProvider
         GoodReceiveNote::observe(GoodReceiveNoteObserver::class);
         Expense::observe(ExpenseObserver::class);
         SupplierPayment::observe(SupplierPaymentObserver::class);
+        PayrollPeriod::observe(PayrollPeriodObserver::class);
     }
 }

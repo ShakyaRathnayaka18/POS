@@ -21,19 +21,20 @@
 
     <!-- Receipt -->
     <div id="receipt" class="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-8">
-        <!-- Store Header -->
-        <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
-            <p class="text-gray-600 dark:text-gray-400">No 09, Kandy Rd, Hasalaka</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Tp- 055225706</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Shop smart, save big</p>
-        </div>
-
         <!-- Store Logo -->
-        <div class="text-center mb-6">
+        <div class="text-center mb-2">
             <img src="{{ asset('images/h_mart.png') }}" alt="Store Logo" class="w-24 mx-auto">
         </div>
 
+        <!-- Store Header -->
+        <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
+            <p class="text-gray-600 dark:text-gray-400">No 09, Kandy Road, Hasalaka</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Telephone - 055225706</p>
+            <!-- <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Shop smart, save big</p> -->
+        </div>
+
+        
         <!-- Sale Information -->
         <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
             <div>
@@ -109,11 +110,10 @@
         <!-- Footer -->
         <!-- Footer -->
         <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-400">
-            <p class="mb-2">Thank you for shopping at @H Mart</p>
-            <p class="text-xs">For inquiries, please contact store management</p>
-            <p class="text-xs mt-4">Powered by VertexCore AI</p>
-            <p class="text-xs mt-2">Visit us at: vertexcoreai.com</p>
-            <p class="text-xs mt-2">Contact us: +94 77 853 6074</p>
+            <p class="mb-2">Thank you for shopping at H Mart</p>
+
+            <p class="text-xs mt-4">Powered by VertexCore AI | vertexcoreai.com</p>
+
         </div>
     </div>
 

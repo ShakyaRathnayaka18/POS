@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Employee;
 use App\Models\PayrollPeriod;
+use App\Models\PayrollSettings;
 use App\Services\PayrollService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -27,8 +28,9 @@ class PayrollController extends Controller
         }
 
         $periods = $query->paginate(15);
+        $settings = PayrollSettings::current();
 
-        return view('payroll.index', compact('periods'));
+        return view('payroll.index', compact('periods', 'settings'));
     }
 
     /**
@@ -270,5 +272,32 @@ class PayrollController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Update payroll settings.
+     */
+    public function updateSettings(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'ot_calculation_mode' => ['required', 'in:multiplier,fixed_rate'],
+            'ot_weekday_multiplier' => ['required_if:ot_calculation_mode,multiplier', 'nullable', 'numeric', 'min:1.0', 'max:10.0'],
+            'ot_weekend_multiplier' => ['required_if:ot_calculation_mode,multiplier', 'nullable', 'numeric', 'min:1.0', 'max:10.0'],
+            'ot_weekday_fixed_rate' => ['required_if:ot_calculation_mode,fixed_rate', 'nullable', 'numeric', 'min:0'],
+            'ot_weekend_fixed_rate' => ['required_if:ot_calculation_mode,fixed_rate', 'nullable', 'numeric', 'min:0'],
+            'daily_hours_threshold' => ['required', 'numeric', 'min:1.0', 'max:24.0'],
+            'epf_employee_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'epf_employer_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'etf_employer_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+        ]);
+
+        $settings = PayrollSettings::current();
+        $settings->fill($validated);
+        $settings->updated_by = auth()->id();
+        $settings->save();
+
+        return redirect()
+            ->route('payroll.index', ['tab' => 'settings'])
+            ->with('settings_success', 'Payroll settings updated successfully. These settings will apply to all future payroll calculations.');
     }
 }

@@ -33,16 +33,5 @@ class DatabaseSeeder extends Seeder
             ChartOfAccountsSeeder::class,
             FiscalPeriodSeeder::class,
         ]);
-
-        // Seed categories, brands, suppliers, products, and product-supplier relationships
-        // $this->call([
-        //     CategorySeeder::class,
-        //     BrandSeeder::class,
-        //     SupplierSeeder::class,
-        //     ProductSeeder::class,
-        //     ProductSupplierSeeder::class,
-        //     SaleSeeder::class,
-        //     SaleItemSeeder::class,
-        // ]);
     }
 }

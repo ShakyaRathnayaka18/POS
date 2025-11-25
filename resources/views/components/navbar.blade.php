@@ -12,8 +12,8 @@
 
                 <!-- Logo -->
                 <div class="flex flex-shrink-0 items-center">
-                    <a href="/" class="flex items-center">
-                        <img src="/images/VPOS.png" alt="POS Logo" class="h-10 w-auto mr-2" />
+                    <a href="{{ route('cashier.dashboard') }}" class="flex items-center">
+                        <img src="{{ asset('images/h_mart.png') }}" alt="POS Logo" class="h-10 w-auto mr-2" />
 
                     </a>
                 </div>

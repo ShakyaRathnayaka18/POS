@@ -5,11 +5,10 @@ namespace App\Services;
 use App\Models\Account;
 use App\Models\Expense;
 use App\Models\GoodReceiveNote;
-use App\Models\Payroll;
+use App\Models\PayrollPeriod;
 use App\Models\Sale;
 use App\Models\SaleReturn;
 use App\Models\SupplierPayment;
-use Carbon\Carbon;
 
 class TransactionIntegrationService
 {
@@ -272,50 +271,126 @@ class TransactionIntegrationService
     }
 
     /**
-     * Create journal entry for payroll
+     * Create journal entry for payroll accrual (when approved)
      *
-     * Dr Salaries and Wages Expense
-     *    Cr Salaries Payable or Cash
+     * Dr Salaries and Wages Expense (gross pay)
+     * Dr EPF Employer Expense
+     * Dr ETF Employer Expense
+     *    Cr Salaries Payable (net pay)
+     *    Cr EPF Payable (employee + employer)
+     *    Cr ETF Payable (employer)
      */
-    public function createPayrollJournalEntry(Payroll $payroll): void
+    public function createPayrollAccrualEntry(PayrollPeriod $period): void
     {
+        // Load entries if not already loaded
+        if (! $period->relationLoaded('payrollEntries')) {
+            $period->load('payrollEntries');
+        }
+
         $salariesExpenseAccount = Account::where('account_code', '6100')->first();
         $salariesPayableAccount = Account::where('account_code', '2200')->first();
-        $cashAccount = Account::where('account_code', '1110')->first();
+        $epfPayableAccount = Account::where('account_code', '2210')->first();
+        $etfPayableAccount = Account::where('account_code', '2220')->first();
+
+        $totalGrossPay = $period->getTotalGrossPay();
+        $totalNetPay = $period->getTotalNetPay();
+        $totalEPFEmployee = $period->getTotalEPFEmployee();
+        $totalEPFEmployer = $period->getTotalEPFEmployer();
+        $totalETF = $period->getTotalETF();
 
         $lines = [
+            // Record salary expense (gross pay)
             [
                 'account_id' => $salariesExpenseAccount->id,
-                'debit_amount' => $payroll->net_salary,
+                'debit_amount' => $totalGrossPay,
                 'credit_amount' => 0,
-                'description' => 'Salary for '.$payroll->employee->name.' - '.$payroll->pay_period,
+                'description' => 'Salaries expense for period '.$period->period_start->format('Y-m-d').' to '.$period->period_end->format('Y-m-d'),
+            ],
+            // Record EPF employer contribution as expense
+            [
+                'account_id' => $salariesExpenseAccount->id,
+                'debit_amount' => $totalEPFEmployer,
+                'credit_amount' => 0,
+                'description' => 'EPF employer contribution (12%)',
+            ],
+            // Record ETF employer contribution as expense
+            [
+                'account_id' => $salariesExpenseAccount->id,
+                'debit_amount' => $totalETF,
+                'credit_amount' => 0,
+                'description' => 'ETF employer contribution (3%)',
+            ],
+            // Record net salary payable to employees
+            [
+                'account_id' => $salariesPayableAccount->id,
+                'debit_amount' => 0,
+                'credit_amount' => $totalNetPay,
+                'description' => 'Net salaries payable to employees',
+            ],
+            // Record total EPF payable (employee 8% + employer 12%)
+            [
+                'account_id' => $epfPayableAccount->id,
+                'debit_amount' => 0,
+                'credit_amount' => $totalEPFEmployee + $totalEPFEmployer,
+                'description' => 'EPF contributions payable (employee 8% + employer 12%)',
+            ],
+            // Record ETF payable (employer 3%)
+            [
+                'account_id' => $etfPayableAccount->id,
+                'debit_amount' => 0,
+                'credit_amount' => $totalETF,
+                'description' => 'ETF contribution payable (employer 3%)',
             ],
         ];
 
-        // Determine if paid or accrued
-        if ($payroll->status === 'paid') {
-            $lines[] = [
-                'account_id' => $cashAccount->id,
-                'debit_amount' => 0,
-                'credit_amount' => $payroll->net_salary,
-                'description' => 'Cash paid for salary',
-            ];
-        } else {
-            $lines[] = [
-                'account_id' => $salariesPayableAccount->id,
-                'debit_amount' => 0,
-                'credit_amount' => $payroll->net_salary,
-                'description' => 'Accrued salary payable',
-            ];
-        }
-
-        $this->journalEntryService->createJournalEntry([
-            'entry_date' => Carbon::parse($payroll->pay_period),
-            'description' => 'Payroll for '.$payroll->employee->name,
-            'reference_type' => Payroll::class,
-            'reference_id' => $payroll->id,
+        $journalEntry = $this->journalEntryService->createJournalEntry([
+            'entry_date' => $period->approved_at ?? now(),
+            'description' => 'Payroll accrual for period '.$period->period_start->format('Y-m-d').' to '.$period->period_end->format('Y-m-d'),
+            'reference_type' => PayrollPeriod::class,
+            'reference_id' => $period->id,
             'lines' => $lines,
         ]);
+
+        // Automatically POST the journal entry
+        $this->journalEntryService->postJournalEntry($journalEntry);
+    }
+
+    /**
+     * Create journal entry for payroll payment (when marked as paid)
+     *
+     * Dr Salaries Payable
+     *    Cr Cash in Hand
+     */
+    public function createPayrollPaymentEntry(PayrollPeriod $period): void
+    {
+        $salariesPayableAccount = Account::where('account_code', '2200')->first();
+        $cashAccount = Account::where('account_code', '1110')->first();
+
+        $totalNetPay = $period->getTotalNetPay();
+
+        $journalEntry = $this->journalEntryService->createJournalEntry([
+            'entry_date' => now(),
+            'description' => 'Payroll payment for period '.$period->period_start->format('Y-m-d').' to '.$period->period_end->format('Y-m-d'),
+            'reference_type' => PayrollPeriod::class,
+            'reference_id' => $period->id,
+            'lines' => [
+                [
+                    'account_id' => $salariesPayableAccount->id,
+                    'debit_amount' => $totalNetPay,
+                    'credit_amount' => 0,
+                    'description' => 'Payment of accrued salaries',
+                ],
+                [
+                    'account_id' => $cashAccount->id,
+                    'debit_amount' => 0,
+                    'credit_amount' => $totalNetPay,
+                    'description' => 'Cash paid for salaries',
+                ],
+            ],
+        ]);
+
+        // Automatically POST the journal entry
+        $this->journalEntryService->postJournalEntry($journalEntry);
     }
 
     /**

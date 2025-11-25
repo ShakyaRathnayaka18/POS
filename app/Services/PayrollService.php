@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\PayrollEntry;
 use App\Models\PayrollPeriod;
+use App\Models\PayrollSettings;
 use App\Models\Shift;
 use Carbon\Carbon;
 use Exception;
@@ -102,6 +103,9 @@ class PayrollService
         }
 
         return DB::transaction(function () use ($entry, $period, $employee) {
+            // Get payroll settings
+            $settings = PayrollSettings::current();
+
             // Get approved shifts for the employee in this period
             $shifts = Shift::where('user_id', $employee->user_id)
                 ->where('status', 'approved')
@@ -119,10 +123,9 @@ class PayrollService
                 $shiftIds[] = $shift->id;
             }
 
-            // Calculate overtime (Sri Lankan standard: 45hrs/week = 9hrs/day for 5-day week)
-            // For simplicity, we'll use 8 hrs/day as regular, rest as OT
+            // Calculate overtime using configurable threshold
             $workingDays = $shifts->count();
-            $regularHoursLimit = $workingDays * 8;
+            $regularHoursLimit = $workingDays * (float) $settings->daily_hours_threshold;
 
             $regularHours = min($totalHours, $regularHoursLimit);
             $overtimeHours = max(0, $totalHours - $regularHoursLimit);
@@ -134,13 +137,14 @@ class PayrollService
             foreach ($shifts as $shift) {
                 $shiftHours = $shift->calculateTotalHours();
                 $dayOfWeek = Carbon::parse($shift->clock_in_at)->dayOfWeek;
+                $dailyThreshold = (float) $settings->daily_hours_threshold;
 
                 // Weekend = Saturday(6) or Sunday(0)
                 if ($dayOfWeek === 0 || $dayOfWeek === 6) {
                     $overtimeHours2x += $shiftHours;
-                } elseif ($shiftHours > 8) {
-                    // Weekday overtime (over 8 hours)
-                    $overtimeHours1_5x += ($shiftHours - 8);
+                } elseif ($shiftHours > $dailyThreshold) {
+                    // Weekday overtime (over threshold hours)
+                    $overtimeHours1_5x += ($shiftHours - $dailyThreshold);
                 }
             }
 
@@ -156,8 +160,17 @@ class PayrollService
                 $overtimeRate = $hourlyRate;
             }
 
-            $overtimeAmount1_5x = $overtimeHours1_5x * $overtimeRate * 1.5;
-            $overtimeAmount2x = $overtimeHours2x * $overtimeRate * 2;
+            // Calculate OT based on mode
+            if ($settings->ot_calculation_mode === 'fixed_rate') {
+                // Use fixed hourly rates
+                $overtimeAmount1_5x = $overtimeHours1_5x * (float) $settings->ot_weekday_fixed_rate;
+                $overtimeAmount2x = $overtimeHours2x * (float) $settings->ot_weekend_fixed_rate;
+            } else {
+                // Use multipliers (default)
+                $overtimeAmount1_5x = $overtimeHours1_5x * $overtimeRate * (float) $settings->ot_weekday_multiplier;
+                $overtimeAmount2x = $overtimeHours2x * $overtimeRate * (float) $settings->ot_weekend_multiplier;
+            }
+
             $grossPay = $baseAmount + $overtimeAmount1_5x + $overtimeAmount2x;
 
             // Calculate EPF and ETF
