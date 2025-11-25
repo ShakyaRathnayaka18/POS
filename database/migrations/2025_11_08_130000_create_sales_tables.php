@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('sale_number')->unique();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('shift_id')->nullable()->constrained('shifts');
+            $table->unsignedBigInteger('shift_id')->nullable();
             $table->string('customer_name')->nullable();
             $table->string('customer_phone', 20)->nullable();
             $table->decimal('subtotal', 15, 2);
