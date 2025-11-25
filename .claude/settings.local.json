@@ -68,7 +68,8 @@
       "Bash(then mkdir -p \"E:\\Herd\\POS\\resources\\views\\expenses\")",
       "Bash(where:*)",
       "Bash(git diff:*)",
-      "Bash(robocopy:*)"
+      "Bash(robocopy:*)",
+      "Bash(ren:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
