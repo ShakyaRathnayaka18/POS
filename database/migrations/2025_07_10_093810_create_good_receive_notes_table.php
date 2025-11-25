@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('notes')->nullable();
             $table->string('payment_type')->default('cash');
             $table->boolean('is_credit')->default(false);
-            $table->foreignId('supplier_credit_id')->nullable()->constrained()->nullOnDelete();
+            $table->unsignedBigInteger('supplier_credit_id')->nullable();
             $table->decimal('subtotal', 15, 2)->default(0);
             $table->decimal('tax', 15, 2)->default(0);
             $table->decimal('shipping', 15, 2)->default(0);
