@@ -20,7 +20,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VendorCodeController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::match(['get', 'head'], '/', function () {
     if (auth()->check()) {
         return redirect()->to('/cashier');
     }
