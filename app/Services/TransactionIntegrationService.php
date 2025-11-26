@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\PaymentMethodEnum;
 use App\Models\Account;
 use App\Models\Expense;
 use App\Models\GoodReceiveNote;
@@ -29,7 +30,7 @@ class TransactionIntegrationService
             $sale->load('items.stock');
         }
 
-        $cashAccount = Account::where('account_code', '1110')->first(); // Cash in Hand
+        $paymentAccount = $this->mapPaymentMethodToAccount($sale->payment_method);
         $salesRevenueAccount = Account::where('account_code', '4100')->first(); // Product Sales
         $inventoryAccount = Account::where('account_code', '1300')->first(); // Inventory
         $cogsAccount = Account::where('account_code', '5100')->first(); // Purchases (COGS)
@@ -37,10 +38,10 @@ class TransactionIntegrationService
         $lines = [
             // Record revenue
             [
-                'account_id' => $cashAccount->id,
+                'account_id' => $paymentAccount->id,
                 'debit_amount' => $sale->total,
                 'credit_amount' => 0,
-                'description' => 'Cash received from sale '.$sale->sale_number,
+                'description' => 'Payment received from sale '.$sale->sale_number.' via '.$sale->payment_method->label(),
             ],
             [
                 'account_id' => $salesRevenueAccount->id,
@@ -201,16 +202,26 @@ class TransactionIntegrationService
      * Create journal entry for supplier payment
      *
      * Dr Accounts Payable
-     *    Cr Cash
+     *    Cr Cash in Hand/Cash in Bank (based on payment method)
      */
     public function createSupplierPaymentJournalEntry(SupplierPayment $payment): void
     {
         $accountsPayableAccount = Account::where('account_code', '2100')->first();
-        $cashAccount = Account::where('account_code', '1110')->first();
+
+        // Get the appropriate cash/bank account based on payment method
+        $paymentAccount = $this->mapPaymentMethodToAccount($payment->payment_method);
+
+        // Generate payment description based on method
+        $paymentDescription = match ($payment->payment_method) {
+            PaymentMethodEnum::CASH => 'Cash paid to supplier',
+            PaymentMethodEnum::BANK_TRANSFER => 'Bank transfer to supplier',
+            PaymentMethodEnum::CHECK => 'Check issued to supplier',
+            PaymentMethodEnum::CARD => 'Card payment to supplier',
+        };
 
         $journalEntry = $this->journalEntryService->createJournalEntry([
             'entry_date' => $payment->payment_date,
-            'description' => 'Supplier payment '.$payment->payment_number,
+            'description' => 'Supplier payment '.$payment->payment_number.' via '.$payment->payment_method->label(),
             'reference_type' => SupplierPayment::class,
             'reference_id' => $payment->id,
             'lines' => [
@@ -221,10 +232,10 @@ class TransactionIntegrationService
                     'description' => 'Payment to supplier',
                 ],
                 [
-                    'account_id' => $cashAccount->id,
+                    'account_id' => $paymentAccount->id,
                     'debit_amount' => 0,
                     'credit_amount' => $payment->amount,
-                    'description' => 'Cash paid to supplier',
+                    'description' => $paymentDescription,
                 ],
             ],
         ]);
@@ -243,7 +254,7 @@ class TransactionIntegrationService
     {
         // Map expense category to GL account
         $expenseAccount = $this->mapExpenseCategoryToAccount($expense->category->category_name);
-        $cashAccount = Account::where('account_code', '1110')->first();
+        $paymentAccount = $this->mapPaymentMethodToAccount($expense->payment_method);
 
         $journalEntry = $this->journalEntryService->createJournalEntry([
             'entry_date' => $expense->expense_date,
@@ -258,10 +269,10 @@ class TransactionIntegrationService
                     'description' => $expense->description ?? $expense->title,
                 ],
                 [
-                    'account_id' => $cashAccount->id,
+                    'account_id' => $paymentAccount->id,
                     'debit_amount' => 0,
                     'credit_amount' => $expense->amount,
-                    'description' => 'Cash paid for '.$expense->title,
+                    'description' => 'Payment for '.$expense->title.' via '.$expense->payment_method->label(),
                 ],
             ],
         ]);
@@ -413,5 +424,22 @@ class TransactionIntegrationService
         $accountCode = $mapping[$categoryName] ?? '6900'; // Miscellaneous
 
         return Account::where('account_code', $accountCode)->first();
+    }
+
+    /**
+     * Map payment method to appropriate cash/bank/AR GL account
+     */
+    protected function mapPaymentMethodToAccount(PaymentMethodEnum $paymentMethod): Account
+    {
+        // Define payment method to account code mapping
+        $accountCode = match ($paymentMethod) {
+            PaymentMethodEnum::CASH => '1110',           // Cash in Hand (physical cash)
+            PaymentMethodEnum::BANK_TRANSFER => '1120', // Cash in Bank (electronic transfers)
+            PaymentMethodEnum::CHECK => '1120',         // Cash in Bank (checks deposit to bank)
+            PaymentMethodEnum::CARD => '1120',          // Cash in Bank (card settlements)
+            PaymentMethodEnum::CREDIT => '1200',        // Accounts Receivable (customer credit)
+        };
+
+        return Account::where('account_code', $accountCode)->firstOrFail();
     }
 }

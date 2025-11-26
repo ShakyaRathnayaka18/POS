@@ -241,10 +241,17 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         const amount = parseFloat(amountInput.value);
 
-        if (!creditSelect.value) {
+        // Get credit value from either the select or hidden input
+        const creditValue = creditSelect.disabled ?
+            document.querySelector('input[name="supplier_credit_id"]').value :
+            creditSelect.value;
+
+        if (!creditValue) {
             e.preventDefault();
             alert('Please select a credit to pay.');
-            creditSelect.focus();
+            if (!creditSelect.disabled) {
+                creditSelect.focus();
+            }
             return false;
         }
 

@@ -67,12 +67,13 @@ class SaleController extends Controller
             $saleData = [
                 'sale_number' => $this->saleService->generateSaleNumber(),
                 'user_id' => auth()->id() ?? 1,
+                'customer_id' => $request->customer_id,
                 'customer_name' => $request->customer_name,
                 'customer_phone' => $request->customer_phone,
                 'payment_method' => $request->payment_method,
             ];
 
-            $sale = $this->saleService->processSale($saleData, $request->items);
+            $sale = $this->saleService->processSale($saleData, $request->items, $request->credit_terms);
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([

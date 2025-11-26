@@ -69,7 +69,12 @@
       "Bash(where:*)",
       "Bash(git diff:*)",
       "Bash(robocopy:*)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(del:*)",
+      "Bash(xargs cat:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

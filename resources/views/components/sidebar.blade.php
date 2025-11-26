@@ -12,6 +12,13 @@
                         <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('dashboard') ? 'rotate-180' : ''"></i>
                     </button>
                     <div x-show="openSections.includes('dashboard')" x-collapse class="space-y-1">
+                        @can('view dashboard')
+                        <a href="{{ route('dashboard.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard.index') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                            <i class="fas fa-chart-line mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Admin Dashboard
+                        </a>
+                        @endcan
                         <a href="{{ route('cashier.dashboard') }}"
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-cash-register  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
@@ -197,7 +204,7 @@
                 @endcanany
 
                 <!-- Finance & Accounting Section -->
-                @canany(['view supplier credits', 'view supplier payments', 'view chart of accounts', 'view journal entries', 'view income statement', 'view balance sheet', 'view trial balance', 'view general ledger'])
+                @canany(['view supplier credits', 'view supplier payments', 'view customers', 'view chart of accounts', 'view journal entries', 'view income statement', 'view balance sheet', 'view trial balance', 'view general ledger'])
                 <div class="space-y-1">
                     <button @click="openSections.includes('finance-accounting') ? openSections = openSections.filter(s => s !== 'finance-accounting') : openSections.push('finance-accounting')" class="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                         <span>Finance & Accounting</span>
@@ -216,6 +223,13 @@
                             class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
                             <i class="fas fa-money-bill-wave  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
                             Supplier Payments
+                        </a>
+                        @endcan
+                        @can('view customers')
+                        <a href="{{ route('customers.index') }}"
+                            class="group flex items-center px-3 py-3 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out">
+                            <i class="fas fa-users  mr-4 h-4 w-4 mt-2 mb-1" style="color: #4ea9dd;"></i>
+                            Customers
                         </a>
                         @endcan
                         @can('view chart of accounts')

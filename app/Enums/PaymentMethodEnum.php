@@ -8,6 +8,7 @@ enum PaymentMethodEnum: string
     case BANK_TRANSFER = 'bank_transfer';
     case CHECK = 'check';
     case CARD = 'card';
+    case CREDIT = 'credit';
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum PaymentMethodEnum: string
             self::BANK_TRANSFER => 'Bank Transfer',
             self::CHECK => 'Check',
             self::CARD => 'Card',
+            self::CREDIT => 'Credit / Pay Later',
         };
     }
 
@@ -26,6 +28,7 @@ enum PaymentMethodEnum: string
             self::BANK_TRANSFER => 'fas fa-university',
             self::CHECK => 'fas fa-money-check',
             self::CARD => 'fas fa-credit-card',
+            self::CREDIT => 'fas fa-handshake',
         };
     }
 }

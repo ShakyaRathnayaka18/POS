@@ -3,6 +3,8 @@
 use App\Http\Controllers\BatchController;
 use App\Http\Controllers\BrandController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GoodReceiveNoteController;
@@ -22,6 +24,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::match(['get', 'head'], '/', function () {
     if (auth()->check()) {
+        // Redirect to admin dashboard if user has permission, otherwise cashier
+        if (auth()->user()->can('view dashboard')) {
+            return redirect()->route('dashboard.index');
+        }
+
         return redirect()->to('/cashier');
     }
 
@@ -30,6 +37,19 @@ Route::match(['get', 'head'], '/', function () {
 
 // Protected routes - require authentication
 Route::middleware(['auth'])->group(function () {
+    // Admin Dashboard Routes
+    Route::middleware(['permission:view dashboard'])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
+
+        // API endpoints for AJAX updates
+        Route::get('/api/dashboard/top-selling-products', [DashboardController::class, 'topSellingProducts'])
+            ->name('dashboard.top-selling-products');
+        Route::get('/api/dashboard/profit-data', [DashboardController::class, 'profitData'])
+            ->name('dashboard.profit-data');
+        Route::post('/api/dashboard/clear-cache', [DashboardController::class, 'clearCache'])
+            ->name('dashboard.clear-cache');
+    });
+
     // Cashier Dashboard - requires create sales permission
     Route::middleware(['permission:create sales'])->group(function () {
         Route::get('/cashier', function () {
@@ -249,6 +269,15 @@ Route::middleware(['auth'])->group(function () {
 
     Route::middleware(['permission:view supplier payments'])->group(function () {
         Route::get('/supplier-payments/{supplierPayment}', [\App\Http\Controllers\SupplierPaymentController::class, 'show'])->name('supplier-payments.show');
+    });
+
+    // Customer Credits Management Routes - unified view for customers, credits, and payments
+    Route::middleware(['permission:view customers'])->group(function () {
+        Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+        Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+        Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+        Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+        Route::post('/customers/process-payment', [CustomerController::class, 'processPayment'])->name('customers.process-payment');
     });
 
     // Accounting - Chart of Accounts Routes

@@ -75,6 +75,9 @@ enum PermissionsEnum: string
     case VIEW_EXPENSES = 'view expenses';
     case MANAGE_EXPENSES = 'manage expenses';
 
+    // Dashboard
+    case VIEW_DASHBOARD = 'view dashboard';
+
     // User Management
     case VIEW_USERS = 'view users';
     case CREATE_USERS = 'create users';
@@ -123,6 +126,24 @@ enum PermissionsEnum: string
     case CREATE_SUPPLIER_PAYMENTS = 'create supplier payments';
     case EDIT_SUPPLIER_PAYMENTS = 'edit supplier payments';
     case DELETE_SUPPLIER_PAYMENTS = 'delete supplier payments';
+
+    // Customer Management
+    case VIEW_CUSTOMERS = 'view customers';
+    case CREATE_CUSTOMERS = 'create customers';
+    case EDIT_CUSTOMERS = 'edit customers';
+    case DELETE_CUSTOMERS = 'delete customers';
+
+    // Customer Credits Management
+    case VIEW_CUSTOMER_CREDITS = 'view customer credits';
+    case CREATE_CUSTOMER_CREDITS = 'create customer credits';
+    case EDIT_CUSTOMER_CREDITS = 'edit customer credits';
+    case DELETE_CUSTOMER_CREDITS = 'delete customer credits';
+
+    // Customer Payments Management
+    case VIEW_CUSTOMER_PAYMENTS = 'view customer payments';
+    case CREATE_CUSTOMER_PAYMENTS = 'create customer payments';
+    case EDIT_CUSTOMER_PAYMENTS = 'edit customer payments';
+    case DELETE_CUSTOMER_PAYMENTS = 'delete customer payments';
 
     // Creditor Reports
     case VIEW_CREDITOR_REPORTS = 'view creditor reports';
@@ -239,6 +260,9 @@ enum PermissionsEnum: string
                 self::VIEW_EXPENSES,
                 self::MANAGE_EXPENSES,
             ],
+            'Dashboard' => [
+                self::VIEW_DASHBOARD,
+            ],
             'User Management' => [
                 self::VIEW_USERS,
                 self::CREATE_USERS,
@@ -284,6 +308,24 @@ enum PermissionsEnum: string
                 self::CREATE_SUPPLIER_PAYMENTS,
                 self::EDIT_SUPPLIER_PAYMENTS,
                 self::DELETE_SUPPLIER_PAYMENTS,
+            ],
+            'Customers' => [
+                self::VIEW_CUSTOMERS,
+                self::CREATE_CUSTOMERS,
+                self::EDIT_CUSTOMERS,
+                self::DELETE_CUSTOMERS,
+            ],
+            'Customer Credits' => [
+                self::VIEW_CUSTOMER_CREDITS,
+                self::CREATE_CUSTOMER_CREDITS,
+                self::EDIT_CUSTOMER_CREDITS,
+                self::DELETE_CUSTOMER_CREDITS,
+            ],
+            'Customer Payments' => [
+                self::VIEW_CUSTOMER_PAYMENTS,
+                self::CREATE_CUSTOMER_PAYMENTS,
+                self::EDIT_CUSTOMER_PAYMENTS,
+                self::DELETE_CUSTOMER_PAYMENTS,
             ],
             'Creditor Reports' => [
                 self::VIEW_CREDITOR_REPORTS,

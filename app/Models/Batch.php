@@ -32,4 +32,21 @@ class Batch extends Model
     {
         return $this->hasMany(Stock::class);
     }
+
+    public function product()
+    {
+        return $this->hasOneThrough(
+            Product::class,
+            Stock::class,
+            'batch_id',
+            'id',
+            'id',
+            'product_id'
+        );
+    }
+
+    public function getAvailableQuantityAttribute()
+    {
+        return $this->stocks->sum('available_quantity');
+    }
 }

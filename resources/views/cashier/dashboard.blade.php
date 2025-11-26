@@ -245,39 +245,39 @@
             <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Payment Method</h2>
             <div class="space-y-3">
                 <button
-                    @click="paymentMethod = 'Cash'"
+                    @click="paymentMethod = 'cash'"
                     type="button"
                     class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'Cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                    :class="paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-money-bill-wave mr-3" :class="paymentMethod === 'Cash' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'Cash' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Cash</span>
+                        <i class="fas fa-money-bill-wave mr-3" :class="paymentMethod === 'cash' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'cash' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Cash</span>
                     </div>
                 </button>
                 <button
-                    @click="paymentMethod = 'Card'"
+                    @click="paymentMethod = 'card'"
                     type="button"
                     class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'Card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                    :class="paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-credit-card mr-3" :class="paymentMethod === 'Card' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'Card' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Card</span>
+                        <i class="fas fa-credit-card mr-3" :class="paymentMethod === 'card' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'card' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Card</span>
                     </div>
                 </button>
                 <button
-                    @click="paymentMethod = 'Credit'"
+                    @click="paymentMethod = 'credit'"
                     type="button"
                     class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'Credit' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
+                    :class="paymentMethod === 'credit' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
                     <div class="flex items-center">
-                        <i class="fas fa-handshake mr-3" :class="paymentMethod === 'Credit' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'Credit' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Credit</span>
+                        <i class="fas fa-handshake mr-3" :class="paymentMethod === 'credit' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
+                        <span class="font-medium" :class="paymentMethod === 'credit' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Credit</span>
                     </div>
                 </button>
             </div>
 
             <!-- Cash Payment Input -->
-            <div x-show="paymentMethod === 'Cash'" x-transition class="mt-4">
+            <div x-show="paymentMethod === 'cash'" x-transition class="mt-4">
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount Received</label>
                 <input
                     type="number"
@@ -287,7 +287,29 @@
                     placeholder="0.00"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'LKR' + changeAmount.toFixed(2)"></span>
+                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'LKR ' + changeAmount.toFixed(2)"></span>
+                </div>
+            </div>
+
+            <!-- Credit Payment Options -->
+            <div x-show="paymentMethod === 'credit'" x-transition class="mt-4 space-y-3">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Customer *</label>
+                    <select x-model="selectedCustomerId" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Select a customer...</option>
+                        @foreach(\App\Models\Customer::active()->get() as $customer)
+                            <option value="{{ $customer->id }}">{{ $customer->name }} - Available Credit: LKR {{ number_format($customer->availableCredit, 2) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Credit Terms *</label>
+                    <select x-model="creditTerms" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                        <option value="">Select credit terms...</option>
+                        @foreach(\App\Enums\CreditTermsEnum::cases() as $term)
+                            <option value="{{ $term->value }}">{{ $term->label() }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
         </div>
@@ -297,7 +319,7 @@
             <button
                 @click="completeSale"
                 type="button"
-                :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'Cash' && amountReceived < totals.total)"
+                :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'cash' && amountReceived < totals.total)"
                 class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                 <i :class="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-check'" class="mr-2"></i>
                 <span x-text="isProcessing ? 'Processing...' : 'Complete Sale'"></span>
@@ -431,11 +453,13 @@
                 tax: 0,
                 total: 0
             },
-            paymentMethod: 'Cash',
+            paymentMethod: 'cash',
             amountReceived: 0,
             changeAmount: 0,
             customerName: '',
             customerPhone: '',
+            selectedCustomerId: '',
+            creditTerms: '',
             isProcessing: false,
             errorMessage: '',
             showSaveCartModal: false,
@@ -595,7 +619,7 @@
             },
 
             calculateChange() {
-                if (this.paymentMethod === 'Cash') {
+                if (this.paymentMethod === 'cash') {
                     this.changeAmount = this.amountReceived - this.totals.total;
                 } else {
                     this.changeAmount = 0;
@@ -622,9 +646,20 @@
                     return;
                 }
 
-                if (this.paymentMethod === 'Cash' && this.amountReceived < this.totals.total) {
+                if (this.paymentMethod === 'cash' && this.amountReceived < this.totals.total) {
                     this.errorMessage = 'Amount received is less than total amount.';
                     return;
+                }
+
+                if (this.paymentMethod === 'credit') {
+                    if (!this.selectedCustomerId) {
+                        this.errorMessage = 'Please select a customer for credit sale.';
+                        return;
+                    }
+                    if (!this.creditTerms) {
+                        this.errorMessage = 'Please select credit terms.';
+                        return;
+                    }
                 }
 
                 this.isProcessing = true;
@@ -640,9 +675,11 @@
                         },
                         body: JSON.stringify({
                             payment_method: this.paymentMethod,
+                            customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId : null,
+                            credit_terms: this.paymentMethod === 'credit' ? this.creditTerms : null,
                             customer_name: this.customerName || null,
                             customer_phone: this.customerPhone || null,
-                            amount_received: this.paymentMethod === 'Cash' ? this.amountReceived : null,
+                            amount_received: this.paymentMethod === 'cash' ? this.amountReceived : null,
                             items: this.cart.map(item => ({
                                 product_id: item.id,
                                 quantity: item.quantity
@@ -699,7 +736,7 @@
                         this.cart = [];
                         this.customerName = '';
                         this.customerPhone = '';
-                        this.paymentMethod = 'Cash';
+                        this.paymentMethod = 'cash';
                         this.amountReceived = 0;
                         this.calculateTotals();
 
@@ -767,7 +804,7 @@
                     // Restore customer info and payment method
                     this.customerName = savedCart.customer_name || '';
                     this.customerPhone = savedCart.customer_phone || '';
-                    this.paymentMethod = savedCart.payment_method || 'Cash';
+                    this.paymentMethod = savedCart.payment_method || 'cash';
 
                     // Calculate totals
                     this.calculateTotals();

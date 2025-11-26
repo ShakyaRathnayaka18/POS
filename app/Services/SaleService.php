@@ -9,7 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class SaleService
 {
-    public function __construct(protected StockService $stockService, protected ShiftService $shiftService) {}
+    public function __construct(
+        protected StockService $stockService,
+        protected ShiftService $shiftService,
+        protected CustomerCreditService $customerCreditService
+    ) {}
 
     /**
      * Generate a unique sale number
@@ -54,9 +58,9 @@ class SaleService
     /**
      * Process a complete sale transaction
      */
-    public function processSale(array $saleData, array $cartItems): Sale
+    public function processSale(array $saleData, array $cartItems, ?string $creditTerms = null): Sale
     {
-        return DB::transaction(function () use ($saleData, $cartItems) {
+        return DB::transaction(function () use ($saleData, $cartItems, $creditTerms) {
             // Prepare items with stock allocation
             $processedItems = [];
 
@@ -111,6 +115,7 @@ class SaleService
             $sale = Sale::create([
                 'sale_number' => $saleData['sale_number'],
                 'user_id' => $saleData['user_id'],
+                'customer_id' => $saleData['customer_id'] ?? null,
                 'shift_id' => $activeShift?->id,
                 'customer_name' => $saleData['customer_name'] ?? null,
                 'customer_phone' => $saleData['customer_phone'] ?? null,
@@ -120,6 +125,14 @@ class SaleService
                 'payment_method' => $saleData['payment_method'],
                 'status' => 'Completed',
             ]);
+
+            // Create customer credit if payment method is credit
+            if ($saleData['payment_method'] == 'credit' && $creditTerms && $saleData['customer_id']) {
+                $this->customerCreditService->createCreditFromSale($sale, [
+                    'credit_terms' => $creditTerms,
+                    'invoice_date' => now(),
+                ]);
+            }
 
             // Create sale items
             foreach ($processedItems as $item) {

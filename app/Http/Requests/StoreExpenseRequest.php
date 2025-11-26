@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentMethodEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreExpenseRequest extends FormRequest
 {
@@ -27,7 +29,7 @@ class StoreExpenseRequest extends FormRequest
             'description' => 'nullable|string',
             'amount' => 'required|numeric|min:0.01',
             'expense_date' => 'required|date|before_or_equal:today',
-            'payment_method' => 'required|string|in:cash,bank_transfer,cheque,card',
+            'payment_method' => ['required', Rule::enum(PaymentMethodEnum::class)],
             'reference_number' => 'nullable|string|max:255',
             'receipt' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'notes' => 'nullable|string',
