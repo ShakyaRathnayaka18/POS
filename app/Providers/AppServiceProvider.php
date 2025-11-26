@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\URL;
 use App\Models\Expense;
 use App\Models\GoodReceiveNote;
 use App\Models\PayrollPeriod;
@@ -29,10 +30,14 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-    {
-        Schema::defaultStringLength(191);
+    {     Schema::defaultStringLength(191);
 
-        // Register observers for accounting integration
+ // Force HTTPS in production
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
+
+         // Register observers for accounting integration
         Sale::observe(SaleObserver::class);
         GoodReceiveNote::observe(GoodReceiveNoteObserver::class);
         Expense::observe(ExpenseObserver::class);
