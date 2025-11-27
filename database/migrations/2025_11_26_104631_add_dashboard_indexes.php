@@ -32,7 +32,7 @@ return new class extends Migration
         // Customer credits for financial metrics
         Schema::table('customer_credits', function (Blueprint $table) {
             $table->index('status');
-            $table->index('due_date');
+            // Note: due_date index already exists from create_customer_credits_table migration
             $table->index(['status', 'outstanding_amount']);
         });
 
@@ -82,7 +82,7 @@ return new class extends Migration
 
         Schema::table('customer_credits', function (Blueprint $table) {
             $table->dropIndex(['status']);
-            $table->dropIndex(['due_date']);
+            // Note: due_date index not dropped here as it's from create_customer_credits_table migration
             $table->dropIndex(['status', 'outstanding_amount']);
         });
 

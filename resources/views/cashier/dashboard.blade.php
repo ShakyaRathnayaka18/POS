@@ -506,7 +506,7 @@
                 this.errorMessage = '';
 
                 try {
-                    const response = await fetch(`/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
+                    const response = await fetch(`{{ url('/') }}/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
                     const data = await response.json();
                     this.searchResults = data;
                 } catch (error) {
@@ -783,7 +783,7 @@
                 this.errorMessage = '';
 
                 try {
-                    const response = await fetch(`/api/saved-carts/${savedCartId}`);
+                    const response = await fetch(`{{ url('/') }}/api/saved-carts/${savedCartId}`);
                     const savedCart = await response.json();
 
                     // Map saved cart items to cart format
@@ -825,7 +825,7 @@
                 }
 
                 try {
-                    const response = await fetch(`/api/saved-carts/${savedCartId}`, {
+                    const response = await fetch(`{{ url('/') }}/api/saved-carts/${savedCartId}`, {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -913,7 +913,7 @@
                 if (!this.activeShift) return;
 
                 try {
-                    const response = await fetch(`/shifts/${this.activeShift.id}/clock-out`, {
+                    const response = await fetch(`{{ url('/') }}/shifts/${this.activeShift.id}/clock-out`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

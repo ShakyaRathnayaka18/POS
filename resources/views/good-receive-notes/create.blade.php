@@ -185,7 +185,7 @@ document.getElementById('supplier_id').addEventListener('change', function() {
     if (supplierId) {
         addItemBtn.disabled = false;
         // Fetch supplier products via AJAX
-        fetch(`/suppliers/${supplierId}/products`)
+        fetch(`{{ url('/') }}/suppliers/${supplierId}/products`)
             .then(response => response.json())
             .then(data => {
                 products = data;
@@ -375,7 +375,7 @@ function loadSupplierCreditInfo() {
     }
 
     // Fetch supplier credit info
-    fetch(`/suppliers/${supplierId}/credit-info`)
+    fetch(`{{ url('/') }}/suppliers/${supplierId}/credit-info`)
         .then(response => response.json())
         .then(data => {
             supplierCreditInfo = data;

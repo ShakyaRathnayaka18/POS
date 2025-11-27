@@ -144,7 +144,7 @@
         const addItemBtn = document.getElementById('addItemBtn');
         if (grnId) {
             addItemBtn.disabled = true;
-            fetch(`/good-receive-notes/${grnId}/returnable-stock`)
+            fetch(`{{ url('/') }}/good-receive-notes/${grnId}/returnable-stock`)
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();

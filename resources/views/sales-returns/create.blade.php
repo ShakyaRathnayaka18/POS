@@ -119,7 +119,7 @@
             return;
         }
 
-        fetch(`/sales-returns/get-returnable-items/${saleId}`)
+        fetch(`{{ url('/') }}/sales-returns/get-returnable-items/${saleId}`)
             .then(response => response.json())
             .then(data => {
                 itemsContainer.innerHTML = '';

@@ -1133,7 +1133,7 @@ function adminDashboard() {
             this.loadingTopSelling = true;
 
             try {
-                const response = await fetch(`/api/dashboard/top-selling-products?period=${period}`, {
+                const response = await fetch(`{{ url('/') }}/api/dashboard/top-selling-products?period=${period}`, {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
