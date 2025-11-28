@@ -4,13 +4,85 @@
 
 @section('content')
 <div x-data="adminDashboard()" x-init="init()" class="p-6">
+    <!-- Time Travel Loading Screen -->
+    <div x-show="isTimeLoading"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[9999] flex items-center justify-center"
+         style="backdrop-filter: blur(10px); background: rgba(0, 0, 0, 0.5);">
+
+        <div class="text-center">
+            <!-- Animated SVG Clock -->
+            <div class="clock-container mx-auto mb-8"
+                 :class="{ 'clock-shake': shouldShake, 'clock-shatter': shouldShatter }">
+                <img src="{{ asset('images/time.svg') }}" alt="Time Travel" class="clock-svg">
+            </div>
+
+            <!-- Animated Phrase -->
+            <div class="text-white text-2xl font-bold animate-pulse"
+                 :class="{ 'fade-out-text': shouldShatter }"
+                 x-text="currentLoadingPhrase"></div>
+        </div>
+    </div>
+
+    <!-- Time Travel Mode Indicator -->
+    <div x-show="timeTravelActive"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 transform -translate-y-4"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         class="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-4">
+        <div class="flex items-center justify-between text-white">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-history text-2xl"></i>
+                <div>
+                    <p class="font-bold">Time Travel Mode Active</p>
+                    <p class="text-sm opacity-90">Viewing dashboard as of: <span x-text="formatDate(timeTravelDate)"></span></p>
+                </div>
+            </div>
+            <button @click="disableTimeTravel()" class="px-4 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors">
+                <i class="fas fa-times mr-2"></i>
+                Return to Present
+            </button>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="mb-6 flex justify-between items-center">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-        <button @click="refreshData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-            <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': loadingRefresh }"></i>
-            Refresh
-        </button>
+        <div class="flex gap-3">
+            <!-- Time Travel Toggle -->
+            <div class="relative" x-data="{ showPicker: false }">
+                <button @click="showPicker = !showPicker"
+                        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2">
+                    <i class="fas fa-history"></i>
+                    Time Travel
+                </button>
+
+                <!-- Date Picker Dropdown -->
+                <div x-show="showPicker"
+                     @click.away="showPicker = false"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 transform scale-95"
+                     x-transition:enter-end="opacity-100 transform scale-100"
+                     class="absolute right-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 z-50 min-w-[300px]">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Select Date
+                    </label>
+                    <input type="date"
+                           x-model="timeTravelDate"
+                           :max="new Date().toISOString().split('T')[0]"
+                           @change="enableTimeTravel(); showPicker = false"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+            </div>
+
+            <!-- Refresh Button -->
+            <button @click="refreshData()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-sync-alt mr-2" :class="{ 'fa-spin': loadingRefresh }"></i>
+                Refresh
+            </button>
+        </div>
     </div>
 
     <!-- Metric Cards Grid (4x2) -->
@@ -831,6 +903,38 @@ function adminDashboard() {
         customerCreditsData: @json($customerCredits['credits']),
         supplierCreditsData: @json($supplierCredits['credits']),
 
+        // Time travel state
+        timeTravelActive: @json($asOfDate !== null),
+        timeTravelDate: @json($asOfDate),
+
+        // Time travel loading state
+        isTimeLoading: false,
+        currentLoadingPhrase: '',
+        loadingPhraseIndex: 0,
+        loadingPhraseInterval: null,
+        shouldShake: false,
+        shouldShatter: false,
+
+        // Phrases for time travel
+        timeTravelPhrases: [
+            "Hang on Morty we are going back in time!!!",
+            "Vertexcore AI is working",
+            "Hang on tight",
+            "The details are falling into place; we're nearly there",
+            "We are putting the finishing touches on this",
+            "Almost there"
+        ],
+
+        // Phrases for returning to present
+        returnPhrases: [
+            "Morty, we are going BACK TO THE FUTURE",
+            "Vertexcore AI is working",
+            "Hang on tight",
+            "The details are falling into place; we're nearly there",
+            "We are putting the finishing touches on this",
+            "Almost there"
+        ],
+
         get paginatedBatches() {
             const start = (this.expiringBatchesPage - 1) * this.itemsPerPage;
             const end = start + this.itemsPerPage;
@@ -1133,7 +1237,15 @@ function adminDashboard() {
             this.loadingTopSelling = true;
 
             try {
-                const response = await fetch(`{{ url('/') }}/api/dashboard/top-selling-products?period=${period}`, {
+                const urlParams = new URLSearchParams(window.location.search);
+                const asOfDate = urlParams.get('as_of_date');
+
+                let url = `{{ url('/') }}/api/dashboard/top-selling-products?period=${period}`;
+                if (asOfDate) {
+                    url += `&as_of_date=${asOfDate}`;
+                }
+
+                const response = await fetch(url, {
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                         'Accept': 'application/json'
@@ -1158,10 +1270,17 @@ function adminDashboard() {
             this.loadingProfit = true;
 
             try {
-                let url = `/api/dashboard/profit-data?period=${period}`;
+                const urlParams = new URLSearchParams(window.location.search);
+                const asOfDate = urlParams.get('as_of_date');
+
+                let url = `{{ url('/') }}/api/dashboard/profit-data?period=${period}`;
 
                 if (period === 'custom' && this.customStartDate && this.customEndDate) {
                     url += `&start_date=${this.customStartDate}&end_date=${this.customEndDate}`;
+                }
+
+                if (asOfDate) {
+                    url += `&as_of_date=${asOfDate}`;
                 }
 
                 const response = await fetch(url, {
@@ -1203,7 +1322,7 @@ function adminDashboard() {
         async refreshData() {
             this.loadingRefresh = true;
             try {
-                await fetch('/api/dashboard/clear-cache', {
+                await fetch('{{ url('/') }}/api/dashboard/clear-cache', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -1216,6 +1335,105 @@ function adminDashboard() {
             } finally {
                 this.loadingRefresh = false;
             }
+        },
+
+        // Start loading with phrase cycling
+        startLoading(phrases) {
+            this.isTimeLoading = true;
+            this.loadingPhraseIndex = 0;
+            this.currentLoadingPhrase = phrases[0];
+            this.shouldShake = false;
+            this.shouldShatter = false;
+
+            // Cycle through phrases every 3 seconds
+            this.loadingPhraseInterval = setInterval(() => {
+                this.loadingPhraseIndex = (this.loadingPhraseIndex + 1) % phrases.length;
+                this.currentLoadingPhrase = phrases[this.loadingPhraseIndex];
+            }, 3000);
+        },
+
+        // Stop loading and clear interval
+        stopLoading() {
+            this.isTimeLoading = false;
+            if (this.loadingPhraseInterval) {
+                clearInterval(this.loadingPhraseInterval);
+                this.loadingPhraseInterval = null;
+            }
+        },
+
+        enableTimeTravel() {
+            if (!this.timeTravelDate) return;
+
+            // Start loading animation
+            this.startLoading(this.timeTravelPhrases);
+
+            this.timeTravelActive = true;
+
+            // Navigate to the new page
+            const url = new URL(window.location);
+            url.searchParams.set('as_of_date', this.timeTravelDate);
+
+            // Trigger shake and shatter before navigation
+            setTimeout(() => {
+                this.shouldShake = true;
+            }, 500);
+
+            setTimeout(() => {
+                this.shouldShake = false;
+                this.shouldShatter = true;
+            }, 1300);
+
+            // Hide loading screen after shatter animation
+            setTimeout(() => {
+                this.isTimeLoading = false;
+            }, 2300);
+
+            // Navigate after shatter completes
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 2500);
+        },
+
+        disableTimeTravel() {
+            // Start loading animation
+            this.startLoading(this.returnPhrases);
+
+            this.timeTravelActive = false;
+            this.timeTravelDate = null;
+
+            // Navigate to the new page
+            const url = new URL(window.location);
+            url.searchParams.delete('as_of_date');
+
+            // Trigger shake and shatter before navigation
+            setTimeout(() => {
+                this.shouldShake = true;
+            }, 500);
+
+            setTimeout(() => {
+                this.shouldShake = false;
+                this.shouldShatter = true;
+            }, 1300);
+
+            // Hide loading screen after shatter animation
+            setTimeout(() => {
+                this.isTimeLoading = false;
+            }, 2300);
+
+            // Navigate after shatter completes
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, 2500);
+        },
+
+        formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
         }
     }
 }
@@ -1226,6 +1444,84 @@ function adminDashboard() {
 
 .rotate-y-180 {
     transform: rotateY(180deg);
+}
+
+/* SVG Clock Animation */
+.clock-container {
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clock-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.5));
+}
+
+/* Phrase fade animation */
+@keyframes phraseChange {
+    0%, 100% { opacity: 0; transform: translateY(10px); }
+    10%, 90% { opacity: 1; transform: translateY(0); }
+}
+
+.phrase-change {
+    animation: phraseChange 3s ease-in-out;
+}
+
+/* Clock shake animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+.clock-shake {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+/* Clock shatter animation */
+@keyframes shatter {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+    50% {
+        transform: scale(1.15) rotate(5deg);
+    }
+    75% {
+        opacity: 0.7;
+        transform: scale(1.2) rotate(-5deg);
+        filter: blur(2px);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.5) rotate(10deg);
+        filter: blur(5px);
+    }
+}
+
+.clock-shatter {
+    animation: shatter 1s ease-out forwards;
+}
+
+/* Fade out text when clock shatters */
+.fade-out-text {
+    animation: fadeOutQuick 0.3s ease-out forwards;
+}
+
+@keyframes fadeOutQuick {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
 }
 </style>
 @endsection

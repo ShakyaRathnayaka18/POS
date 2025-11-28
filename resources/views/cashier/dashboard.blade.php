@@ -3,61 +3,11 @@
 @section('title', 'Cashier Dashboard')
 
 @section('content')
-<div x-data="cashierPos()" x-init="init()">
-    <!-- Shift Status Bar -->
-    <div class="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-        <div class="flex justify-between items-center">
-            <div>
-                <template x-if="activeShift">
-                    <div class="flex items-center gap-4">
-                        <span class="inline-block px-3 py-1 bg-green-500 text-white rounded-full text-sm font-semibold">
-                            <i class="fas fa-clock mr-1"></i> Active Shift
-                        </span>
-                        <span class="text-gray-700 dark:text-gray-300">
-                            Started: <span x-text="activeShift ? new Date(activeShift.clock_in_at).toLocaleTimeString() : ''"></span>
-                        </span>
-                        <span class="text-gray-700 dark:text-gray-300">
-                            Duration: <span x-text="shiftDuration"></span>
-                        </span>
-                        <span class="text-gray-700 dark:text-gray-300">
-                            Sales: <span x-text="shiftStats ? shiftStats.total_sales_count : 0"></span>
-                        </span>
-                    </div>
-                </template>
-                <template x-if="!activeShift">
-                    <span class="text-gray-500 dark:text-gray-400">
-                        <i class="fas fa-exclamation-circle mr-2"></i>No active shift - Please clock in to start
-                    </span>
-                </template>
-            </div>
-            <div class="flex gap-2">
-                @can('manage own shifts')
-                    <template x-if="!activeShift">
-                        <button @click="showClockInModal = true"
-                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold">
-                            <i class="fas fa-sign-in-alt mr-2"></i>Clock In
-                        </button>
-                    </template>
-                    <template x-if="activeShift">
-                        <button @click="showClockOutModal = true"
-                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold">
-                            <i class="fas fa-sign-out-alt mr-2"></i>Clock Out
-                        </button>
-                    </template>
-                    <a href="{{ route('shifts.my-shifts') }}" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-semibold">
-                        <i class="fas fa-history mr-2"></i>My Shifts
-                    </a>
-                @endcan
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Product Search & Cart -->
-        <div class="lg:col-span-2 space-y-6">
+<div x-data="cashierPos()" x-init="init()" class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-6rem)]">
+    <!-- Left Main Area: Product Search & Cart -->
+    <div class="flex-1 flex flex-col gap-2 overflow-hidden">
         <!-- Product Search -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product Search</h2>
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-0 flex-shrink-0">
             <div class="relative">
                 <input
                     type="text"
@@ -65,34 +15,31 @@
                     @input.debounce.300ms="searchProducts"
                     @keydown.enter.prevent="selectFirstProduct"
                     placeholder="Search products by name, barcode, or SKU..."
-                    class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    class="w-full pl-10 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-lg shadow-sm">
+                <i class="fas fa-search absolute left-3 top-4 text-gray-400 text-lg"></i>
 
                 <!-- Search Results Dropdown -->
                 <div
                     x-show="searchResults.length > 0 && searchQuery.length > 0"
                     x-transition
-                    class="absolute z-10 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-lg max-h-96 overflow-y-auto">
+                    class="absolute z-10 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md shadow-xl max-h-96 overflow-y-auto">
                     <template x-for="product in searchResults" :key="product.id">
                         <button
                             @click="addToCart(product)"
                             type="button"
-                            class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600 last:border-b-0">
-                            <div class="flex justify-between items-start">
+                            class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <div class="font-medium text-gray-900 dark:text-white" x-text="product.product_name"></div>
+                                    <div class="font-medium text-gray-900 dark:text-white text-lg" x-text="product.product_name"></div>
                                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                                        <span>SKU: </span><span x-text="product.sku"></span>
-                                        <span class="ml-2" x-show="product.barcode">Barcode: <span x-text="product.barcode"></span></span>
-                                    </div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        <span x-text="product.category"></span> | <span x-text="product.brand"></span>
+                                        <span class="bg-gray-100 dark:bg-gray-600 px-2 py-0.5 rounded text-xs mr-2" x-text="product.sku"></span>
+                                        <span x-text="product.category"></span>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-medium text-gray-900 dark:text-white" x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></div>
+                                    <div class="font-bold text-primary-600 dark:text-primary-400" x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></div>
                                     <div class="text-xs" :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
-                                        <span x-text="product.available_quantity"></span> <span x-text="product.unit"></span> available
+                                        <span x-text="product.available_quantity"></span> <span x-text="product.unit"></span>
                                     </div>
                                 </div>
                             </div>
@@ -100,185 +47,225 @@
                     </template>
                 </div>
             </div>
-
+            
             <!-- Loading Indicator -->
-            <div x-show="isSearching" class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            <div x-show="isSearching" class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
                 <i class="fas fa-spinner fa-spin mr-2"></i>Searching...
             </div>
         </div>
 
-        <!-- Shopping Cart -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Shopping Cart</h2>
-
-            <div x-show="cart.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                <i class="fas fa-shopping-cart text-4xl mb-2"></i>
-                <p>Cart is empty. Search and add products to get started.</p>
+        <!-- Shopping Cart Table -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-2 flex-grow flex flex-col overflow-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-medium text-gray-900 dark:text-white">Shopping Cart</h2>
+                <div class="flex gap-2">
+                     <button
+                        @click="showSavedCartsModal = true; loadSavedCarts()"
+                        type="button"
+                        class="text-sm bg-green-100 text-green-700 hover:bg-green-200 px-3 py-1.5 rounded-md transition-colors">
+                        <i class="fas fa-folder-open mr-1"></i> Saved Carts <span x-show="savedCarts.length > 0" class="ml-1 bg-green-600 text-white px-1.5 rounded-full text-xs" x-text="savedCarts.length"></span>
+                    </button>
+                    <button
+                        x-show="cart.length > 0"
+                        @click="showSaveCartModal = true"
+                        type="button"
+                        class="text-sm bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1.5 rounded-md transition-colors">
+                        <i class="fas fa-save mr-1"></i> Save
+                    </button>
+                    <button
+                        x-show="cart.length > 0"
+                        @click="clearCart"
+                        type="button"
+                        class="text-sm bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1.5 rounded-md transition-colors">
+                        <i class="fas fa-trash mr-1"></i> Clear
+                    </button>
+                </div>
             </div>
 
-            <div x-show="cart.length > 0" class="space-y-3">
-                <!-- Cart Items -->
-                <template x-for="(item, index) in cart" :key="index">
-                    <div class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg">
-                        <div class="flex-1">
-                            <div class="font-medium text-gray-900 dark:text-white" x-text="item.product_name"></div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                LKR <span x-text="parseFloat(item.selling_price).toFixed(2)"></span> each
-                                <span class="ml-2 text-xs">Tax: <span x-text="item.tax"></span>%</span>
-                            </div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Available: <span x-text="item.available_quantity"></span> <span x-text="item.unit"></span>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-4">
-                            <button
-                                @click="decrementQuantity(index)"
-                                type="button"
-                                class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500">
-                                <i class="fas fa-minus text-xs"></i>
-                            </button>
-                            <input
-                                type="number"
-                                x-model.number="item.quantity"
-                                @input="validateQuantity(index)"
-                                min="1"
-                                :max="item.available_quantity"
-                                class="w-16 text-center font-medium dark:text-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1">
-                            <button
-                                @click="incrementQuantity(index)"
-                                type="button"
-                                :disabled="item.quantity >= item.available_quantity"
-                                class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center hover:bg-gray-300 dark:hover:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="fas fa-plus text-xs"></i>
-                            </button>
-
-                            <!-- Added spacing for currency and removed the previous alignment problem -->
-                            <span class="w-20 text-right font-medium dark:text-white ml-4" x-text="'LKR ' + calculateItemTotal(item).toFixed(2)"></span>
-
-                            <button
-                                @click="removeFromCart(index)"
-                                type="button"
-                                class="text-red-500 hover:text-red-700 ml-4">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-
-                    </div>
-                </template>
-            </div>
-
-            <!-- Cart Actions -->
-            <div x-show="cart.length > 0" class="mt-4 flex space-x-2">
-                <button
-                    @click="clearCart"
-                    type="button"
-                    class="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">
-                    <i class="fas fa-trash mr-2"></i>Clear Cart
-                </button>
-                <button
-                    @click="showSaveCartModal = true"
-                    type="button"
-                    class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-save mr-2"></i>Save Cart
-                </button>
-            </div>
-
-            <!-- Load Cart Button -->
-            <div class="mt-4">
-                <button
-                    @click="showSavedCartsModal = true; loadSavedCarts()"
-                    type="button"
-                    class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors">
-                    <i class="fas fa-folder-open mr-2"></i>Load Saved Cart <span x-show="savedCarts.length > 0" class="ml-1 bg-green-800 px-2 py-0.5 rounded-full text-xs" x-text="savedCarts.length"></span>
-                </button>
+            <div class="flex-grow overflow-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 dark:bg-gray-700 sticky top-0 z-10">
+                        <tr class="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                            <th class="px-4 py-3 border-b dark:border-gray-600">Code</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600">Product</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600 text-right">Price</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600 text-center">Qty</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600 text-right">Total</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <template x-for="(item, index) in cart" :key="index">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 font-mono">
+                                    <span x-text="item.item_code || item.sku || '-'"></span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="font-medium text-gray-900 dark:text-white" x-text="item.product_name"></div>
+                                    <div class="text-xs text-gray-500" x-text="item.available_quantity + ' ' + item.unit + ' available'"></div>
+                                </td>
+                                <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-medium">
+                                    <span x-text="parseFloat(item.selling_price).toFixed(2)"></span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <button @click="decrementQuantity(index)" class="w-7 h-7 rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors">
+                                            <i class="fas fa-minus text-xs"></i>
+                                        </button>
+                                        <input type="number" x-model.number="item.quantity" @input="validateQuantity(index)" class="w-14 text-center border border-gray-300 dark:border-gray-600 rounded py-1 text-sm dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-primary-500">
+                                        <button @click="incrementQuantity(index)" :disabled="item.quantity >= item.available_quantity" class="w-7 h-7 rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors disabled:opacity-50">
+                                            <i class="fas fa-plus text-xs"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">
+                                    <span x-text="calculateItemTotal(item).toFixed(2)"></span>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <button @click="removeFromCart(index)" class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                        <tr x-show="cart.length === 0">
+                            <td colspan="6" class="py-12 text-center text-gray-500 dark:text-gray-400">
+                                <i class="fas fa-shopping-cart text-5xl mb-4 text-gray-300 dark:text-gray-600 block"></i>
+                                <p class="text-lg">Cart is empty</p>
+                                <p class="text-sm">Search and add products to get started</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- Payment Section -->
-    <div class="space-y-6">
-        <!-- Order Summary -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Order Summary</h2>
-            <div class="space-y-2">
-                <div class="flex justify-between">
+    <!-- Right Sidebar: Shift Status & Payment Section -->
+    <div class="w-full lg:w-1/3 xl:w-1/4 flex flex-col gap-6 overflow-y-auto pr-2">
+        <!-- Shift Status Bar -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 flex-shrink-0">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-semibold text-gray-900 dark:text-white">Shift Status</h3>
+                <div class="flex gap-2">
+                    @can('manage own shifts')
+                        <template x-if="!activeShift">
+                            <button @click="showClockInModal = true"
+                                    class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm font-semibold" title="Clock In">
+                                <i class="fas fa-sign-in-alt"></i>
+                            </button>
+                        </template>
+                        <template x-if="activeShift">
+                            <button @click="showClockOutModal = true"
+                                    class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-semibold" title="Clock Out">
+                                <i class="fas fa-sign-out-alt"></i>
+                            </button>
+                        </template>
+                        <a href="{{ route('shifts.my-shifts') }}" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-semibold" title="My Shifts">
+                            <i class="fas fa-history"></i>
+                        </a>
+                    @endcan
+                </div>
+            </div>
+            
+            <div>
+                <template x-if="activeShift">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Status:</span>
+                            <span class="px-2 py-0.5 bg-green-500 text-white rounded-full text-xs font-semibold">
+                                Active
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Started:</span>
+                            <span class="text-gray-900 dark:text-white font-medium" x-text="activeShift ? new Date(activeShift.clock_in_at).toLocaleTimeString() : ''"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Duration:</span>
+                            <span class="text-gray-900 dark:text-white font-medium" x-text="shiftDuration"></span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600 dark:text-gray-400">Sales:</span>
+                            <span class="text-gray-900 dark:text-white font-medium" x-text="shiftStats ? shiftStats.total_sales_count : 0"></span>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="!activeShift">
+                    <div class="text-center py-2 text-gray-500 dark:text-gray-400 text-sm">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Please clock in to start
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Payment Section -->
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 flex-grow flex flex-col gap-4">
+            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Payment Details</h2>
+            
+            <!-- Order Summary -->
+            <div class="space-y-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="flex justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
                     <span class="font-medium dark:text-white" x-text="'LKR ' + totals.subtotal.toFixed(2)"></span>
                 </div>
-                <div class="flex justify-between">
+                <div class="flex justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400">Tax:</span>
                     <span class="font-medium dark:text-white" x-text="'LKR ' + totals.tax.toFixed(2)"></span>
                 </div>
-                <hr class="border-gray-200 dark:border-gray-600">
+                <hr class="border-gray-200 dark:border-gray-600 my-1">
                 <div class="flex justify-between text-lg font-bold">
                     <span class="dark:text-white">Total:</span>
                     <span class="text-green-600 dark:text-green-400" x-text="'LKR ' + totals.total.toFixed(2)"></span>
                 </div>
             </div>
-        </div>
 
-        <!-- Customer Information (Optional) -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Customer Information (Optional)</h2>
+            <!-- Customer Information -->
             <div class="space-y-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name</label>
-                    <input
-                        type="text"
-                        x-model="customerName"
-                        placeholder="Walk-in Customer"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                    <input
-                        type="text"
-                        x-model="customerPhone"
-                        placeholder="Optional"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                </div>
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Customer (Optional)</h3>
+                <input
+                    type="text"
+                    x-model="customerName"
+                    placeholder="Name"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                <input
+                    type="text"
+                    x-model="customerPhone"
+                    placeholder="Phone"
+                    class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
             </div>
-        </div>
 
-        <!-- Payment Methods -->
-        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Payment Method</h2>
-            <div class="space-y-3">
-                <button
-                    @click="paymentMethod = 'cash'"
-                    type="button"
-                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
-                    <div class="flex items-center">
-                        <i class="fas fa-money-bill-wave mr-3" :class="paymentMethod === 'cash' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'cash' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Cash</span>
-                    </div>
-                </button>
-                <button
-                    @click="paymentMethod = 'card'"
-                    type="button"
-                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
-                    <div class="flex items-center">
-                        <i class="fas fa-credit-card mr-3" :class="paymentMethod === 'card' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'card' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Card</span>
-                    </div>
-                </button>
-                <button
-                    @click="paymentMethod = 'credit'"
-                    type="button"
-                    class="w-full p-3 border-2 rounded-lg text-left transition-colors"
-                    :class="paymentMethod === 'credit' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'">
-                    <div class="flex items-center">
-                        <i class="fas fa-handshake mr-3" :class="paymentMethod === 'credit' ? 'text-primary-600' : 'text-gray-600 dark:text-gray-400'"></i>
-                        <span class="font-medium" :class="paymentMethod === 'credit' ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300'">Credit</span>
-                    </div>
-                </button>
+            <!-- Payment Methods -->
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">Payment Method</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button
+                        @click="paymentMethod = 'cash'"
+                        type="button"
+                        class="p-2 border rounded text-center transition-colors text-sm"
+                        :class="paymentMethod === 'cash' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'">
+                        <i class="fas fa-money-bill-wave block mb-1"></i> Cash
+                    </button>
+                    <button
+                        @click="paymentMethod = 'card'"
+                        type="button"
+                        class="p-2 border rounded text-center transition-colors text-sm"
+                        :class="paymentMethod === 'card' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'">
+                        <i class="fas fa-credit-card block mb-1"></i> Card
+                    </button>
+                    <button
+                        @click="paymentMethod = 'credit'"
+                        type="button"
+                        class="p-2 border rounded text-center transition-colors text-sm"
+                        :class="paymentMethod === 'credit' ? 'border-primary-500 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300' : 'border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'">
+                        <i class="fas fa-handshake block mb-1"></i> Credit
+                    </button>
+                </div>
             </div>
 
             <!-- Cash Payment Input -->
-            <div x-show="paymentMethod === 'cash'" x-transition class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Amount Received</label>
+            <div x-show="paymentMethod === 'cash'" x-transition>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount Received</label>
                 <input
                     type="number"
                     x-model.number="amountReceived"
@@ -286,52 +273,45 @@
                     step="0.01"
                     placeholder="0.00"
                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                    Change: <span class="font-medium text-lg" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'LKR ' + changeAmount.toFixed(2)"></span>
+                <div class="mt-1 text-sm">
+                    Change: <span class="font-bold" :class="changeAmount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'" x-text="'LKR ' + changeAmount.toFixed(2)"></span>
                 </div>
             </div>
 
             <!-- Credit Payment Options -->
-            <div x-show="paymentMethod === 'credit'" x-transition class="mt-4 space-y-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Customer *</label>
-                    <select x-model="selectedCustomerId" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                        <option value="">Select a customer...</option>
-                        @foreach(\App\Models\Customer::active()->get() as $customer)
-                            <option value="{{ $customer->id }}">{{ $customer->name }} - Available Credit: LKR {{ number_format($customer->availableCredit, 2) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Credit Terms *</label>
-                    <select x-model="creditTerms" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                        <option value="">Select credit terms...</option>
-                        @foreach(\App\Enums\CreditTermsEnum::cases() as $term)
-                            <option value="{{ $term->value }}">{{ $term->label() }}</option>
-                        @endforeach
-                    </select>
+            <div x-show="paymentMethod === 'credit'" x-transition class="space-y-2">
+                <select x-model="selectedCustomerId" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">Select Customer...</option>
+                    @foreach(\App\Models\Customer::active()->get() as $customer)
+                        <option value="{{ $customer->id }}">{{ $customer->name }} (LKR {{ number_format($customer->availableCredit, 2) }})</option>
+                    @endforeach
+                </select>
+                <select x-model="creditTerms" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    <option value="">Credit Terms...</option>
+                    @foreach(\App\Enums\CreditTermsEnum::cases() as $term)
+                        <option value="{{ $term->value }}">{{ $term->label() }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-auto pt-4">
+                <button
+                    @click="completeSale"
+                    type="button"
+                    :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'cash' && amountReceived < totals.total)"
+                    class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 font-bold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+                    <i :class="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-check'" class="mr-2"></i>
+                    <span x-text="isProcessing ? 'Processing...' : 'Complete Sale'"></span>
+                </button>
+                
+                <!-- Error Message -->
+                <div x-show="errorMessage" x-transition class="mt-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 p-2 rounded border border-red-200 dark:border-red-800">
+                    <i class="fas fa-exclamation-circle mr-1"></i> <span x-text="errorMessage"></span>
                 </div>
             </div>
         </div>
-
-        <!-- Action Buttons -->
-        <div class="space-y-3">
-            <button
-                @click="completeSale"
-                type="button"
-                :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'cash' && amountReceived < totals.total)"
-                class="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                <i :class="isProcessing ? 'fas fa-spinner fa-spin' : 'fas fa-check'" class="mr-2"></i>
-                <span x-text="isProcessing ? 'Processing...' : 'Complete Sale'"></span>
-            </button>
-        </div>
-
-        <!-- Error Message -->
-        <div x-show="errorMessage" x-transition class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded">
-            <p x-text="errorMessage"></p>
-        </div>
     </div>
-
     <!-- Save Cart Modal -->
     <div x-show="showSaveCartModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
         <div class="flex items-center justify-center min-h-screen px-4">

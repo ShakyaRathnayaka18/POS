@@ -13,7 +13,7 @@
                 <!-- Logo -->
                 <div class="flex flex-shrink-0 items-center">
                     <a href="{{ route('cashier.dashboard') }}" class="flex items-center">
-                        <img src="{{ asset('images/h_mart.png') }}" alt="POS Logo" class="h-10 w-auto mr-2" />
+                        <img src="{{ asset('images/h_mart.png') }}" alt="POS Logo" class="h-14 w-auto mr-1 ml-2" />
 
                     </a>
                 </div>
@@ -62,7 +62,7 @@
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</div>
                             </div>
 
-                            <a href="#"
+                            <!-- <a href="#"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <i class="fas fa-user-circle mr-2"></i> Profile
                             </a>
@@ -70,7 +70,7 @@
                             <a href="#"
                                 class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                                 <i class="fas fa-cog mr-2"></i> Settings
-                            </a>
+                            </a> -->
 
                             <div class="border-t border-gray-200 dark:border-gray-700"></div>
 

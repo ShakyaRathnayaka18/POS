@@ -22,12 +22,12 @@
     @stack('styles')
 </head>
 
-<body class="h-full">
+<body class="h-full" x-data="{ sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true' }" x-init="$watch('sidebarCollapsed', val => localStorage.setItem('sidebarCollapsed', val))">
     <div class="min-h-full">
         @include('components.navbar')
 
 
-        <div class="flex ml-64 pt-16 min-h-screen">
+        <div class="flex pt-16 min-h-screen transition-all duration-300 ease-in-out" :class="sidebarCollapsed ? 'ml-20' : 'ml-64'">
             @include('components.sidebar')
 
             <!-- Main content -->

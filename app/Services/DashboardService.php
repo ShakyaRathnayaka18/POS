@@ -19,8 +19,14 @@ class DashboardService
     /**
      * Get today's total sales revenue
      */
-    public function getTodaysSales(): float
+    public function getTodaysSales(?string $asOfDate = null): float
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate);
+
+            return Sale::whereDate('created_at', $targetDate)->sum('total');
+        }
+
         return Cache::remember('dashboard.todays_sales', 300, function () {
             return Sale::whereDate('created_at', today())->sum('total');
         });
@@ -29,8 +35,28 @@ class DashboardService
     /**
      * Get out of stock products with details
      */
-    public function getOutOfStockItems(): array
+    public function getOutOfStockItems(?string $asOfDate = null): array
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Get products that existed at that time
+            $products = Product::where('created_at', '<=', $targetDate)
+                ->with(['category', 'brand'])
+                ->get()
+                ->filter(function ($product) use ($targetDate) {
+                    // Calculate historical stock for this product
+                    $historicalStock = $this->calculateHistoricalStock($product->id, $targetDate);
+
+                    return $historicalStock <= 0;
+                });
+
+            return [
+                'count' => $products->count(),
+                'products' => $products,
+            ];
+        }
+
         return Cache::remember('dashboard.out_of_stock', 600, function () {
             $products = Product::whereDoesntHave('availableStocks', function ($q) {
                 $q->where('available_quantity', '>', 0);
@@ -46,13 +72,52 @@ class DashboardService
     }
 
     /**
+     * Calculate historical stock level for a product at a specific date
+     */
+    protected function calculateHistoricalStock(int $productId, \Carbon\Carbon $targetDate): int
+    {
+        // Current stock
+        $currentStock = DB::table('stocks')
+            ->where('product_id', $productId)
+            ->sum('available_quantity');
+
+        // Sales after target date
+        $salesAfter = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sale_items.product_id', $productId)
+            ->where('sales.created_at', '>', $targetDate)
+            ->sum('sale_items.quantity');
+
+        // GRNs/Stock additions after target date
+        $stocksAfter = DB::table('stocks')
+            ->where('product_id', $productId)
+            ->where('created_at', '>', $targetDate)
+            ->sum('quantity');
+
+        // Historical stock = current - additions after + sales after
+        return $currentStock - $stocksAfter + $salesAfter;
+    }
+
+    /**
      * Get top selling products for a period
      *
      * @param  string  $period  'today'|'week'|'month'
      */
-    public function getTopSellingProducts(string $period = 'today'): \Illuminate\Support\Collection
+    public function getTopSellingProducts(string $period = 'today', ?string $asOfDate = null): \Illuminate\Support\Collection
     {
-        [$startDate, $endDate] = $this->getPeriodRange($period);
+        [$startDate, $endDate] = $this->getPeriodRange($period, $asOfDate);
+
+        if ($asOfDate) {
+            return DB::table('sale_items')
+                ->join('products', 'sale_items.product_id', '=', 'products.id')
+                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                ->whereBetween('sales.created_at', [$startDate, $endDate])
+                ->select('products.product_name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
+                ->groupBy('products.id', 'products.product_name')
+                ->orderByDesc('total_quantity')
+                ->limit(10)
+                ->get();
+        }
 
         return Cache::remember("dashboard.top_selling_products.{$period}", 600, function () use ($startDate, $endDate) {
             return DB::table('sale_items')
@@ -70,8 +135,32 @@ class DashboardService
     /**
      * Get batches expiring in 30, 60, 90 days
      */
-    public function getExpiringBatches(): array
+    public function getExpiringBatches(?string $asOfDate = null): array
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate);
+
+            return [
+                'days_30' => Batch::where('created_at', '<=', $targetDate->copy()->endOfDay())
+                    ->whereBetween('expiry_date', [$targetDate, $targetDate->copy()->addDays(30)])
+                    ->with('product')
+                    ->count(),
+                'days_60' => Batch::where('created_at', '<=', $targetDate->copy()->endOfDay())
+                    ->whereBetween('expiry_date', [$targetDate, $targetDate->copy()->addDays(60)])
+                    ->with('product')
+                    ->count(),
+                'days_90' => Batch::where('created_at', '<=', $targetDate->copy()->endOfDay())
+                    ->whereBetween('expiry_date', [$targetDate, $targetDate->copy()->addDays(90)])
+                    ->with('product')
+                    ->count(),
+                'batches' => Batch::where('created_at', '<=', $targetDate->copy()->endOfDay())
+                    ->whereBetween('expiry_date', [$targetDate, $targetDate->copy()->addDays(90)])
+                    ->with(['product.category', 'product.brand'])
+                    ->orderBy('expiry_date', 'asc')
+                    ->get(),
+            ];
+        }
+
         return Cache::remember('dashboard.expiring_batches', 900, function () {
             return [
                 'days_30' => Batch::whereBetween('expiry_date', [now(), now()->addDays(30)])
@@ -94,8 +183,36 @@ class DashboardService
     /**
      * Calculate profit margin percentage
      */
-    public function getProfitMargin(): float
+    public function getProfitMargin(?string $asOfDate = null): float
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Get total revenue from Sales Revenue account (4100)
+            $revenue = DB::table('journal_entry_lines')
+                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
+                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
+                ->where('journal_entries.status', 'posted')
+                ->where('journal_entries.created_at', '<=', $targetDate)
+                ->where('accounts.account_code', '4100')
+                ->sum('journal_entry_lines.credit_amount');
+
+            // Get total COGS from COGS account (5100)
+            $cogs = DB::table('journal_entry_lines')
+                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
+                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
+                ->where('journal_entries.status', 'posted')
+                ->where('journal_entries.created_at', '<=', $targetDate)
+                ->where('accounts.account_code', '5100')
+                ->sum('journal_entry_lines.debit_amount');
+
+            if ($revenue <= 0) {
+                return 0;
+            }
+
+            return round((($revenue - $cogs) / $revenue) * 100, 2);
+        }
+
         return Cache::remember('dashboard.profit_margin', 900, function () {
             // Get total revenue from Sales Revenue account (4100)
             $revenue = DB::table('journal_entry_lines')
@@ -124,8 +241,41 @@ class DashboardService
     /**
      * Get total outstanding customer credits
      */
-    public function getOutstandingCustomerCredits(): array
+    public function getOutstandingCustomerCredits(?string $asOfDate = null): array
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Get credits that existed at target date
+            $credits = CustomerCredit::where('created_at', '<=', $targetDate)
+                ->with('customer')
+                ->orderBy('due_date', 'asc')
+                ->get()
+                ->filter(function ($credit) use ($targetDate) {
+                    // Check if credit was paid after target date
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    // Calculate outstanding amount as of target date
+                    $historicalOutstanding = $credit->outstanding_amount + $paidAfter;
+
+                    return $historicalOutstanding > 0;
+                });
+
+            return [
+                'count' => $credits->count(),
+                'total_amount' => $credits->sum(function ($credit) use ($targetDate) {
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    return $credit->outstanding_amount + $paidAfter;
+                }),
+                'credits' => $credits,
+            ];
+        }
+
         return Cache::remember('dashboard.customer_credits', 600, function () {
             $credits = CustomerCredit::whereNotIn('status', ['paid'])
                 ->with('customer')
@@ -143,8 +293,41 @@ class DashboardService
     /**
      * Get total outstanding supplier credits
      */
-    public function getOutstandingSupplierCredits(): array
+    public function getOutstandingSupplierCredits(?string $asOfDate = null): array
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Get credits that existed at target date
+            $credits = SupplierCredit::where('created_at', '<=', $targetDate)
+                ->with('supplier')
+                ->orderBy('due_date', 'asc')
+                ->get()
+                ->filter(function ($credit) use ($targetDate) {
+                    // Check if credit was paid after target date
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    // Calculate outstanding amount as of target date
+                    $historicalOutstanding = $credit->outstanding_amount + $paidAfter;
+
+                    return $historicalOutstanding > 0;
+                });
+
+            return [
+                'count' => $credits->count(),
+                'total_amount' => $credits->sum(function ($credit) use ($targetDate) {
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    return $credit->outstanding_amount + $paidAfter;
+                }),
+                'credits' => $credits,
+            ];
+        }
+
         return Cache::remember('dashboard.supplier_credits', 600, function () {
             $credits = SupplierCredit::whereNotIn('status', ['paid'])
                 ->with('supplier')
@@ -162,8 +345,16 @@ class DashboardService
     /**
      * Get count of active customers
      */
-    public function getActiveCustomersCount(): int
+    public function getActiveCustomersCount(?string $asOfDate = null): int
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            return Customer::where('is_active', true)
+                ->where('created_at', '<=', $targetDate)
+                ->count();
+        }
+
         return Cache::remember('dashboard.active_customers', 900, function () {
             return Customer::where('is_active', true)->count();
         });
@@ -172,8 +363,41 @@ class DashboardService
     /**
      * Get overdue customer credits
      */
-    public function getOverdueCustomerCredits(): array
+    public function getOverdueCustomerCredits(?string $asOfDate = null): array
     {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Get credits that were overdue at target date
+            $credits = CustomerCredit::where('created_at', '<=', $targetDate)
+                ->where('due_date', '<', $targetDate)
+                ->with('customer')
+                ->get()
+                ->filter(function ($credit) use ($targetDate) {
+                    // Check if credit was paid after target date
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    // Calculate outstanding amount as of target date
+                    $historicalOutstanding = $credit->outstanding_amount + $paidAfter;
+
+                    return $historicalOutstanding > 0;
+                });
+
+            return [
+                'count' => $credits->count(),
+                'total_amount' => $credits->sum(function ($credit) use ($targetDate) {
+                    $paidAfter = $credit->payments()
+                        ->where('created_at', '>', $targetDate)
+                        ->sum('amount');
+
+                    return $credit->outstanding_amount + $paidAfter;
+                }),
+                'credits' => $credits,
+            ];
+        }
+
         return Cache::remember('dashboard.overdue_credits', 600, function () {
             $credits = CustomerCredit::where('due_date', '<', now())
                 ->whereNotIn('status', ['paid'])
@@ -206,9 +430,33 @@ class DashboardService
      * @param  string|null  $endDate  For custom range (Y-m-d format)
      * @return array ['labels' => [...], 'gross_profit' => [...], 'net_profit' => [...]]
      */
-    public function getProfitOverTime(string $period = 'daily', ?string $startDate = null, ?string $endDate = null): array
+    public function getProfitOverTime(string $period = 'daily', ?string $startDate = null, ?string $endDate = null, ?string $asOfDate = null): array
     {
-        [$start, $end, $grouping] = $this->determineProfitPeriodAndGrouping($period, $startDate, $endDate);
+        [$start, $end, $grouping] = $this->determineProfitPeriodAndGrouping($period, $startDate, $endDate, $asOfDate);
+
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            // Query journal entries grouped by time period
+            $data = DB::table('journal_entries as je')
+                ->join('journal_entry_lines as jel', 'je.id', '=', 'jel.journal_entry_id')
+                ->join('accounts as a', 'jel.account_id', '=', 'a.id')
+                ->where('je.status', 'posted')
+                ->where('je.created_at', '<=', $targetDate)
+                ->whereBetween('je.entry_date', [$start, $end])
+                ->whereIn('a.account_code', ['4100', '5100', '6100']) // Revenue, COGS, Operating Expenses
+                ->select(
+                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date').' as period'),
+                    'a.account_code',
+                    DB::raw('SUM(jel.credit_amount) as total_credit'),
+                    DB::raw('SUM(jel.debit_amount) as total_debit')
+                )
+                ->groupBy('period', 'a.account_code')
+                ->orderBy('period')
+                ->get();
+
+            return $this->formatProfitDataForChart($data, $start, $end, $grouping);
+        }
 
         $cacheKey = $period === 'custom'
             ? "dashboard.profit_over_time.custom.{$startDate}.{$endDate}"
@@ -239,8 +487,10 @@ class DashboardService
     /**
      * Determine date range and grouping for profit calculation
      */
-    protected function determineProfitPeriodAndGrouping(string $period, ?string $startDate, ?string $endDate): array
+    protected function determineProfitPeriodAndGrouping(string $period, ?string $startDate, ?string $endDate, ?string $asOfDate = null): array
     {
+        $referenceDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate) : now();
+
         if ($period === 'custom' && $startDate && $endDate) {
             $start = \Carbon\Carbon::parse($startDate)->startOfDay();
             $end = \Carbon\Carbon::parse($endDate)->endOfDay();
@@ -261,9 +511,9 @@ class DashboardService
 
         // Preset periods
         return match ($period) {
-            'daily' => [now()->subDays(6)->startOfDay(), now()->endOfDay(), 'daily'],
-            'monthly' => [now()->subMonths(11)->startOfMonth(), now()->endOfMonth(), 'monthly'],
-            default => [now()->subDays(6)->startOfDay(), now()->endOfDay(), 'daily'],
+            'daily' => [$referenceDate->copy()->subDays(6)->startOfDay(), $referenceDate->copy()->endOfDay(), 'daily'],
+            'monthly' => [$referenceDate->copy()->subMonths(11)->startOfMonth(), $referenceDate->copy()->endOfMonth(), 'monthly'],
+            default => [$referenceDate->copy()->subDays(6)->startOfDay(), $referenceDate->copy()->endOfDay(), 'daily'],
         };
     }
 
@@ -357,6 +607,7 @@ class DashboardService
         if ($grouping === 'weekly') {
             // Extract year and week from '2025-46' format
             [$year, $week] = explode('-', $period);
+
             return "Week {$week}, {$year}";
         }
 
@@ -370,13 +621,15 @@ class DashboardService
     /**
      * Get date range for period filter
      */
-    protected function getPeriodRange(string $period): array
+    protected function getPeriodRange(string $period, ?string $asOfDate = null): array
     {
+        $referenceDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate) : now();
+
         return match ($period) {
-            'today' => [now()->startOfDay(), now()->endOfDay()],
-            'week' => [now()->startOfWeek(), now()->endOfWeek()],
-            'month' => [now()->startOfMonth(), now()->endOfMonth()],
-            default => [now()->startOfDay(), now()->endOfDay()],
+            'today' => [$referenceDate->copy()->startOfDay(), $referenceDate->copy()->endOfDay()],
+            'week' => [$referenceDate->copy()->startOfWeek(), $referenceDate->copy()->endOfWeek()],
+            'month' => [$referenceDate->copy()->startOfMonth(), $referenceDate->copy()->endOfMonth()],
+            default => [$referenceDate->copy()->startOfDay(), $referenceDate->copy()->endOfDay()],
         };
     }
 
