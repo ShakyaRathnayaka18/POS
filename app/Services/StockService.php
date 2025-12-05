@@ -12,7 +12,7 @@ class StockService
     /**
      * Get available stock for a product using FIFO (First In First Out).
      */
-    public function getAvailableStockFIFO(int $productId, int $requestedQuantity): Collection
+    public function getAvailableStockFIFO(int $productId, float $requestedQuantity): Collection
     {
         return Stock::where('product_id', $productId)
             ->where('available_quantity', '>', 0)
@@ -31,8 +31,9 @@ class StockService
 
     /**
      * Allocate stock for a sale using FIFO method.
+     * Supports decimal quantities for products sold by weight/volume.
      */
-    public function allocateStock(int $productId, int $quantity): array
+    public function allocateStock(int $productId, float $quantity): array
     {
         $stocks = $this->getAvailableStockFIFO($productId, $quantity);
         $allocations = [];
@@ -43,7 +44,7 @@ class StockService
                 break;
             }
 
-            $allocatedQuantity = min($stock->available_quantity, $remainingQuantity);
+            $allocatedQuantity = min((float) $stock->available_quantity, $remainingQuantity);
 
             $allocations[] = [
                 'stock_id' => $stock->id,
@@ -57,7 +58,8 @@ class StockService
             $remainingQuantity -= $allocatedQuantity;
         }
 
-        if ($remainingQuantity > 0) {
+        // Use small threshold for floating point comparison
+        if ($remainingQuantity > 0.0001) {
             throw new \Exception("Insufficient stock available. Required: {$quantity}, Available: ".($quantity - $remainingQuantity));
         }
 
@@ -80,9 +82,9 @@ class StockService
     /**
      * Get total available quantity for a product across all batches.
      */
-    public function getProductAvailableQuantity(int $productId): int
+    public function getProductAvailableQuantity(int $productId): float
     {
-        return Stock::where('product_id', $productId)
+        return (float) Stock::where('product_id', $productId)
             ->sum('available_quantity');
     }
 

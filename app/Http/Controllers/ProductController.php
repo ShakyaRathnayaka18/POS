@@ -57,11 +57,15 @@ class ProductController extends Controller
     {
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
-            'sku' => 'required|string|max:255|unique:products,sku',
+            'sku' => 'nullable|string|max:255|unique:products,sku',
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit' => 'nullable|string',
+            'base_unit' => 'nullable|string|max:20',
+            'purchase_unit' => 'nullable|string|max:20',
+            'conversion_factor' => 'nullable|numeric|min:0.0001',
+            'allow_decimal_sales' => 'nullable|boolean',
             'initial_stock' => 'nullable|integer',
             'minimum_stock' => 'nullable|integer',
             'maximum_stock' => 'nullable|integer',
@@ -69,6 +73,11 @@ class ProductController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'vendor_product_code' => 'nullable|string|max:255',
         ]);
+
+        // Set defaults for unit conversion fields
+        $validated['base_unit'] = $validated['base_unit'] ?? $validated['unit'] ?? 'pcs';
+        $validated['conversion_factor'] = $validated['conversion_factor'] ?? 1;
+        $validated['allow_decimal_sales'] = $request->boolean('allow_decimal_sales');
 
         if ($request->hasFile('product_image')) {
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');
@@ -80,7 +89,6 @@ class ProductController extends Controller
         if ($request->filled('supplier_id')) {
             $product->suppliers()->attach($request->supplier_id, [
                 'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
-                'vendor_cost_price' => 0,
                 'is_preferred' => false,
                 'lead_time_days' => null,
             ]);
@@ -96,7 +104,6 @@ class ProductController extends Controller
                     'product_name' => $product->product_name,
                     'sku' => $product->sku,
                     'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
-                    'vendor_cost_price' => 0,
                 ],
             ]);
         }
@@ -113,11 +120,22 @@ class ProductController extends Controller
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
             'unit' => 'nullable|string',
+            'base_unit' => 'nullable|string|max:20',
+            'purchase_unit' => 'nullable|string|max:20',
+            'conversion_factor' => 'nullable|numeric|min:0.0001',
+            'allow_decimal_sales' => 'nullable|boolean',
             'initial_stock' => 'nullable|integer',
             'minimum_stock' => 'nullable|integer',
             'maximum_stock' => 'nullable|integer',
             'product_image' => 'nullable|image|max:2048',
         ]);
+
+        // Handle unit conversion fields
+        $validated['allow_decimal_sales'] = $request->boolean('allow_decimal_sales');
+        if (isset($validated['conversion_factor'])) {
+            $validated['conversion_factor'] = (float) $validated['conversion_factor'];
+        }
+
         if ($request->hasFile('product_image')) {
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');
         }

@@ -35,7 +35,7 @@ class StoreSaleRequest extends FormRequest
             'amount_received' => ['nullable', 'numeric', 'min:0'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
         ];
     }
 
@@ -55,7 +55,8 @@ class StoreSaleRequest extends FormRequest
             'items.*.product_id.required' => 'Product is required for each item.',
             'items.*.product_id.exists' => 'Selected product does not exist.',
             'items.*.quantity.required' => 'Quantity is required for each item.',
-            'items.*.quantity.min' => 'Quantity must be at least 1.',
+            'items.*.quantity.numeric' => 'Quantity must be a valid number.',
+            'items.*.quantity.min' => 'Quantity must be at least 0.01.',
         ];
     }
 }

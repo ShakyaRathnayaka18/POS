@@ -23,10 +23,6 @@
                     <span class="text-gray-900">{{ $stock->product->sku }}</span>
                 </div>
                 <div>
-                    <span class="font-medium text-gray-700">Item Code:</span>
-                    <span class="text-gray-900">{{ $stock->product->item_code }}</span>
-                </div>
-                <div>
                     <span class="font-medium text-gray-700">Category:</span>
                     <span class="text-gray-900">{{ $stock->product->category->name ?? 'N/A' }}</span>
                 </div>

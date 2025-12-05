@@ -24,7 +24,6 @@ class VendorCodeController extends Controller
                 'suppliers.id as supplier_id',
                 'suppliers.company_name',
                 'product_supplier.vendor_product_code',
-                'product_supplier.vendor_cost_price',
                 'product_supplier.is_preferred',
                 'product_supplier.lead_time_days'
             );
@@ -88,7 +87,6 @@ class VendorCodeController extends Controller
 
         $product->suppliers()->attach($supplier->id, [
             'vendor_product_code' => $request->vendor_product_code,
-            'vendor_cost_price' => $request->vendor_cost_price,
             'is_preferred' => $request->boolean('is_preferred'),
             'lead_time_days' => $request->lead_time_days,
         ]);
@@ -102,7 +100,6 @@ class VendorCodeController extends Controller
             ->where('id', $id)
             ->update([
                 'vendor_product_code' => $request->vendor_product_code,
-                'vendor_cost_price' => $request->vendor_cost_price,
                 'is_preferred' => $request->boolean('is_preferred'),
                 'lead_time_days' => $request->lead_time_days,
                 'updated_at' => now(),

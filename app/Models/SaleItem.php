@@ -19,6 +19,16 @@ class SaleItem extends Model
         'total',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'quantity' => 'decimal:4',
+            'price' => 'decimal:2',
+            'tax' => 'decimal:2',
+            'total' => 'decimal:2',
+        ];
+    }
+
     public function sale()
     {
         return $this->belongsTo(Sale::class);

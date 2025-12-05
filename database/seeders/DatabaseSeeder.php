@@ -28,10 +28,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // Seed accounting data
-        $this->call([
-            AccountTypeSeeder::class,
-            ChartOfAccountsSeeder::class,
-            FiscalPeriodSeeder::class,
-        ]);
+        // $this->call([
+        //     AccountTypeSeeder::class,
+        //     ChartOfAccountsSeeder::class,
+        //     FiscalPeriodSeeder::class,
+        // ]);
     }
 }

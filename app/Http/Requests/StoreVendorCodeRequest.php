@@ -34,7 +34,6 @@ class StoreVendorCodeRequest extends FormRequest
                         ->where('product_id', $this->product_id);
                 }),
             ],
-            'vendor_cost_price' => 'nullable|numeric|min:0',
             'is_preferred' => 'nullable|boolean',
             'lead_time_days' => 'nullable|integer|min:0',
         ];
@@ -54,8 +53,6 @@ class StoreVendorCodeRequest extends FormRequest
             'product_id.exists' => 'The selected product does not exist.',
             'vendor_product_code.required' => 'Vendor product code is required.',
             'vendor_product_code.unique' => 'This vendor code already exists for this supplier-product combination.',
-            'vendor_cost_price.numeric' => 'Vendor cost price must be a number.',
-            'vendor_cost_price.min' => 'Vendor cost price cannot be negative.',
             'lead_time_days.integer' => 'Lead time must be a whole number.',
             'lead_time_days.min' => 'Lead time cannot be negative.',
         ];

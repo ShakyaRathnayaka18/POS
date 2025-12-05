@@ -32,7 +32,6 @@ class Supplier extends Model
         return $this->belongsToMany(Product::class)
             ->withPivot([
                 'vendor_product_code',
-                'vendor_cost_price',
                 'is_preferred',
                 'lead_time_days',
             ])

@@ -55,12 +55,14 @@ class GoodReceiveNoteController extends Controller
                     'id' => $product->id,
                     'product_name' => $product->product_name,
                     'sku' => $product->sku,
-                    'item_code' => $product->item_code,
                     'category' => $product->category?->cat_name,
                     'brand' => $product->brand?->brand_name,
                     'vendor_product_code' => $product->pivot->vendor_product_code,
-                    'vendor_cost_price' => $product->pivot->vendor_cost_price,
                     'lead_time_days' => $product->pivot->lead_time_days,
+                    'base_unit' => $product->base_unit,
+                    'purchase_unit' => $product->purchase_unit,
+                    'conversion_factor' => $product->conversion_factor,
+                    'allow_decimal_sales' => $product->allow_decimal_sales,
                 ];
             });
 

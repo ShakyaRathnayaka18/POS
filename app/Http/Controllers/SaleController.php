@@ -126,7 +126,6 @@ class SaleController extends Controller
             ->where(function ($query) use ($search) {
                 $query->where('product_name', 'like', "%{$search}%")
                     ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('item_code', 'like', "%{$search}%")
                     ->orWhereHas('availableStocks.batch', function ($q) use ($search) {
                         $q->where('barcode', 'like', "%{$search}%");
                     });
@@ -152,6 +151,8 @@ class SaleController extends Controller
                 'available_quantity' => $availability['available_quantity'],
                 'in_stock' => $availability['in_stock'],
                 'unit' => $product->unit,
+                'base_unit' => $product->base_unit,
+                'allow_decimal_sales' => $product->allow_decimal_sales,
             ];
         });
 

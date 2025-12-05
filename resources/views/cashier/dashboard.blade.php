@@ -37,9 +37,13 @@
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <div class="font-bold text-primary-600 dark:text-primary-400" x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></div>
+                                    <div class="font-bold text-primary-600 dark:text-primary-400">
+                                        <span x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></span>
+                                        <span class="text-xs font-normal text-gray-500" x-text="'/' + (product.base_unit || product.unit || 'pcs')"></span>
+                                    </div>
                                     <div class="text-xs" :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
-                                        <span x-text="product.available_quantity"></span> <span x-text="product.unit"></span>
+                                        <span x-text="parseFloat(product.available_quantity).toFixed(product.allow_decimal_sales ? 2 : 0)"></span>
+                                        <span x-text="product.base_unit || product.unit || 'pcs'"></span>
                                     </div>
                                 </div>
                             </div>
@@ -98,25 +102,35 @@
                         <template x-for="(item, index) in cart" :key="index">
                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                                 <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                                    <span x-text="item.item_code || item.sku || '-'"></span>
+                                    <span x-text="item.sku || '-'"></span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="font-medium text-gray-900 dark:text-white" x-text="item.product_name"></div>
-                                    <div class="text-xs text-gray-500" x-text="item.available_quantity + ' ' + item.unit + ' available'"></div>
+                                    <div class="text-xs text-gray-500">
+                                        <span x-text="parseFloat(item.available_quantity).toFixed(item.allow_decimal_sales ? 2 : 0)"></span>
+                                        <span x-text="item.base_unit || item.unit || 'pcs'"></span> available
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-medium">
                                     <span x-text="parseFloat(item.selling_price).toFixed(2)"></span>
+                                    <span class="text-xs text-gray-500" x-text="'/' + (item.base_unit || item.unit || 'pcs')"></span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="flex items-center justify-center gap-1">
                                         <button @click="decrementQuantity(index)" class="w-7 h-7 rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors">
                                             <i class="fas fa-minus text-xs"></i>
                                         </button>
-                                        <input type="number" x-model.number="item.quantity" @input="validateQuantity(index)" class="w-14 text-center border border-gray-300 dark:border-gray-600 rounded py-1 text-sm dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-primary-500">
+                                        <input type="number"
+                                            x-model.number="item.quantity"
+                                            @input="validateQuantity(index)"
+                                            :step="item.allow_decimal_sales ? '0.01' : '1'"
+                                            :min="item.allow_decimal_sales ? '0.01' : '1'"
+                                            class="w-16 text-center border border-gray-300 dark:border-gray-600 rounded py-1 text-sm dark:bg-gray-700 dark:text-white focus:ring-1 focus:ring-primary-500">
                                         <button @click="incrementQuantity(index)" :disabled="item.quantity >= item.available_quantity" class="w-7 h-7 rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors disabled:opacity-50">
                                             <i class="fas fa-plus text-xs"></i>
                                         </button>
                                     </div>
+                                    <div class="text-xs text-center text-gray-500 mt-1" x-text="item.base_unit || item.unit || 'pcs'"></div>
                                 </td>
                                 <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">
                                     <span x-text="calculateItemTotal(item).toFixed(2)"></span>
@@ -576,17 +590,22 @@
                 if (existingIndex !== -1) {
                     // Increment quantity if not exceeding available stock
                     const currentItem = this.cart[existingIndex];
-                    if (currentItem.quantity < currentItem.available_quantity) {
-                        currentItem.quantity++;
+                    const step = currentItem.allow_decimal_sales ? 0.1 : 1;
+                    const newQty = Math.round((currentItem.quantity + step) * 100) / 100;
+
+                    if (newQty <= currentItem.available_quantity) {
+                        currentItem.quantity = newQty;
                         this.calculateTotals();
                     } else {
-                        this.errorMessage = `Maximum available quantity (${currentItem.available_quantity}) reached for ${product.product_name}.`;
+                        const unit = currentItem.base_unit || currentItem.unit || 'pcs';
+                        this.errorMessage = `Maximum available quantity (${currentItem.available_quantity} ${unit}) reached for ${product.product_name}.`;
                     }
                 } else {
-                    // Add new item to cart
+                    // Add new item to cart - start with 1 unit or 0.1 for decimal products
+                    const initialQty = product.allow_decimal_sales ? 0.1 : 1;
                     this.cart.push({
                         ...product,
-                        quantity: 1
+                        quantity: initialQty
                     });
                     this.calculateTotals();
                 }
@@ -609,15 +628,24 @@
             },
 
             incrementQuantity(index) {
-                if (this.cart[index].quantity < this.cart[index].available_quantity) {
-                    this.cart[index].quantity++;
+                const item = this.cart[index];
+                const step = item.allow_decimal_sales ? 0.1 : 1;
+                const newQty = Math.round((item.quantity + step) * 100) / 100; // Avoid floating point issues
+
+                if (newQty <= item.available_quantity) {
+                    item.quantity = newQty;
                     this.calculateTotals();
                 }
             },
 
             decrementQuantity(index) {
-                if (this.cart[index].quantity > 1) {
-                    this.cart[index].quantity--;
+                const item = this.cart[index];
+                const step = item.allow_decimal_sales ? 0.1 : 1;
+                const minQty = item.allow_decimal_sales ? 0.01 : 1;
+                const newQty = Math.round((item.quantity - step) * 100) / 100;
+
+                if (newQty >= minQty) {
+                    item.quantity = newQty;
                     this.calculateTotals();
                 } else {
                     this.removeFromCart(index);
@@ -626,12 +654,21 @@
 
             validateQuantity(index) {
                 const item = this.cart[index];
-                if (item.quantity < 1) {
-                    item.quantity = 1;
+                const minQty = item.allow_decimal_sales ? 0.01 : 1;
+
+                if (item.quantity < minQty) {
+                    item.quantity = minQty;
                 } else if (item.quantity > item.available_quantity) {
-                    item.quantity = item.available_quantity;
-                    this.errorMessage = `Maximum available quantity is ${item.available_quantity}.`;
+                    item.quantity = parseFloat(item.available_quantity);
+                    const unit = item.base_unit || item.unit || 'pcs';
+                    this.errorMessage = `Maximum available quantity is ${item.available_quantity} ${unit}.`;
                 }
+
+                // Round to appropriate precision
+                item.quantity = item.allow_decimal_sales
+                    ? Math.round(item.quantity * 100) / 100
+                    : Math.floor(item.quantity);
+
                 this.calculateTotals();
             },
 

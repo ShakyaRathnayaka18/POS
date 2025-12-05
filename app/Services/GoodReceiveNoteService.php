@@ -44,20 +44,43 @@ class GoodReceiveNoteService
 
     public function createStock(array $itemData, int $batchId): Stock
     {
+        $product = Product::find($itemData['product_id']);
+
+        // Convert purchase quantity to base unit quantity using conversion factor
+        // Example: 5 kg × 1000 = 5000 g stored in stock
+        $baseQuantity = $itemData['quantity'] * ($product->conversion_factor ?? 1);
+
+        // Calculate cost and selling price per base unit
+        // Example: 500 LKR per kg / 1000 = 0.50 LKR per gram
+        $conversionFactor = $product->conversion_factor ?? 1;
+        $costPerBaseUnit = $conversionFactor > 1
+            ? $itemData['cost_price'] / $conversionFactor
+            : $itemData['cost_price'];
+        $sellingPerBaseUnit = $conversionFactor > 1
+            ? $itemData['selling_price'] / $conversionFactor
+            : $itemData['selling_price'];
+
         return Stock::create([
             'product_id' => $itemData['product_id'],
             'batch_id' => $batchId,
-            'cost_price' => $itemData['cost_price'],
-            'selling_price' => $itemData['selling_price'],
+            'cost_price' => $costPerBaseUnit,
+            'selling_price' => $sellingPerBaseUnit,
             'tax' => $itemData['tax'] ?? 0,
-            'quantity' => $itemData['quantity'],
-            'available_quantity' => $itemData['quantity'],
+            'quantity' => $baseQuantity,
+            'available_quantity' => $baseQuantity,
         ]);
     }
 
     protected function generateBatchNumber(Product $product): string
     {
-        return $product->sku.'-'.now()->format('n/j/y');
+        $dateFormat = now()->format('n/j/y');
+        $basePattern = $product->sku.'-'.$dateFormat;
+
+        // Count existing batches with the same product SKU and date pattern
+        $existingCount = Batch::where('batch_number', 'like', $basePattern.'%')->count();
+        $sequence = str_pad($existingCount + 1, 3, '0', STR_PAD_LEFT);
+
+        return $basePattern.'-'.$sequence;
     }
 
     public function generateGrnNumber(): string

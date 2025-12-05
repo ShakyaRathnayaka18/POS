@@ -27,7 +27,6 @@ class UpdateVendorCodeRequest extends FormRequest
                 'string',
                 'max:255',
             ],
-            'vendor_cost_price' => 'nullable|numeric|min:0',
             'is_preferred' => 'nullable|boolean',
             'lead_time_days' => 'nullable|integer|min:0',
         ];
@@ -43,8 +42,6 @@ class UpdateVendorCodeRequest extends FormRequest
         return [
             'vendor_product_code.required' => 'Vendor product code is required.',
             'vendor_product_code.max' => 'Vendor product code cannot exceed 255 characters.',
-            'vendor_cost_price.numeric' => 'Vendor cost price must be a number.',
-            'vendor_cost_price.min' => 'Vendor cost price cannot be negative.',
             'lead_time_days.integer' => 'Lead time must be a whole number.',
             'lead_time_days.min' => 'Lead time cannot be negative.',
         ];

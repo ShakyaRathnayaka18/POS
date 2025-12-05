@@ -22,6 +22,8 @@ class Stock extends Model
             'cost_price' => 'decimal:2',
             'selling_price' => 'decimal:2',
             'tax' => 'decimal:2',
+            'quantity' => 'decimal:4',
+            'available_quantity' => 'decimal:4',
         ];
     }
 

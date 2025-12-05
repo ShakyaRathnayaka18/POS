@@ -120,7 +120,6 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Supplier</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Vendor Code</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cost Price</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Lead Time</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
@@ -138,9 +137,6 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-mono">
                             {{ $vendorCode->vendor_product_code }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            LKR {{ number_format($vendorCode->vendor_cost_price ?? 0, 2) }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $vendorCode->lead_time_days ? $vendorCode->lead_time_days . ' days' : '-' }}
@@ -173,7 +169,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                        <td colspan="6" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
                             No vendor code mappings found.
                         </td>
                     </tr>
@@ -223,10 +219,6 @@
                     <input name="vendor_product_code" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor Cost Price</label>
-                    <input name="vendor_cost_price" type="number" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lead Time (days)</label>
                     <input name="lead_time_days" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 </div>
@@ -269,10 +261,6 @@
                     <input id="edit_vendor_product_code" name="vendor_product_code" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor Cost Price</label>
-                    <input id="edit_vendor_cost_price" name="vendor_cost_price" type="number" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                </div>
-                <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lead Time (days)</label>
                     <input id="edit_lead_time_days" name="lead_time_days" type="number" min="0" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                 </div>
@@ -303,7 +291,6 @@
         document.getElementById('edit_product_name').value = vendorCode.product_name + ' (' + vendorCode.internal_sku + ')';
         document.getElementById('edit_supplier_name').value = vendorCode.company_name;
         document.getElementById('edit_vendor_product_code').value = vendorCode.vendor_product_code;
-        document.getElementById('edit_vendor_cost_price').value = vendorCode.vendor_cost_price || '';
         document.getElementById('edit_lead_time_days').value = vendorCode.lead_time_days || '';
         document.getElementById('edit_is_preferred').checked = vendorCode.is_preferred == 1;
         document.getElementById('editForm').action = '{{ url('/vendor-codes') }}/' + vendorCode.id;

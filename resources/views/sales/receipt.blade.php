@@ -29,28 +29,28 @@
         <!-- Store Header -->
         <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
             <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
-            <p class="text-gray-600 dark:text-gray-400">No 09, Kandy Road, Hasalaka</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Telephone - 055225706</p>
-            <!-- <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Shop smart, save big</p> -->
+            <p class="text-gray-600 dark:text-gray-800">No 09, Kandy Road, Hasalaka</p>
+            <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">Telephone - 055225706</p>
+            <!-- <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">Shop smart, save big</p> -->
         </div>
 
         
         <!-- Sale Information -->
         <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
             <div>
-                <p class="text-gray-600 dark:text-gray-400">Invoice No:</p>
+                <p class="text-gray-600 dark:text-gray-800">Invoice No:</p>
                 <p class="font-bold text-gray-900 dark:text-white">{{ $sale->sale_number }}</p>
             </div>
             <div class="text-right">
-                <p class="text-gray-600 dark:text-gray-400">Date:</p>
+                <p class="text-gray-600 dark:text-gray-800">Date:</p>
                 <p class="font-bold text-gray-900 dark:text-white">{{ $sale->created_at->format('Y-m-d H:i:s') }}</p>
             </div>
             <div>
-                <p class="text-gray-600 dark:text-gray-400">Cashier:</p>
+                <p class="text-gray-600 dark:text-gray-800">Cashier:</p>
                 <p class="font-bold text-gray-900 dark:text-white">{{ $sale->user->name ?? 'System' }}</p>
             </div>
             <div class="text-right">
-                <p class="text-gray-600 dark:text-gray-400">Payment Method:</p>
+                <p class="text-gray-600 dark:text-gray-800">Payment Method:</p>
                 <p class="font-bold text-gray-900 dark:text-white">{{ $sale->payment_method }}</p>
             </div>
         </div>
@@ -103,13 +103,13 @@
             </div>
             <div class="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-2">
                 <span>Total:</span>
-                <span class="text-green-600 dark:text-green-400">{{ number_format($sale->total, 2) }}</span>
+                <span class="text-gray-900 dark:text-white font-bold">{{ number_format($sale->total, 2) }}</span>
             </div>
         </div>
 
         <!-- Footer -->
         <!-- Footer -->
-        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-400">
+        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-800">
             <p class="mb-2">Thank you for shopping at H Mart</p>
 
             <p class="text-xs mt-4">Powered by VertexCore AI | vertexcoreai.com</p>
@@ -135,7 +135,7 @@
         #receipt,
         #receipt * {
             visibility: visible;
-            font-family: 'Courier New', Courier, monospace; /* Adding monospaced font */
+            font-family: 'Courier New', Courier, monospace;
         }
 
         #receipt {
@@ -145,27 +145,44 @@
             width: 100%;
             box-shadow: none;
             background: white !important;
-            color: black !important;
         }
 
-        /* Hide customer information in print */
-        .no-print,
-        .no-print * {
+        /* Hide customer info */
+        .no-print, .no-print * {
             display: none !important;
             visibility: hidden !important;
         }
 
-        /* Hide dark mode styles in print */
-        .dark\:bg-gray-800,
-        .dark\:bg-gray-700,
-        .dark\:text-white,
-        .dark\:text-gray-300,
-        .dark\:text-gray-400,
-        .dark\:border-gray-600,
-        .dark\:border-gray-700 {
-            background: white !important;
+        /* THERMAL PRINTER: Bold text */
+        #receipt * {
             color: black !important;
-            border-color: #e5e7eb !important;
+            font-weight: 700 !important;
+        }
+
+        #receipt h1,
+        #receipt .font-bold,
+        #receipt th,
+        #receipt .text-xl {
+            font-weight: 900 !important;
+        }
+
+        /* THERMAL PRINTER: Remove all borders */
+        #receipt [class*="border"] {
+            border: none !important;
+        }
+
+        /* Keep only 3 lines: after header, before items, after total */
+        #receipt .text-center.mb-6.border-b-2 {
+            border-bottom: 2px solid black !important;
+        }
+
+        #receipt thead {
+            border-top: 2px solid black !important;
+            border-bottom: 2px solid black !important;
+        }
+
+        #receipt .border-t-2.pt-4 {
+            border-top: 2px solid black !important;
         }
     }
 </style>

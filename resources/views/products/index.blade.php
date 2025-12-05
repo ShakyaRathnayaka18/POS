@@ -83,16 +83,10 @@
                             SKU</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Item Code</th>
-                        <th
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Category</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Brand</th>
-                        <th
-                            class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Price</th>
                         <th
                             class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                             Stock</th>
@@ -121,22 +115,17 @@
                             {{ $product->sku }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {{ $product->item_code }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $product->category->cat_name ?? '' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $product->brand->brand_name ?? '' }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            LKR {{ number_format($product->selling_price, 2) }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                             {{ $product->initial_stock }}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                             <button class="edit-btn text-[#2f85c3] dark:text-white border border-[#2f85c3] dark:border-white rounded px-3 py-1 transition-colors duration-200 hover:bg-[#2f85c3] hover:text-white dark:hover:bg-white dark:hover:text-[#2f85c3] font-semibold"
-                                data-product="{{ htmlspecialchars(json_encode($product)) }}">Edit</button>
+                                data-product='@json($product)'>Edit</button>
                             <form action="{{ route('products.destroy', $product) }}" method="POST"
                                 style="display:inline;" onsubmit="return confirm('Are you sure?');">
                                 @csrf
@@ -209,18 +198,11 @@
                                 placeholder="e.g. Coca Cola 500ml">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU <span
-                                    class="text-red-500">*</span></label>
-                            <input name="sku" type="text" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="e.g. CC500">
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barcode</label>
-                            <input name="barcode" type="text"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="e.g. 1234567890">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                            <input name="sku" type="text"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed"
+                                placeholder="Auto-generated" readonly>
+                            <p class="text-xs text-gray-500 mt-1">SKU will be auto-generated</p>
                         </div>
                         <div>
                             <label
@@ -252,42 +234,56 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost
-                                    Price <span class="text-red-500">*</span></label>
-                                <input name="cost_price" type="number" step="0.01" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0.00">
+                        <!-- Unit Configuration Section -->
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Unit Configuration</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sales Unit</label>
+                                    <select name="base_unit" id="create_base_unit" onchange="updateConversionFactor('create')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Purchase Unit (GRN)</label>
+                                    <select name="purchase_unit" id="create_purchase_unit" onchange="updateConversionFactor('create')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="">Same as Sales Unit</option>
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling
-                                    Price <span class="text-red-500">*</span></label>
-                                <input name="selling_price" type="number" step="0.01" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0.00">
+                            <div class="mt-3" id="create_conversion_container" style="display: none;">
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Conversion Factor <span id="create_conversion_hint" class="text-gray-400"></span>
+                                </label>
+                                <input name="conversion_factor" id="create_conversion_factor" type="number" step="0.0001" min="0.0001" value="1"
+                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                            </div>
+                            <div class="mt-3">
+                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                    <input type="checkbox" name="allow_decimal_sales" value="1"
+                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                    Allow decimal quantities at POS (e.g., 0.5 kg)
+                                </label>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax Rate
-                                    (%)</label>
-                                <input name="tax_rate" type="number" step="0.01"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
-                                <select name="unit"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                    <option>Piece</option>
-                                    <option>Kg</option>
-                                    <option>Liter</option>
-                                    <option>Box</option>
-                                </select>
-                            </div>
-                        </div>
+                        <input type="hidden" name="unit" value="pcs">
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial
@@ -350,18 +346,10 @@
                                 placeholder="e.g. Coca Cola 500ml">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU <span
-                                    class="text-red-500">*</span></label>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
                             <input id="edit_sku" name="sku" type="text" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="e.g. CC500">
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Barcode</label>
-                            <input id="edit_barcode" name="barcode" type="text"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="e.g. 1234567890">
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed"
+                                readonly>
                         </div>
                         <div>
                             <label
@@ -393,42 +381,56 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost
-                                    Price <span class="text-red-500">*</span></label>
-                                <input id="edit_cost_price" name="cost_price" type="number" step="0.01" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0.00">
+                        <!-- Unit Configuration Section -->
+                        <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Unit Configuration</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sales Unit</label>
+                                    <select name="base_unit" id="edit_base_unit" onchange="updateConversionFactor('edit')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Purchase Unit (GRN)</label>
+                                    <select name="purchase_unit" id="edit_purchase_unit" onchange="updateConversionFactor('edit')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="">Same as Sales Unit</option>
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling
-                                    Price <span class="text-red-500">*</span></label>
-                                <input id="edit_selling_price" name="selling_price" type="number" step="0.01" required
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0.00">
+                            <div class="mt-3" id="edit_conversion_container" style="display: none;">
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Conversion Factor <span id="edit_conversion_hint" class="text-gray-400"></span>
+                                </label>
+                                <input name="conversion_factor" id="edit_conversion_factor" type="number" step="0.0001" min="0.0001" value="1"
+                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                            </div>
+                            <div class="mt-3">
+                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                    <input type="checkbox" name="allow_decimal_sales" id="edit_allow_decimal_sales" value="1"
+                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                    Allow decimal quantities at POS (e.g., 0.5 kg)
+                                </label>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax Rate
-                                    (%)</label>
-                                <input id="edit_tax_rate" name="tax_rate" type="number" step="0.01"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0">
-                            </div>
-                            <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Unit</label>
-                                <select id="edit_unit" name="unit"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                    <option>Piece</option>
-                                    <option>Kg</option>
-                                    <option>Liter</option>
-                                    <option>Box</option>
-                                </select>
-                            </div>
-                        </div>
+                        <input type="hidden" name="unit" id="edit_unit" value="pcs">
                         <div class="grid grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial
@@ -497,10 +499,12 @@
         document.querySelectorAll('.edit-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 try {
-                    const product = JSON.parse(btn.getAttribute('data-product'));
+                    const productData = btn.getAttribute('data-product');
+                    const product = JSON.parse(productData);
                     openEditProductModal(product);
                 } catch (e) {
-                    // Silent error handling to avoid disrupting user experience
+                    console.error('Error parsing product data:', e);
+                    alert('Error opening edit modal. Please refresh the page and try again.');
                 }
             });
         });
@@ -539,21 +543,62 @@
             }
             document.getElementById('edit_product_name').value = product.product_name || '';
             document.getElementById('edit_sku').value = product.sku || '';
-            document.getElementById('edit_barcode').value = product.barcode || '';
             document.getElementById('edit_description').value = product.description || '';
             document.getElementById('edit_category_id').value = product.category_id || '';
             document.getElementById('edit_brand_id').value = product.brand_id || '';
-            document.getElementById('edit_cost_price').value = product.cost_price || '';
-            document.getElementById('edit_selling_price').value = product.selling_price || '';
-            document.getElementById('edit_tax_rate').value = product.tax_rate || '';
-            document.getElementById('edit_unit').value = product.unit || '';
+            document.getElementById('edit_unit').value = product.unit || 'pcs';
             document.getElementById('edit_initial_stock').value = product.initial_stock || '';
             document.getElementById('edit_minimum_stock').value = product.minimum_stock || '';
             document.getElementById('edit_maximum_stock').value = product.maximum_stock || '';
+
+            // Unit configuration fields
+            document.getElementById('edit_base_unit').value = product.base_unit || 'pcs';
+            document.getElementById('edit_purchase_unit').value = product.purchase_unit || '';
+            document.getElementById('edit_conversion_factor').value = product.conversion_factor || 1;
+            document.getElementById('edit_allow_decimal_sales').checked = product.allow_decimal_sales || false;
+
+            // Update conversion factor visibility
+            updateConversionFactor('edit');
+
             form.action = '{{ route("products.update", ":id") }}'.replace(':id', product.id);
             openModal('editProductModal');
         } catch (error) {
             // Silent error handling
+        }
+    }
+
+    // Unit conversion factor mapping
+    const conversionFactors = {
+        'g_kg': 1000,      // 1 kg = 1000 g
+        'kg_g': 0.001,     // 1 g = 0.001 kg
+        'ml_L': 1000,      // 1 L = 1000 ml
+        'L_ml': 0.001,     // 1 ml = 0.001 L
+        'pcs_dozen': 12,   // 1 dozen = 12 pcs
+        'dozen_pcs': 0.0833, // 1 pc = 0.0833 dozen
+    };
+
+    function updateConversionFactor(prefix) {
+        const baseUnit = document.getElementById(prefix + '_base_unit').value;
+        const purchaseUnit = document.getElementById(prefix + '_purchase_unit').value;
+        const conversionContainer = document.getElementById(prefix + '_conversion_container');
+        const conversionInput = document.getElementById(prefix + '_conversion_factor');
+        const conversionHint = document.getElementById(prefix + '_conversion_hint');
+
+        if (!purchaseUnit || purchaseUnit === baseUnit) {
+            conversionContainer.style.display = 'none';
+            conversionInput.value = 1;
+            return;
+        }
+
+        conversionContainer.style.display = 'block';
+
+        // Check for known conversion
+        const key = baseUnit + '_' + purchaseUnit;
+        if (conversionFactors[key]) {
+            conversionInput.value = conversionFactors[key];
+            conversionHint.textContent = `(1 ${purchaseUnit} = ${conversionFactors[key]} ${baseUnit})`;
+        } else {
+            conversionHint.textContent = `(1 ${purchaseUnit} = ? ${baseUnit})`;
         }
     }
 </script>
