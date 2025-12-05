@@ -24,15 +24,30 @@
         },
         "context7": {
             "command": "cmd",
-            "args": ["/c", "npx", "-y", "@upstash/context7-mcp"]
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@upstash/context7-mcp"
+            ]
         },
         "playwright": {
             "command": "cmd",
-            "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+            "args": [
+                "/c",
+                "npx",
+                "-y",
+                "@playwright/mcp@latest"
+            ]
         },
         "excel": {
             "command": "cmd",
-            "args": ["/c", "npx", "--yes", "@negokaz/excel-mcp-server"],
+            "args": [
+                "/c",
+                "npx",
+                "--yes",
+                "@negokaz/excel-mcp-server"
+            ],
             "env": {
                 "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
             }
@@ -73,6 +88,13 @@
                 "rotate"
             ],
             "timeout": 100
+        },
+        "laravel-boost": {
+            "command": "php",
+            "args": [
+                "artisan",
+                "boost:mcp"
+            ]
         }
     }
 }

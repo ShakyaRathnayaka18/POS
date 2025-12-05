@@ -306,7 +306,7 @@
         document.getElementById('edit_vendor_cost_price').value = vendorCode.vendor_cost_price || '';
         document.getElementById('edit_lead_time_days').value = vendorCode.lead_time_days || '';
         document.getElementById('edit_is_preferred').checked = vendorCode.is_preferred == 1;
-        document.getElementById('editForm').action = '/vendor-codes/' + vendorCode.id;
+        document.getElementById('editForm').action = '{{ url('/vendor-codes') }}/' + vendorCode.id;
         openModal('editModal');
     }
 </script>

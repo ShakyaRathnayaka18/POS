@@ -413,6 +413,67 @@
             </div>
         </div>
     </div>
+
+    <!-- Clock In Modal -->
+    <div x-show="showClockInModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock In</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opening Cash (Optional)</label>
+                    <input type="number" x-model="openingCash" step="0.01" placeholder="0.00"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                    <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button @click="clockIn()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold">
+                        <i class="fas fa-check mr-2"></i>Confirm Clock In
+                    </button>
+                    <button @click="showClockInModal = false; openingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clock Out Modal -->
+    <div x-show="showClockOutModal" x-cloak class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
+            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock Out</h3>
+            <template x-if="shiftStats">
+                <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">Total Sales: <span class="font-semibold" x-text="'LKR ' + (shiftStats.total_sales || 0).toFixed(2)"></span></p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">Transactions: <span class="font-semibold" x-text="shiftStats.total_sales_count || 0"></span></p>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">Expected Cash: <span class="font-semibold" x-text="'LKR ' + (shiftStats.expected_cash || 0).toFixed(2)"></span></p>
+                </div>
+            </template>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Closing Cash (Optional)</label>
+                    <input type="number" x-model="closingCash" step="0.01" placeholder="0.00"
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
+                    <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
+                              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
+                </div>
+                <div class="flex gap-2">
+                    <button @click="clockOut()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Confirm Clock Out
+                    </button>
+                    <button @click="showClockOutModal = false; closingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -646,7 +707,7 @@
                 this.errorMessage = '';
 
                 try {
-                    const response = await fetch('/sales', {
+                    const response = await fetch('{{ url('/sales') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -693,7 +754,7 @@
                 this.errorMessage = '';
 
                 try {
-                    const response = await fetch('/api/saved-carts', {
+                    const response = await fetch('{{ url('/api/saved-carts') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -743,7 +804,7 @@
                 this.isLoadingSavedCarts = true;
 
                 try {
-                    const response = await fetch('/api/saved-carts');
+                    const response = await fetch('{{ url('/api/saved-carts') }}');
                     const data = await response.json();
                     this.savedCarts = data;
                 } catch (error) {
@@ -831,7 +892,7 @@
             // Shift Management Methods
             async fetchActiveShift() {
                 try {
-                    const response = await fetch('/shifts/current', {
+                    const response = await fetch('{{ route('shifts.current') }}', {
                         headers: { 'Accept': 'application/json' }
                     });
                     const data = await response.json();
@@ -860,7 +921,7 @@
 
             async clockIn() {
                 try {
-                    const response = await fetch('/shifts/clock-in', {
+                    const response = await fetch('{{ route('shifts.clock-in') }}', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -925,66 +986,4 @@
         }
     }
 </script>
-
-<!-- Clock In Modal -->
-<div x-show="showClockInModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
-        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock In</h3>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opening Cash (Optional)</label>
-                <input type="number" x-model="openingCash" step="0.01" placeholder="0.00"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
-                <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
-                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
-            </div>
-            <div class="flex gap-2">
-                <button @click="clockIn()" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded font-semibold">
-                    <i class="fas fa-check mr-2"></i>Confirm Clock In
-                </button>
-                <button @click="showClockInModal = false; openingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Clock Out Modal -->
-<div x-show="showClockOutModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style="display: none;">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-96 shadow-xl">
-        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Clock Out</h3>
-        <template x-if="shiftStats">
-            <div class="mb-4 p-3 bg-gray-100 dark:bg-gray-700 rounded">
-                <p class="text-sm text-gray-700 dark:text-gray-300">Total Sales: <span class="font-semibold" x-text="'$' + (shiftStats.total_sales || 0).toFixed(2)"></span></p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">Transactions: <span class="font-semibold" x-text="shiftStats.total_sales_count || 0"></span></p>
-                <p class="text-sm text-gray-700 dark:text-gray-300">Expected Cash: <span class="font-semibold" x-text="'$' + (shiftStats.expected_cash || 0).toFixed(2)"></span></p>
-            </div>
-        </template>
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Closing Cash (Optional)</label>
-                <input type="number" x-model="closingCash" step="0.01" placeholder="0.00"
-                       class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes (Optional)</label>
-                <textarea x-model="shiftNotes" rows="3" placeholder="Any notes about this shift..."
-                          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"></textarea>
-            </div>
-            <div class="flex gap-2">
-                <button @click="clockOut()" class="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded font-semibold">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Confirm Clock Out
-                </button>
-                <button @click="showClockOutModal = false; closingCash = ''; shiftNotes = ''" class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 rounded font-semibold">
-                    Cancel
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
 @endsection

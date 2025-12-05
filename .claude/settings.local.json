@@ -74,7 +74,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(del:*)",
-      "Bash(xargs cat:*)"
+      "Bash(xargs cat:*)",
+      "mcp__laravel-boost__list-routes",
+      "mcp__laravel-boost__browser-logs"
     ]
   },
   "enableAllProjectMcpServers": true,
