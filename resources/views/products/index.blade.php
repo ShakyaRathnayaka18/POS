@@ -309,6 +309,39 @@
                         </div>
                     </div>
                 </div>
+                <!-- Supplier Section -->
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Supplier Information (Optional)</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supplier</label>
+                            <select id="create_supplier_id" name="supplier_id" onchange="onProductSupplierChange()"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                <option value="">Select Supplier</option>
+                                @foreach(\App\Models\Supplier::orderBy('company_name')->get() as $supplier)
+                                <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div id="vendor_code_section" class="hidden">
+                            <div class="flex items-center mb-2">
+                                <input type="checkbox" id="auto_generate_vendor_code" name="auto_generate_vendor_code" value="1"
+                                       onchange="toggleProductAutoGenerate(this.checked)"
+                                       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                <label for="auto_generate_vendor_code" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                    Auto-generate vendor code
+                                </label>
+                            </div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vendor Product Code</label>
+                            <input id="create_vendor_product_code" name="vendor_product_code" type="text"
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                placeholder="Enter vendor's product code">
+                            <div id="product_vendor_code_preview" class="hidden mt-2 text-sm text-green-600 dark:text-green-400">
+                                Preview: <span id="product_preview_code" class="font-mono font-bold"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <button type="button" onclick="closeModal('productModal')"
                         class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
@@ -599,6 +632,74 @@
             conversionHint.textContent = `(1 ${purchaseUnit} = ${conversionFactors[key]} ${baseUnit})`;
         } else {
             conversionHint.textContent = `(1 ${purchaseUnit} = ? ${baseUnit})`;
+        }
+    }
+
+    // Show/hide vendor code section when supplier is selected
+    function onProductSupplierChange() {
+        const supplierSelect = document.getElementById('create_supplier_id');
+        const vendorCodeSection = document.getElementById('vendor_code_section');
+
+        if (supplierSelect.value) {
+            vendorCodeSection.classList.remove('hidden');
+            // Update preview if auto-generate is checked
+            if (document.getElementById('auto_generate_vendor_code').checked) {
+                updateProductVendorCodePreview();
+            }
+        } else {
+            vendorCodeSection.classList.add('hidden');
+            // Reset auto-generate state
+            document.getElementById('auto_generate_vendor_code').checked = false;
+            toggleProductAutoGenerate(false);
+        }
+    }
+
+    // Toggle auto-generate vendor code for product creation
+    function toggleProductAutoGenerate(isChecked) {
+        const vendorCodeInput = document.getElementById('create_vendor_product_code');
+        const previewDiv = document.getElementById('product_vendor_code_preview');
+
+        if (isChecked) {
+            vendorCodeInput.disabled = true;
+            vendorCodeInput.value = '';
+            vendorCodeInput.classList.add('bg-gray-100', 'dark:bg-gray-600');
+            previewDiv.classList.remove('hidden');
+            updateProductVendorCodePreview();
+        } else {
+            vendorCodeInput.disabled = false;
+            vendorCodeInput.classList.remove('bg-gray-100', 'dark:bg-gray-600');
+            previewDiv.classList.add('hidden');
+        }
+    }
+
+    // Update vendor code preview for product creation
+    function updateProductVendorCodePreview() {
+        const supplierSelect = document.getElementById('create_supplier_id');
+        const skuInput = document.querySelector('#productModal input[name="sku"]');
+        const previewCode = document.getElementById('product_preview_code');
+
+        if (!supplierSelect || !previewCode) return;
+
+        const supplierId = supplierSelect.value;
+        // SKU is auto-generated, so we'll show a placeholder
+        const sku = skuInput ? skuInput.value : '';
+
+        if (supplierId) {
+            const supplierOption = supplierSelect.options[supplierSelect.selectedIndex];
+            const supplierName = supplierOption.textContent.trim();
+
+            // Generate preview: first 3 letters of supplier (letters only) + placeholder for SKU
+            const prefix = supplierName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+
+            if (sku) {
+                const numericMatch = sku.match(/(\d+)$/);
+                const numeric = numericMatch ? numericMatch[1] : '000000';
+                previewCode.textContent = prefix + '-' + numeric;
+            } else {
+                previewCode.textContent = prefix + '-XXXXXX (SKU will be auto-generated)';
+            }
+        } else {
+            previewCode.textContent = 'Select supplier first';
         }
     }
 </script>

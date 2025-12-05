@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -87,8 +88,15 @@ class ProductController extends Controller
 
         // If supplier_id is provided, create the product-supplier relationship
         if ($request->filled('supplier_id')) {
+            $supplier = Supplier::find($request->supplier_id);
+
+            // Auto-generate vendor code if checkbox is checked
+            $vendorCode = $request->boolean('auto_generate_vendor_code')
+                ? VendorCodeController::generateVendorCode($supplier, $product)
+                : ($request->vendor_product_code ?? $product->sku);
+
             $product->suppliers()->attach($request->supplier_id, [
-                'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
+                'vendor_product_code' => $vendorCode,
                 'is_preferred' => false,
                 'lead_time_days' => null,
             ]);

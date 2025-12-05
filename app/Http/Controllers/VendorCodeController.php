@@ -11,6 +11,23 @@ use Illuminate\Support\Facades\DB;
 
 class VendorCodeController extends Controller
 {
+    /**
+     * Generate a vendor code from supplier name and product SKU.
+     * Format: {First 3 letters of supplier}-{Numeric part of SKU}
+     * Example: Supplier "SMACK" + SKU "SKU-000020" = "SMK-000020"
+     */
+    public static function generateVendorCode(Supplier $supplier, Product $product): string
+    {
+        // Get first 3 letters of supplier name (letters only), uppercase
+        $supplierPrefix = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $supplier->company_name), 0, 3));
+
+        // Extract numeric part from SKU (e.g., "SKU-000020" → "000020")
+        preg_match('/(\d+)$/', $product->sku, $matches);
+        $numericPart = $matches[1] ?? '000000';
+
+        return $supplierPrefix.'-'.$numericPart;
+    }
+
     public function index(Request $request)
     {
         $query = DB::table('product_supplier')
@@ -85,8 +102,13 @@ class VendorCodeController extends Controller
         $product = Product::findOrFail($request->product_id);
         $supplier = Supplier::findOrFail($request->supplier_id);
 
+        // Auto-generate vendor code if checkbox is checked
+        $vendorCode = $request->boolean('auto_generate')
+            ? self::generateVendorCode($supplier, $product)
+            : $request->vendor_product_code;
+
         $product->suppliers()->attach($supplier->id, [
-            'vendor_product_code' => $request->vendor_product_code,
+            'vendor_product_code' => $vendorCode,
             'is_preferred' => $request->boolean('is_preferred'),
             'lead_time_days' => $request->lead_time_days,
         ]);

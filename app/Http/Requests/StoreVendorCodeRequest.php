@@ -25,8 +25,10 @@ class StoreVendorCodeRequest extends FormRequest
         return [
             'supplier_id' => 'required|exists:suppliers,id',
             'product_id' => 'required|exists:products,id',
+            'auto_generate' => 'nullable|boolean',
             'vendor_product_code' => [
-                'required',
+                'required_without:auto_generate',
+                'nullable',
                 'string',
                 'max:255',
                 Rule::unique('product_supplier')->where(function ($query) {
@@ -51,7 +53,7 @@ class StoreVendorCodeRequest extends FormRequest
             'supplier_id.exists' => 'The selected supplier does not exist.',
             'product_id.required' => 'Please select a product.',
             'product_id.exists' => 'The selected product does not exist.',
-            'vendor_product_code.required' => 'Vendor product code is required.',
+            'vendor_product_code.required_without' => 'Vendor product code is required unless auto-generate is checked.',
             'vendor_product_code.unique' => 'This vendor code already exists for this supplier-product combination.',
             'lead_time_days.integer' => 'Lead time must be a whole number.',
             'lead_time_days.min' => 'Lead time cannot be negative.',

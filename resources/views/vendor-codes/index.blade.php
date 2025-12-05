@@ -215,8 +215,19 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor Product Code *</label>
-                    <input name="vendor_product_code" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    <div class="flex items-center mb-2">
+                        <input type="checkbox" id="auto_generate" name="auto_generate" value="1"
+                               onchange="toggleAutoGenerate(this.checked)"
+                               class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                        <label for="auto_generate" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                            Auto-generate vendor code
+                        </label>
+                    </div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Vendor Product Code <span id="vendor_code_required">*</span></label>
+                    <input id="vendor_product_code" name="vendor_product_code" type="text" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                    <div id="vendor_code_preview" class="hidden mt-2 text-sm text-green-600 dark:text-green-400">
+                        Preview: <span id="preview_code" class="font-mono font-bold"></span>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Lead Time (days)</label>
@@ -296,6 +307,83 @@
         document.getElementById('editForm').action = '{{ url('/vendor-codes') }}/' + vendorCode.id;
         openModal('editModal');
     }
+
+    // Auto-generate vendor code functions
+    function toggleAutoGenerate(isChecked) {
+        const vendorCodeInput = document.getElementById('vendor_product_code');
+        const previewDiv = document.getElementById('vendor_code_preview');
+        const requiredSpan = document.getElementById('vendor_code_required');
+
+        if (isChecked) {
+            vendorCodeInput.disabled = true;
+            vendorCodeInput.required = false;
+            vendorCodeInput.value = '';
+            vendorCodeInput.classList.add('bg-gray-100', 'dark:bg-gray-600');
+            previewDiv.classList.remove('hidden');
+            requiredSpan.classList.add('hidden');
+            updateVendorCodePreview();
+        } else {
+            vendorCodeInput.disabled = false;
+            vendorCodeInput.required = true;
+            vendorCodeInput.classList.remove('bg-gray-100', 'dark:bg-gray-600');
+            previewDiv.classList.add('hidden');
+            requiredSpan.classList.remove('hidden');
+        }
+    }
+
+    function updateVendorCodePreview() {
+        const supplierSelect = document.querySelector('#createModal select[name="supplier_id"]');
+        const productSelect = document.querySelector('#createModal select[name="product_id"]');
+        const previewCode = document.getElementById('preview_code');
+
+        if (!supplierSelect || !productSelect || !previewCode) return;
+
+        const supplierId = supplierSelect.value;
+        const productId = productSelect.value;
+
+        if (supplierId && productId) {
+            const supplierOption = supplierSelect.options[supplierSelect.selectedIndex];
+            const productOption = productSelect.options[productSelect.selectedIndex];
+
+            const supplierName = supplierOption.textContent.trim();
+            const productText = productOption.textContent.trim();
+
+            // Extract SKU from product text (format: "Product Name (SKU-000020)")
+            const skuMatch = productText.match(/\(([^)]+)\)$/);
+            const sku = skuMatch ? skuMatch[1] : '';
+
+            // Generate preview: first 3 letters of supplier (letters only) + numeric part of SKU
+            const prefix = supplierName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
+            const numericMatch = sku.match(/(\d+)$/);
+            const numeric = numericMatch ? numericMatch[1] : '000000';
+
+            previewCode.textContent = prefix + '-' + numeric;
+        } else {
+            previewCode.textContent = 'Select supplier and product first';
+        }
+    }
+
+    // Add event listeners for supplier/product changes to update preview
+    document.addEventListener('DOMContentLoaded', function() {
+        const supplierSelect = document.querySelector('#createModal select[name="supplier_id"]');
+        const productSelect = document.querySelector('#createModal select[name="product_id"]');
+
+        if (supplierSelect) {
+            supplierSelect.addEventListener('change', function() {
+                if (document.getElementById('auto_generate').checked) {
+                    updateVendorCodePreview();
+                }
+            });
+        }
+
+        if (productSelect) {
+            productSelect.addEventListener('change', function() {
+                if (document.getElementById('auto_generate').checked) {
+                    updateVendorCodePreview();
+                }
+            });
+        }
+    });
 </script>
 @endpush
 @endsection
