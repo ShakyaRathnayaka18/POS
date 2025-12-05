@@ -190,7 +190,7 @@
                     const iconPreview = document.getElementById('edit_icon_preview');
                     const iconImage = document.getElementById('edit_icon_image');
                     if (category.icon && iconPreview && iconImage) {
-                        iconImage.src = '/images/category-icons/' + category.icon;
+                        iconImage.src = '{{ asset('images/category-icons') }}/' + category.icon;
                         iconPreview.classList.remove('hidden');
                     }
 
