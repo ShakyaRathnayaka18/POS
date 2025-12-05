@@ -194,7 +194,7 @@
                         iconPreview.classList.remove('hidden');
                     }
 
-                    document.getElementById('editCategoryForm').action = '/categories/' + category.id;
+                    document.getElementById('editCategoryForm').action = '{{ url('/categories') }}/' + category.id;
                     openModal('editCategoryModal');
                 } catch (error) {
                     console.error('Error parsing category data:', error);

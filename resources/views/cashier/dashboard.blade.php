@@ -732,7 +732,7 @@
 
                     if (data.success) {
                         // Success - redirect to receipt
-                        window.location.href = `/sales/${data.sale.id}`;
+                        window.location.href = `{{ url('/sales') }}/${data.sale.id}`;
                     } else {
                         this.errorMessage = data.message || 'Error processing sale. Please try again.';
                     }

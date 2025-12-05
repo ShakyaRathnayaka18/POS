@@ -193,7 +193,7 @@
             try {
                 document.getElementById('edit_brand_name').value = brandName || '';
                 document.getElementById('edit_description').value = description || '';
-                document.getElementById('editBrandForm').action = '/brands/' + brandId;
+                document.getElementById('editBrandForm').action = '{{ url('/brands') }}/' + brandId;
                 openModal('editBrandModal');
             } catch (error) {
                 console.error('Error opening edit modal:', error);
