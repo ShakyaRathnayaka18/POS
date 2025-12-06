@@ -19,6 +19,9 @@
     <!-- Toastr Notifications -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
+    <!-- x-cloak for Alpine.js -->
+    <style>[x-cloak] { display: none !important; }</style>
+
     @stack('styles')
 </head>
 
@@ -40,6 +43,8 @@
             </div>
         </div>
 
+        {{-- Global Search Modal --}}
+        @include('components.global-search')
     </div>
 
     <!-- jQuery (required for toastr) -->

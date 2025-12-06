@@ -1,12 +1,25 @@
-<div id="sidebar" x-data="{ openSections: ['dashboard', 'products-inventory', 'sales-operations', 'finance-accounting', 'hr', 'admin'] }"
+<div id="sidebar" x-data="{
+        openSections: ['dashboard', 'products-inventory', 'sales-operations', 'finance-accounting', 'hr', 'admin'],
+        menuSearch: '',
+        matchesSearch(text) {
+            return !this.menuSearch || text.toLowerCase().includes(this.menuSearch.toLowerCase())
+        },
+        hasMatchInSection(items) {
+            return !this.menuSearch || items.some(item => this.matchesSearch(item))
+        }
+    }"
     class="fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white dark:bg-gray-900 shadow-xl overflow-y-auto border-r border-gray-100 dark:border-gray-800 sidebar-scroll transition-all duration-300 ease-in-out"
     :class="sidebarCollapsed ? 'w-20' : 'w-64'">
     <div class="flex h-full flex-col">
 
-        <!-- Toggle Button -->
-        <div class="flex items-center p-2 border-b border-gray-100 dark:border-gray-800" :class="sidebarCollapsed ? 'justify-center' : 'justify-between'">
-            <img src="{{ asset('images/VPOS.png') }}" alt="VPOS" class="h-8 w-auto transition-all duration-300" x-show="!sidebarCollapsed">
-             <button @click="sidebarCollapsed = !sidebarCollapsed; if(sidebarCollapsed) openSections = []" class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none">
+        <!-- Search Bar -->
+        <div class="flex items-center p-2 border-b gap-2" :class="sidebarCollapsed ? 'justify-center' : ''">
+            <div class="relative flex-1" x-show="!sidebarCollapsed">
+
+                <input type="text" x-model="menuSearch" placeholder="Search menu..."
+                    class="w-full pl-9 pr-1 py-2 dark:bg-gray-900 dark:text-white placeholder-gray-400">
+            </div>
+            <button @click="sidebarCollapsed = !sidebarCollapsed; if(sidebarCollapsed) { openSections = []; menuSearch = ''; }" class="p-1.5 rounded-md text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none flex-shrink-0">
                 <i class="fas" :class="sidebarCollapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
             </button>
         </div>
@@ -14,8 +27,8 @@
         <div class="flex flex-1 flex-col">
             <nav class="flex-1 px-2 py-4 space-y-2">
                 <!-- Dashboard Section -->
-                <div class="space-y-1">
-                    <button @click="openSections.includes('dashboard') ? openSections = openSections.filter(s => s !== 'dashboard') : openSections.push('dashboard')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Dashboard', 'Admin Dashboard', 'Cashier'])">
+                    <button @click="openSections.includes('dashboard') ? openSections = openSections.filter(s => s !== 'dashboard') : openSections.push('dashboard')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Dashboard">
@@ -25,9 +38,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('dashboard') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('dashboard')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('dashboard') || menuSearch" x-collapse class="space-y-1">
                         @can('view dashboard')
                         <a href="{{ route('dashboard.index') }}"
+                            x-show="matchesSearch('Admin Dashboard')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out {{ request()->routeIs('dashboard.index') ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Admin Dashboard">
@@ -36,6 +50,7 @@
                         </a>
                         @endcan
                         <a href="{{ route('cashier.dashboard') }}"
+                            x-show="matchesSearch('Cashier')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Cashier">
@@ -47,8 +62,8 @@
 
                 <!-- Products & Inventory Section -->
                 @canany(['view products', 'view categories', 'view brands', 'view suppliers', 'view grns', 'view batches', 'view stocks', 'view vendor codes', 'view stock in'])
-                <div class="space-y-1">
-                    <button @click="openSections.includes('products-inventory') ? openSections = openSections.filter(s => s !== 'products-inventory') : openSections.push('products-inventory')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Products', 'Inventory', 'All Products', 'Categories', 'Brands', 'Suppliers', 'Good Receive Notes', 'GRN', 'Batches', 'Stocks', 'Vendor Codes', 'Stock In'])">
+                    <button @click="openSections.includes('products-inventory') ? openSections = openSections.filter(s => s !== 'products-inventory') : openSections.push('products-inventory')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Products & Inventory">
@@ -58,9 +73,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('products-inventory') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('products-inventory')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('products-inventory') || menuSearch" x-collapse class="space-y-1">
                         @can('view products')
                         <a href="{{ route('products.index') }}"
+                            x-show="matchesSearch('All Products')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="All Products">
@@ -70,6 +86,7 @@
                         @endcan
                         @can('view categories')
                         <a href="{{ route('categories.index') }}"
+                            x-show="matchesSearch('Categories')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Categories">
@@ -79,6 +96,7 @@
                         @endcan
                         @can('view brands')
                         <a href="{{ route('brands.index') }}"
+                            x-show="matchesSearch('Brands')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Brands">
@@ -88,6 +106,7 @@
                         @endcan
                         @can('view suppliers')
                         <a href="{{ route('suppliers.index') }}"
+                            x-show="matchesSearch('Suppliers')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Suppliers">
@@ -97,6 +116,7 @@
                         @endcan
                         @can('view grns')
                         <a href="{{ route('good-receive-notes.index') }}"
+                            x-show="matchesSearch('Good Receive Notes') || matchesSearch('GRN')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Good Receive Notes">
@@ -106,6 +126,7 @@
                         @endcan
                         @can('view batches')
                         <a href="{{ route('batches.index') }}"
+                            x-show="matchesSearch('Batches')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Batches">
@@ -115,6 +136,7 @@
                         @endcan
                         @can('view stocks')
                         <a href="{{ route('stocks.index') }}"
+                            x-show="matchesSearch('Stocks')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Stocks">
@@ -124,6 +146,7 @@
                         @endcan
                         @can('view vendor codes')
                         <a href="{{ route('vendor-codes.index') }}"
+                            x-show="matchesSearch('Vendor Codes')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Vendor Codes">
@@ -133,6 +156,7 @@
                         @endcan
                         @can('view stock in')
                         <a href="{{ route('stock-in.index') }}"
+                            x-show="matchesSearch('Stock In')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Stock In">
@@ -146,8 +170,8 @@
 
                 <!-- Sales & Operations Section -->
                 @canany(['view sales', 'view sales returns', 'view supplier returns', 'view expenses', 'manage own shifts', 'view reports', 'view shifts'])
-                <div class="space-y-1">
-                    <button @click="openSections.includes('sales-operations') ? openSections = openSections.filter(s => s !== 'sales-operations') : openSections.push('sales-operations')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Sales', 'Operations', 'Sales History', 'My Shifts', 'Sales Returns', 'Supplier Returns', 'Expenses', 'Analytics', 'Reports', 'All Shifts'])">
+                    <button @click="openSections.includes('sales-operations') ? openSections = openSections.filter(s => s !== 'sales-operations') : openSections.push('sales-operations')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Sales & Operations">
@@ -157,9 +181,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('sales-operations') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('sales-operations')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('sales-operations') || menuSearch" x-collapse class="space-y-1">
                         @can('view sales')
                         <a href="{{ route('sales.index') }}"
+                            x-show="matchesSearch('Sales History')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Sales History">
@@ -169,6 +194,7 @@
                         @endcan
                         @can('manage own shifts')
                         <a href="{{ route('shifts.my-shifts') }}"
+                            x-show="matchesSearch('My Shifts')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="My Shifts">
@@ -178,6 +204,7 @@
                         @endcan
                         @can('view sales returns')
                         <a href="{{ route('sales-returns.index') }}"
+                            x-show="matchesSearch('Sales Returns')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Sales Returns">
@@ -187,6 +214,7 @@
                         @endcan
                         @can('view supplier returns')
                         <a href="{{ route('supplier-returns.index') }}"
+                            x-show="matchesSearch('Supplier Returns')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Supplier Returns">
@@ -196,6 +224,7 @@
                         @endcan
                         @can('view expenses')
                         <a href="{{ route('expenses.index') }}"
+                            x-show="matchesSearch('Expenses')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Expenses">
@@ -205,6 +234,7 @@
                         @endcan
                         @can('view reports')
                         <a href="{{ route('reports.index') }}"
+                            x-show="matchesSearch('Analytics') || matchesSearch('Reports')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Analytics">
@@ -214,6 +244,7 @@
                         @endcan
                         @can('view shifts')
                         <a href="{{ route('shifts.index') }}"
+                            x-show="matchesSearch('All Shifts')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="All Shifts">
@@ -227,8 +258,8 @@
 
                 <!-- Human Resources Section -->
                 @canany(['view employees', 'view payroll', 'view own payroll'])
-                <div class="space-y-1">
-                    <button @click="openSections.includes('hr') ? openSections = openSections.filter(s => s !== 'hr') : openSections.push('hr')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Payroll', 'HR', 'Human Resources', 'Employees', 'Payroll Reports', 'My Payroll'])">
+                    <button @click="openSections.includes('hr') ? openSections = openSections.filter(s => s !== 'hr') : openSections.push('hr')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Payroll">
@@ -238,9 +269,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('hr') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('hr')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('hr') || menuSearch" x-collapse class="space-y-1">
                         @can('view employees')
                         <a href="{{ route('employees.index') }}"
+                            x-show="matchesSearch('Employees')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Employees">
@@ -250,6 +282,7 @@
                         @endcan
                         @can('view payroll')
                         <a href="{{ route('payroll.index') }}"
+                            x-show="matchesSearch('Payroll')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Payroll">
@@ -259,6 +292,7 @@
                         @endcan
                         @can('view payroll reports')
                         <a href="{{ route('payroll.reports') }}"
+                            x-show="matchesSearch('Payroll Reports')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Payroll Reports">
@@ -268,6 +302,7 @@
                         @endcan
                         @can('view own payroll')
                         <a href="{{ route('payroll.my-payroll') }}"
+                            x-show="matchesSearch('My Payroll')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="My Payroll">
@@ -281,8 +316,8 @@
 
                 <!-- Finance & Accounting Section -->
                 @canany(['view supplier credits', 'view supplier payments', 'view customers', 'view chart of accounts', 'view journal entries', 'view income statement', 'view balance sheet', 'view trial balance', 'view general ledger'])
-                <div class="space-y-1">
-                    <button @click="openSections.includes('finance-accounting') ? openSections = openSections.filter(s => s !== 'finance-accounting') : openSections.push('finance-accounting')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Finance', 'Accounting', 'Supplier Credits', 'Supplier Payments', 'Customers', 'Chart of Accounts', 'Journal Entries', 'Income Statement', 'Balance Sheet', 'Trial Balance', 'General Ledger'])">
+                    <button @click="openSections.includes('finance-accounting') ? openSections = openSections.filter(s => s !== 'finance-accounting') : openSections.push('finance-accounting')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Finance & Accounting">
@@ -292,9 +327,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('finance-accounting') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('finance-accounting')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('finance-accounting') || menuSearch" x-collapse class="space-y-1">
                         @can('view supplier credits')
                         <a href="{{ route('supplier-credits.index') }}"
+                            x-show="matchesSearch('Supplier Credits')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Supplier Credits">
@@ -304,6 +340,7 @@
                         @endcan
                         @can('view supplier payments')
                         <a href="{{ route('supplier-payments.index') }}"
+                            x-show="matchesSearch('Supplier Payments')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Supplier Payments">
@@ -313,6 +350,7 @@
                         @endcan
                         @can('view customers')
                         <a href="{{ route('customers.index') }}"
+                            x-show="matchesSearch('Customers')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Customers">
@@ -322,6 +360,7 @@
                         @endcan
                         @can('view chart of accounts')
                         <a href="{{ route('accounts.index') }}"
+                            x-show="matchesSearch('Chart of Accounts') || matchesSearch('Accounts')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Chart of Accounts">
@@ -331,6 +370,7 @@
                         @endcan
                         @can('view journal entries')
                         <a href="{{ route('journal-entries.index') }}"
+                            x-show="matchesSearch('Journal Entries') || matchesSearch('Journal')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Journal Entries">
@@ -340,6 +380,7 @@
                         @endcan
                         @can('view income statement')
                         <a href="{{ route('reports.income-statement') }}"
+                            x-show="matchesSearch('Income Statement') || matchesSearch('Income')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Income Statement">
@@ -349,6 +390,7 @@
                         @endcan
                         @can('view balance sheet')
                         <a href="{{ route('reports.balance-sheet') }}"
+                            x-show="matchesSearch('Balance Sheet') || matchesSearch('Balance')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Balance Sheet">
@@ -358,6 +400,7 @@
                         @endcan
                         @can('view trial balance')
                         <a href="{{ route('reports.trial-balance') }}"
+                            x-show="matchesSearch('Trial Balance') || matchesSearch('Trial')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Trial Balance">
@@ -367,6 +410,7 @@
                         @endcan
                         @can('view general ledger')
                         <a href="{{ route('reports.general-ledger') }}"
+                            x-show="matchesSearch('General Ledger') || matchesSearch('Ledger')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="General Ledger">
@@ -380,8 +424,8 @@
 
                 <!-- Admin Section -->
                 @canany(['view users', 'view roles', 'view permissions'])
-                <div class="space-y-1">
-                    <button @click="openSections.includes('admin') ? openSections = openSections.filter(s => s !== 'admin') : openSections.push('admin')" 
+                <div class="space-y-1" x-show="hasMatchInSection(['Administration', 'Admin', 'Users', 'Roles', 'Permissions', 'Roles & Permissions'])">
+                    <button @click="openSections.includes('admin') ? openSections = openSections.filter(s => s !== 'admin') : openSections.push('admin')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Administration">
@@ -391,9 +435,10 @@
                         </div>
                         <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-xs transition-transform duration-200" :class="openSections.includes('admin') ? 'rotate-180' : ''"></i>
                     </button>
-                    <div x-show="openSections.includes('admin')" x-collapse class="space-y-1">
+                    <div x-show="openSections.includes('admin') || menuSearch" x-collapse class="space-y-1">
                         @can('view users')
                         <a href="{{ route('users.index') }}"
+                            x-show="matchesSearch('Users')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Users">
@@ -403,6 +448,7 @@
                         @endcan
                         @canany(['view roles', 'view permissions'])
                         <a href="{{ route('roles-permissions.index') }}"
+                            x-show="matchesSearch('Roles & Permissions') || matchesSearch('Roles') || matchesSearch('Permissions')"
                             class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
                             title="Roles & Permissions">
@@ -417,8 +463,11 @@
 
             <!-- Footer Section -->
             <div class="border-t border-gray-100 dark:border-gray-800 p-4">
-                <div class="text-xs text-gray-400 dark:text-gray-500 text-center">
-                    VPOS v1.0
+                <div class="flex flex-col items-center">
+                    <img src="{{ asset('images/VPOS.png') }}" alt="VPOS" class="h-8 w-auto mb-2 transition-all duration-300" x-show="!sidebarCollapsed">
+                    <!-- <div class="text-xs text-gray-400 dark:text-gray-500 text-center">
+                        VPOS v1.0
+                    </div> -->
                 </div>
             </div>
         </div>

@@ -76,4 +76,21 @@ class StockController extends Controller
 
         return view('stocks.show', compact('stock', 'totalValue', 'potentialRevenue', 'profitMargin', 'profitPercentage'));
     }
+
+    /**
+     * Update the barcode for the stock's batch.
+     */
+    public function updateBarcode(Request $request, Stock $stock)
+    {
+        $validated = $request->validate([
+            'barcode' => 'nullable|string|max:255|unique:batches,barcode,'.$stock->batch_id,
+        ]);
+
+        $stock->batch->update([
+            'barcode' => $validated['barcode'],
+        ]);
+
+        return redirect()->route('stocks.show', $stock)
+            ->with('success', 'Barcode updated successfully.');
+    }
 }

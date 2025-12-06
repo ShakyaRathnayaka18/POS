@@ -46,7 +46,7 @@ class ProductController extends Controller
             }
         }
 
-        $products = $query->get();
+        $products = $query->paginate(15)->withQueryString();
         $categories = Category::all();
         $brands = Brand::all();
         $filters = $request->only(['search', 'category_id', 'brand_id', 'status']);
@@ -73,7 +73,20 @@ class ProductController extends Controller
             'product_image' => 'nullable|image|max:2048',
             'supplier_id' => 'nullable|exists:suppliers,id',
             'vendor_product_code' => 'nullable|string|max:255',
+            'auto_generate_vendor_code' => 'nullable|boolean',
         ]);
+
+        // If supplier is selected, require either manual vendor code or auto-generate
+        if ($request->filled('supplier_id')) {
+            $hasManualCode = $request->filled('vendor_product_code');
+            $autoGenerate = $request->boolean('auto_generate_vendor_code');
+
+            if (! $hasManualCode && ! $autoGenerate) {
+                return back()->withErrors([
+                    'vendor_product_code' => 'Please enter a vendor product code or check "Auto-generate vendor code".',
+                ])->withInput();
+            }
+        }
 
         // Set defaults for unit conversion fields
         $validated['base_unit'] = $validated['base_unit'] ?? $validated['unit'] ?? 'pcs';
@@ -90,10 +103,10 @@ class ProductController extends Controller
         if ($request->filled('supplier_id')) {
             $supplier = Supplier::find($request->supplier_id);
 
-            // Auto-generate vendor code if checkbox is checked
+            // Auto-generate vendor code if checkbox is checked, otherwise use manual entry
             $vendorCode = $request->boolean('auto_generate_vendor_code')
                 ? VendorCodeController::generateVendorCode($supplier, $product)
-                : ($request->vendor_product_code ?? $product->sku);
+                : $request->vendor_product_code;
 
             $product->suppliers()->attach($request->supplier_id, [
                 'vendor_product_code' => $vendorCode,
@@ -111,7 +124,7 @@ class ProductController extends Controller
                     'id' => $product->id,
                     'product_name' => $product->product_name,
                     'sku' => $product->sku,
-                    'vendor_product_code' => $request->vendor_product_code ?? $product->sku,
+                    'vendor_product_code' => $request->vendor_product_code,
                 ],
             ]);
         }

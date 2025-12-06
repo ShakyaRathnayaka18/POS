@@ -45,9 +45,26 @@
                     <span class="font-medium text-gray-700">Batch Number:</span>
                     <span class="text-gray-900">{{ $stock->batch->batch_number }}</span>
                 </div>
-                <div>
+                <div x-data="{ editing: false }">
                     <span class="font-medium text-gray-700">Barcode:</span>
-                    <span class="text-gray-900 font-mono">{{ $stock->batch->barcode ?? 'Not assigned' }}</span>
+                    <template x-if="!editing">
+                        <span>
+                            <span class="text-gray-900 font-mono">{{ $stock->batch->barcode ?? 'Not assigned' }}</span>
+                            <button @click="editing = true" class="ml-2 text-indigo-600 hover:text-indigo-900 text-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </span>
+                    </template>
+                    <template x-if="editing">
+                        <form action="{{ route('stocks.update-barcode', $stock) }}" method="POST" class="inline-flex items-center gap-2 mt-1">
+                            @csrf
+                            @method('PATCH')
+                            <input type="text" name="barcode" value="{{ $stock->batch->barcode }}"
+                                   class="border border-gray-300 rounded px-2 py-1 text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500" placeholder="Enter barcode">
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-sm">Save</button>
+                            <button type="button" @click="editing = false" class="text-gray-600 hover:text-gray-800 text-sm">Cancel</button>
+                        </form>
+                    </template>
                 </div>
                 <div>
                     <span class="font-medium text-gray-700">GRN Number:</span>

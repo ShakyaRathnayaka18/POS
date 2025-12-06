@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoodReceiveNoteController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
@@ -155,6 +156,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/products/search', [SaleController::class, 'searchProducts'])->name('api.products.search');
     Route::get('/api/products/{product}/stock', [SaleController::class, 'getProductStock'])->name('api.products.stock');
 
+    // Global Search API
+    Route::get('/api/global-search', [GlobalSearchController::class, 'search'])->name('api.global-search');
+
     // Saved carts routes
     Route::get('/api/saved-carts', [SavedCartController::class, 'index'])->name('api.saved-carts.index');
     Route::post('/api/saved-carts', [SavedCartController::class, 'store'])->name('api.saved-carts.store');
@@ -177,6 +181,8 @@ Route::middleware(['auth'])->group(function () {
     // Stock management routes - requires view stocks permission
     Route::middleware(['permission:view stocks'])->group(function () {
         Route::resource('stocks', StockController::class)->only(['index', 'show']);
+        Route::patch('stocks/{stock}/update-barcode', [StockController::class, 'updateBarcode'])
+            ->name('stocks.update-barcode');
     });
 
     // Stock In routes - requires view stock in permission
@@ -197,6 +203,10 @@ Route::middleware(['auth'])->group(function () {
 
     // Vendor codes management routes - requires view vendor codes permission
     Route::middleware(['permission:view vendor codes'])->group(function () {
+        Route::get('vendor-codes/products-without-codes', [VendorCodeController::class, 'getProductsWithoutVendorCodes'])
+            ->name('vendor-codes.products-without-codes');
+        Route::post('vendor-codes/bulk-sync', [VendorCodeController::class, 'bulkSync'])
+            ->name('vendor-codes.bulk-sync');
         Route::resource('vendor-codes', VendorCodeController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 

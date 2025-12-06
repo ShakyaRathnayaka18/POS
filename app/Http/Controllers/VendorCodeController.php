@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreVendorCodeRequest;
 use App\Http\Requests\UpdateVendorCodeRequest;
+use App\Models\Brand;
 use App\Models\Product;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
@@ -85,11 +86,13 @@ class VendorCodeController extends Controller
         // For dropdowns
         $products = Product::orderBy('product_name')->get();
         $suppliers = Supplier::orderBy('company_name')->get();
+        $brands = Brand::orderBy('brand_name')->get();
 
         return view('vendor-codes.index', compact(
             'vendorCodes',
             'products',
             'suppliers',
+            'brands',
             'totalMappings',
             'preferredMappings',
             'productsWithMappings',
@@ -135,5 +138,69 @@ class VendorCodeController extends Controller
         DB::table('product_supplier')->where('id', $id)->delete();
 
         return redirect()->route('vendor-codes.index')->with('success', 'Vendor code mapping deleted successfully.');
+    }
+
+    /**
+     * Get products that don't have vendor codes for a specific supplier.
+     * Optionally filter by brand_id.
+     */
+    public function getProductsWithoutVendorCodes(Request $request)
+    {
+        $supplierId = $request->supplier_id;
+        $brandId = $request->brand_id;
+
+        if (! $supplierId) {
+            return response()->json([]);
+        }
+
+        $query = Product::whereDoesntHave('suppliers', function ($q) use ($supplierId) {
+            $q->where('supplier_id', $supplierId);
+        });
+
+        // Filter by brand if provided
+        if ($brandId) {
+            $query->where('brand_id', $brandId);
+        }
+
+        $products = $query->orderBy('product_name')->get(['id', 'product_name', 'sku']);
+
+        return response()->json($products);
+    }
+
+    /**
+     * Bulk sync vendor codes for multiple products.
+     */
+    public function bulkSync(Request $request)
+    {
+        $validated = $request->validate([
+            'supplier_id' => 'required|exists:suppliers,id',
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'exists:products,id',
+        ]);
+
+        $supplier = Supplier::findOrFail($validated['supplier_id']);
+        $count = 0;
+
+        foreach ($validated['product_ids'] as $productId) {
+            $product = Product::find($productId);
+
+            // Skip if mapping already exists
+            if ($product->suppliers()->where('supplier_id', $supplier->id)->exists()) {
+                continue;
+            }
+
+            $vendorCode = self::generateVendorCode($supplier, $product);
+
+            $product->suppliers()->attach($supplier->id, [
+                'vendor_product_code' => $vendorCode,
+                'is_preferred' => false,
+                'lead_time_days' => null,
+            ]);
+
+            $count++;
+        }
+
+        return redirect()->route('vendor-codes.index')
+            ->with('success', "Successfully created {$count} vendor code mappings.");
     }
 }

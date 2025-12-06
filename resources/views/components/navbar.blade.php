@@ -20,6 +20,14 @@
             </div>
 
             <div class="flex items-center space-x-4">
+                <!-- Global Search Button -->
+                <button @click="$dispatch('open-global-search')"
+                    class="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <i class="fas fa-search"></i>
+                    <span class="hidden md:inline">Search...</span>
+                    <kbd class="hidden lg:inline px-1.5 py-0.5 text-xs bg-gray-200 dark:bg-gray-600 rounded font-mono">Ctrl+K</kbd>
+                </button>
+
                 <!-- Dark mode toggle -->
                 <button onclick="toggleDarkMode()"
                     class="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 dark:hover:bg-gray-700">
