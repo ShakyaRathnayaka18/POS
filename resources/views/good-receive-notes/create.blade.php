@@ -152,8 +152,22 @@
         </div>
 
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <div class="flex justify-between items-center">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
+                    <label for="discount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Discount (LKR)</label>
+                    <input type="number" name="discount" id="discount" step="0.01" min="0" value="0"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        onchange="updateCalculations()" oninput="updateCalculations()">
+                    @error('discount')
+                        <p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center">
+                <div class="space-y-1">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Subtotal Before Discount: LKR <span id="subtotalBeforeDiscountDisplay">0.00</span></p>
+                    <p class="text-sm text-green-600 dark:text-green-400">Discount: LKR <span id="discountDisplay">0.00</span></p>
                     <p class="text-lg font-semibold text-gray-900 dark:text-white">Subtotal: LKR <span id="subtotalDisplay">0.00</span></p>
                     <p class="text-lg font-semibold text-gray-900 dark:text-white">Tax: LKR <span id="taxDisplay">0.00</span></p>
                     <p class="text-2xl font-bold text-green-600 dark:text-green-400">Total: LKR <span id="totalDisplay">0.00</span></p>
@@ -232,7 +246,7 @@ function addItem() {
                         <select name="items[${itemIndex}][product_id]" required onchange="handleProductChange(${itemIndex}, this.value); updateCalculations();"
                             class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md product-select bg-white dark:bg-gray-600 text-gray-900 dark:text-white" id="product-select-${itemIndex}">
                             <option value="">Select Product</option>
-                            ${products.map(p => `<option value="${p.id}" data-vendor-code="${p.vendor_product_code}" data-base-unit="${p.base_unit || 'pcs'}" data-purchase-unit="${p.purchase_unit || ''}" data-conversion-factor="${p.conversion_factor || 1}">${p.product_name} (Vendor: ${p.vendor_product_code}, SKU: ${p.sku})</option>`).join('')}
+                            ${products.map(p => `<option value="${p.id}" data-vendor-code="${p.vendor_product_code}" data-base-unit="${p.base_unit || 'pcs'}" data-purchase-unit="${p.purchase_unit || ''}" data-conversion-factor="${p.conversion_factor || 1}">${p.product_name}</option>`).join('')}
                         </select>
                         <button type="button" onclick="openCreateProductModal(${itemIndex})"
                             class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
@@ -261,9 +275,9 @@ function addItem() {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Selling Price <span id="sell-unit-${itemIndex}" class="text-gray-500"></span> *
+                        Selling Price <span id="sell-unit-${itemIndex}" class="text-gray-500"></span>
                     </label>
-                    <input type="number" name="items[${itemIndex}][selling_price]" required min="0" step="0.01"
+                    <input type="number" name="items[${itemIndex}][selling_price]" min="0" step="0.01"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
                 </div>
                 <div>
@@ -367,7 +381,7 @@ function removeItem(index) {
 }
 
 function updateCalculations() {
-    let subtotal = 0;
+    let subtotalBeforeDiscount = 0;
     let tax = 0;
 
     document.querySelectorAll('#itemsContainer > div').forEach(item => {
@@ -378,12 +392,20 @@ function updateCalculations() {
         const itemSubtotal = quantity * costPrice;
         const itemTax = itemSubtotal * (taxRate / 100);
 
-        subtotal += itemSubtotal;
+        subtotalBeforeDiscount += itemSubtotal;
         tax += itemTax;
     });
 
+    // Get discount
+    const discount = parseFloat(document.getElementById('discount')?.value || 0);
+
+    // Calculate final amounts
+    const subtotal = subtotalBeforeDiscount - discount;
     const total = subtotal + tax;
 
+    // Update displays
+    document.getElementById('subtotalBeforeDiscountDisplay').textContent = subtotalBeforeDiscount.toFixed(2);
+    document.getElementById('discountDisplay').textContent = discount.toFixed(2);
     document.getElementById('subtotalDisplay').textContent = subtotal.toFixed(2);
     document.getElementById('taxDisplay').textContent = tax.toFixed(2);
     document.getElementById('totalDisplay').textContent = total.toFixed(2);

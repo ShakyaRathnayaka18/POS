@@ -149,6 +149,11 @@
                             <div class="text-sm font-medium text-gray-900 dark:text-white">
                                 LKR {{ number_format($sale->total, 2) }}
                             </div>
+                            @if($sale->total_discount > 0)
+                                <div class="text-xs text-green-600 dark:text-green-400">
+                                    Discount: -LKR {{ number_format($sale->total_discount, 2) }}
+                                </div>
+                            @endif
                             <div class="text-xs text-gray-500 dark:text-gray-400">
                                 Tax: LKR {{ number_format($sale->tax, 2) }}
                             </div>

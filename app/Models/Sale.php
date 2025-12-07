@@ -22,12 +22,21 @@ class Sale extends Model
         'total',
         'payment_method',
         'status',
+        'subtotal_before_discount',
+        'total_discount',
+        'sale_level_discount_type',
+        'sale_level_discount_value',
+        'sale_level_discount_amount',
     ];
 
     protected function casts(): array
     {
         return [
             'payment_method' => PaymentMethodEnum::class,
+            'subtotal_before_discount' => 'decimal:2',
+            'total_discount' => 'decimal:2',
+            'sale_level_discount_value' => 'decimal:2',
+            'sale_level_discount_amount' => 'decimal:2',
         ];
     }
 
@@ -54,5 +63,20 @@ class Sale extends Model
     public function customerCredit()
     {
         return $this->hasOne(CustomerCredit::class);
+    }
+
+    public function getTotalItemDiscounts(): float
+    {
+        return $this->items->sum('discount_amount');
+    }
+
+    public function hasSaleLevelDiscount(): bool
+    {
+        return $this->sale_level_discount_type !== 'none' && $this->sale_level_discount_amount > 0;
+    }
+
+    public function getTotalSavings(): float
+    {
+        return $this->total_discount;
     }
 }

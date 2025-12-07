@@ -183,6 +183,8 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('stocks', StockController::class)->only(['index', 'show']);
         Route::patch('stocks/{stock}/update-barcode', [StockController::class, 'updateBarcode'])
             ->name('stocks.update-barcode');
+        Route::patch('stocks/{stock}', [StockController::class, 'update'])
+            ->name('stocks.update');
     });
 
     // Stock In routes - requires view stock in permission

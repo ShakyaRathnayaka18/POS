@@ -17,6 +17,13 @@ class SaleItem extends Model
         'price',
         'tax',
         'total',
+        'discount_type',
+        'discount_value',
+        'discount_amount',
+        'discount_id',
+        'discount_approved_by',
+        'price_before_discount',
+        'subtotal_before_discount',
     ];
 
     protected function casts(): array
@@ -26,6 +33,10 @@ class SaleItem extends Model
             'price' => 'decimal:2',
             'tax' => 'decimal:2',
             'total' => 'decimal:2',
+            'discount_value' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
+            'price_before_discount' => 'decimal:2',
+            'subtotal_before_discount' => 'decimal:2',
         ];
     }
 
@@ -42,5 +53,29 @@ class SaleItem extends Model
     public function stock()
     {
         return $this->belongsTo(Stock::class);
+    }
+
+    public function discount()
+    {
+        return $this->belongsTo(Discount::class);
+    }
+
+    public function discountApprover()
+    {
+        return $this->belongsTo(User::class, 'discount_approved_by');
+    }
+
+    public function hasDiscount(): bool
+    {
+        return $this->discount_type !== 'none' && $this->discount_amount > 0;
+    }
+
+    public function getDiscountPercentage(): float
+    {
+        if (!$this->price_before_discount || $this->price_before_discount == 0) {
+            return 0;
+        }
+
+        return ($this->discount_amount / $this->subtotal_before_discount) * 100;
     }
 }

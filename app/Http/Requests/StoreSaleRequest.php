@@ -36,6 +36,20 @@ class StoreSaleRequest extends FormRequest
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
+
+            // Discount fields (optional)
+            'items.*.discount' => ['nullable', 'array'],
+            'items.*.discount.type' => ['required_with:items.*.discount', Rule::in(['percentage', 'fixed_amount', 'none'])],
+            'items.*.discount.value' => ['required_with:items.*.discount', 'numeric', 'min:0'],
+            'items.*.discount.amount' => ['required_with:items.*.discount', 'numeric', 'min:0'],
+            'items.*.discount.discount_id' => ['nullable', 'exists:discounts,id'],
+            'items.*.discount.approved_by' => ['nullable', 'exists:users,id'],
+            'items.*.discount.final_price' => ['required_with:items.*.discount', 'numeric', 'min:0'],
+
+            // Sale-level discount (optional)
+            'sale_discount' => ['nullable', 'array'],
+            'sale_discount.type' => ['required_with:sale_discount', Rule::in(['percentage', 'fixed_amount', 'none'])],
+            'sale_discount.value' => ['required_with:sale_discount', 'numeric', 'min:0'],
         ];
     }
 

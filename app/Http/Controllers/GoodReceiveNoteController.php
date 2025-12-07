@@ -96,11 +96,12 @@ class GoodReceiveNoteController extends Controller
             'payment_type' => 'required|in:cash,credit',
             'credit_terms' => 'required_if:payment_type,credit',
             'notes' => 'nullable|string',
+            'discount' => 'nullable|numeric|min:0',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.cost_price' => 'required|numeric|min:0',
-            'items.*.selling_price' => 'required|numeric|min:0',
+            'items.*.selling_price' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
             'items.*.barcode' => 'nullable|string|unique:batches,barcode',
             'items.*.manufacture_date' => 'nullable|date',
@@ -116,6 +117,8 @@ class GoodReceiveNoteController extends Controller
             'payment_type' => $validated['payment_type'],
             'is_credit' => $validated['payment_type'] === 'credit',
             'notes' => $validated['notes'] ?? null,
+            'subtotal_before_discount' => 0,
+            'discount' => $validated['discount'] ?? 0,
             'subtotal' => 0,
             'tax' => 0,
             'shipping' => 0,
@@ -127,11 +130,13 @@ class GoodReceiveNoteController extends Controller
         foreach ($validated['items'] as $item) {
             $itemTotal = $item['cost_price'] * $item['quantity'];
             $itemTax = $itemTotal * ($item['tax'] ?? 0) / 100;
-            $grnData['subtotal'] += $itemTotal;
+            $grnData['subtotal_before_discount'] += $itemTotal;
             $grnData['tax'] += $itemTax;
         }
 
-        $grnData['total'] = $grnData['subtotal'] + $grnData['tax'];
+        // Apply discount
+        $grnData['subtotal'] = $grnData['subtotal_before_discount'] - $grnData['discount'];
+        $grnData['total'] = $grnData['subtotal'] + $grnData['tax'] + $grnData['shipping'];
 
         try {
             $grn = $this->grnService->createGrnWithBatches($grnData, $validated['items']);

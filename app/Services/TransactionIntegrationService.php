@@ -18,10 +18,11 @@ class TransactionIntegrationService
     /**
      * Create journal entry for a sale transaction
      *
-     * Dr Cash/Accounts Receivable
-     *    Cr Sales Revenue
-     *    Cr COGS (Dr based on selling price from GRN)
-     *    Dr Inventory
+     * Dr Cash/Accounts Receivable (total collected)
+     *    Cr Sales Revenue (before discount)
+     *    Dr Sales Discounts (contra-revenue)
+     * Dr COGS (based on cost price from stock)
+     *    Cr Inventory
      */
     public function createSaleJournalEntry(Sale $sale): void
     {
@@ -32,24 +33,41 @@ class TransactionIntegrationService
 
         $paymentAccount = $this->mapPaymentMethodToAccount($sale->payment_method);
         $salesRevenueAccount = Account::where('account_code', '4100')->first(); // Product Sales
+        $discountAccount = Account::where('account_code', '4200')->first(); // Sales Discounts
         $inventoryAccount = Account::where('account_code', '1300')->first(); // Inventory
         $cogsAccount = Account::where('account_code', '5100')->first(); // Purchases (COGS)
 
-        $lines = [
-            // Record revenue
-            [
-                'account_id' => $paymentAccount->id,
-                'debit_amount' => $sale->total,
-                'credit_amount' => 0,
-                'description' => 'Payment received from sale '.$sale->sale_number.' via '.$sale->payment_method->label(),
-            ],
-            [
-                'account_id' => $salesRevenueAccount->id,
-                'debit_amount' => 0,
-                'credit_amount' => $sale->total,
-                'description' => 'Sales revenue from '.$sale->sale_number,
-            ],
+        $lines = [];
+        $lineNumber = 1;
+
+        // 1. DR Cash/AR/Bank (Total including tax)
+        $lines[] = [
+            'line_number' => $lineNumber++,
+            'account_id' => $paymentAccount->id,
+            'debit_amount' => $sale->total,
+            'credit_amount' => 0,
+            'description' => 'Payment received from sale '.$sale->sale_number.' via '.$sale->payment_method->label(),
         ];
+
+        // 2. CR Sales Revenue (Subtotal before discounts)
+        $lines[] = [
+            'line_number' => $lineNumber++,
+            'account_id' => $salesRevenueAccount->id,
+            'debit_amount' => 0,
+            'credit_amount' => $sale->subtotal_before_discount,
+            'description' => 'Sales revenue from '.$sale->sale_number,
+        ];
+
+        // 3. DR Sales Discounts (if applicable)
+        if ($sale->total_discount > 0) {
+            $lines[] = [
+                'line_number' => $lineNumber++,
+                'account_id' => $discountAccount->id,
+                'debit_amount' => $sale->total_discount,
+                'credit_amount' => 0,
+                'description' => 'Discounts applied on sale '.$sale->sale_number,
+            ];
+        }
 
         // Calculate COGS based on cost price from stock
         $totalCOGS = $sale->items->sum(function ($item) {
@@ -58,16 +76,18 @@ class TransactionIntegrationService
         });
 
         if ($totalCOGS > 0) {
-            // Record COGS
+            // 4. DR COGS
             $lines[] = [
+                'line_number' => $lineNumber++,
                 'account_id' => $cogsAccount->id,
                 'debit_amount' => $totalCOGS,
                 'credit_amount' => 0,
                 'description' => 'Cost of goods sold for '.$sale->sale_number,
             ];
 
-            // Reduce inventory
+            // 5. CR Inventory
             $lines[] = [
+                'line_number' => $lineNumber++,
                 'account_id' => $inventoryAccount->id,
                 'debit_amount' => 0,
                 'credit_amount' => $totalCOGS,
@@ -163,9 +183,9 @@ class TransactionIntegrationService
         $lines = [
             [
                 'account_id' => $inventoryAccount->id,
-                'debit_amount' => $grn->total_amount,
+                'debit_amount' => $grn->total,
                 'credit_amount' => 0,
-                'description' => 'Inventory purchase from GRN '.$grn->grn_number,
+                'description' => 'Inventory purchase from GRN '.$grn->grn_number.($grn->discount > 0 ? ' (after '.number_format($grn->discount, 2).' LKR discount)' : ''),
             ],
         ];
 
@@ -174,14 +194,14 @@ class TransactionIntegrationService
             $lines[] = [
                 'account_id' => $accountsPayableAccount->id,
                 'debit_amount' => 0,
-                'credit_amount' => $grn->total_amount,
+                'credit_amount' => $grn->total,
                 'description' => 'Payable to supplier for GRN '.$grn->grn_number,
             ];
         } else {
             $lines[] = [
                 'account_id' => $cashAccount->id,
                 'debit_amount' => 0,
-                'credit_amount' => $grn->total_amount,
+                'credit_amount' => $grn->total,
                 'description' => 'Cash payment for GRN '.$grn->grn_number,
             ];
         }

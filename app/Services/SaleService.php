@@ -63,6 +63,8 @@ class SaleService
         return DB::transaction(function () use ($saleData, $cartItems, $creditTerms) {
             // Prepare items with stock allocation
             $processedItems = [];
+            $subtotalBeforeDiscount = 0;
+            $totalItemDiscounts = 0;
 
             foreach ($cartItems as $item) {
                 // Allocate stock using FIFO
@@ -77,22 +79,80 @@ class SaleService
 
                 // Process each allocation (may span multiple batches)
                 foreach ($allocations as $allocation) {
-                    $itemSubtotal = $allocation['quantity'] * $allocation['selling_price'];
+                    $unitPrice = $allocation['selling_price'];
+                    $lineSubtotalBeforeDiscount = $allocation['quantity'] * $unitPrice;
+                    $subtotalBeforeDiscount += $lineSubtotalBeforeDiscount;
+
+                    // Apply discount if present
+                    $discountData = [
+                        'discount_type' => 'none',
+                        'discount_value' => 0,
+                        'discount_amount' => 0,
+                        'discount_id' => null,
+                        'discount_approved_by' => null,
+                        'price_before_discount' => $unitPrice,
+                        'price' => $unitPrice,
+                        'subtotal_before_discount' => $lineSubtotalBeforeDiscount,
+                    ];
+
+                    if (isset($item['discount']) && $item['discount']['type'] !== 'none') {
+                        $discountData = array_merge($discountData, [
+                            'discount_type' => $item['discount']['type'],
+                            'discount_value' => $item['discount']['value'],
+                            'discount_amount' => $item['discount']['amount'],
+                            'discount_id' => $item['discount']['discount_id'] ?? null,
+                            'discount_approved_by' => $item['discount']['approved_by'] ?? null,
+                            'price' => $item['discount']['final_price'],
+                        ]);
+
+                        $totalItemDiscounts += $item['discount']['amount'];
+                    }
+
+                    // Calculate tax on discounted price
+                    $itemSubtotal = $discountData['price'] * $allocation['quantity'];
                     $itemTax = $itemSubtotal * ($allocation['tax'] / 100);
 
                     $processedItems[] = [
                         'product_id' => $item['product_id'],
                         'stock_id' => $allocation['stock_id'],
                         'quantity' => $allocation['quantity'],
-                        'price' => $allocation['selling_price'],
+                        'price' => $discountData['price'],
+                        'price_before_discount' => $discountData['price_before_discount'],
+                        'subtotal_before_discount' => $discountData['subtotal_before_discount'],
+                        'discount_type' => $discountData['discount_type'],
+                        'discount_value' => $discountData['discount_value'],
+                        'discount_amount' => $discountData['discount_amount'],
+                        'discount_id' => $discountData['discount_id'],
+                        'discount_approved_by' => $discountData['discount_approved_by'],
                         'tax' => round($itemTax, 2),
                         'total' => round($itemSubtotal + $itemTax, 2),
                     ];
                 }
             }
 
+            // Apply sale-level discount if present
+            $saleLevelDiscountAmount = 0;
+            $saleLevelDiscountType = 'none';
+            $saleLevelDiscountValue = 0;
+
+            if (isset($saleData['sale_discount']) && $saleData['sale_discount']['type'] !== 'none') {
+                $saleLevelDiscountType = $saleData['sale_discount']['type'];
+                $saleLevelDiscountValue = $saleData['sale_discount']['value'];
+
+                $subtotalAfterItemDiscounts = $subtotalBeforeDiscount - $totalItemDiscounts;
+
+                $saleLevelDiscountAmount = match ($saleLevelDiscountType) {
+                    'percentage' => ($subtotalAfterItemDiscounts * $saleLevelDiscountValue) / 100,
+                    'fixed_amount' => min($saleLevelDiscountValue, $subtotalAfterItemDiscounts),
+                    default => 0,
+                };
+            }
+
             // Calculate totals
+            $totalDiscount = $totalItemDiscounts + $saleLevelDiscountAmount;
             $totals = [
+                'subtotal_before_discount' => round($subtotalBeforeDiscount, 2),
+                'total_discount' => round($totalDiscount, 2),
                 'subtotal' => 0,
                 'tax' => 0,
                 'total' => 0,
@@ -104,9 +164,10 @@ class SaleService
                 $totals['total'] += $item['total'];
             }
 
-            $totals['subtotal'] = round($totals['subtotal'], 2);
+            // Apply sale-level discount to subtotal
+            $totals['subtotal'] = round($totals['subtotal'] - $saleLevelDiscountAmount, 2);
             $totals['tax'] = round($totals['tax'], 2);
-            $totals['total'] = round($totals['total'], 2);
+            $totals['total'] = round($totals['subtotal'] + $totals['tax'], 2);
 
             // Get active shift for the user
             $activeShift = $this->shiftService->getCurrentActiveShift($saleData['user_id']);
@@ -119,6 +180,11 @@ class SaleService
                 'shift_id' => $activeShift?->id,
                 'customer_name' => $saleData['customer_name'] ?? null,
                 'customer_phone' => $saleData['customer_phone'] ?? null,
+                'subtotal_before_discount' => $totals['subtotal_before_discount'],
+                'total_discount' => $totals['total_discount'],
+                'sale_level_discount_type' => $saleLevelDiscountType,
+                'sale_level_discount_value' => $saleLevelDiscountValue,
+                'sale_level_discount_amount' => $saleLevelDiscountAmount,
                 'subtotal' => $totals['subtotal'],
                 'tax' => $totals['tax'],
                 'total' => $totals['total'],
