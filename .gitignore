@@ -5,7 +5,9 @@
 .env.production
 .env.backup
 
-
+/.claude
+/Docs
+/Invoices
 .phpactor.json
 .phpunit.result.cache
 /.fleet
