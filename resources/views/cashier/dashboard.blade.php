@@ -549,6 +549,67 @@
                 this.$nextTick(() => {
                     document.querySelector('input[x-model="searchQuery"]')?.focus();
                 });
+                
+                // Add keyboard shortcuts for Clock In/Out
+                document.addEventListener('keydown', (e) => {
+                    @can('manage own shifts')
+                        // F11 - Open Clock In modal (when no active shift)
+                        if (e.key === 'F11') {
+                            e.preventDefault(); // Prevent default F11 behavior (fullscreen)
+                            
+                            if (!this.activeShift) {
+                                // No active shift - open Clock In modal
+                                this.showClockInModal = true;
+                                // Auto-focus on Opening Cash field after modal opens
+                                this.$nextTick(() => {
+                                    document.querySelector('input[x-model="openingCash"]')?.focus();
+                                });
+                            }
+                        }
+                        
+                        // F12 - Confirm Clock In (when Clock In modal is open)
+                        if (e.key === 'F12') {
+                            e.preventDefault(); // Prevent default F12 behavior
+                            
+                            if (this.showClockInModal) {
+                                this.clockIn();
+                            }
+                        }
+                        
+                        // F9 - Open Clock Out modal (when active shift exists)
+                        if (e.key === 'F9') {
+                            e.preventDefault(); // Prevent default F9 behavior
+                            
+                            if (this.activeShift) {
+                                // Active shift exists - open Clock Out modal
+                                this.showClockOutModal = true;
+                                // Auto-focus on Closing Cash field after modal opens
+                                this.$nextTick(() => {
+                                    document.querySelector('input[x-model="closingCash"]')?.focus();
+                                });
+                            }
+                        }
+                        
+                        // F10 - Confirm Clock Out (when Clock Out modal is open)
+                        if (e.key === 'F10') {
+                            e.preventDefault(); // Prevent default F10 behavior
+                            
+                            if (this.showClockOutModal) {
+                                this.clockOut();
+                            }
+                        }
+                    @endcan
+                    
+                    // F2 or Insert - Complete Sale and Print Directly (bypass tab opening)
+                    if (e.key === 'F2' || e.key === 'Insert') {
+                        e.preventDefault();
+                        
+                        // Only trigger if cart has items and payment is valid
+                        if (this.cart.length > 0 && !this.isProcessing) {
+                            this.completeSaleAndPrint();
+                        }
+                    }
+                });
             },
 
             async searchProducts() {
@@ -615,9 +676,13 @@
                 this.searchResults = [];
                 this.errorMessage = '';
 
-                // Refocus search input
+                // Auto-focus on Amount Received field for faster checkout
                 this.$nextTick(() => {
-                    document.querySelector('input[x-model="searchQuery"]')?.focus();
+                    const amountReceivedInput = document.querySelector('input[x-model="amountReceived"]');
+                    if (amountReceivedInput && this.paymentMethod === 'cash') {
+                        amountReceivedInput.focus();
+                        amountReceivedInput.select(); // Select existing value for easy override
+                    }
                 });
             },
 
@@ -709,6 +774,119 @@
                     this.cart = [];
                     this.calculateTotals();
                     this.errorMessage = '';
+                }
+            },
+
+            async completeSaleAndPrint() {
+                // This method completes the sale and directly prints without opening a new tab
+                // Validation
+                if (this.cart.length === 0) {
+                    this.errorMessage = 'Cart is empty. Add products to complete sale.';
+                    return;
+                }
+
+                if (!this.paymentMethod) {
+                    this.errorMessage = 'Please select a payment method.';
+                    return;
+                }
+
+                if (this.paymentMethod === 'cash' && this.amountReceived < this.totals.total) {
+                    this.errorMessage = 'Amount received is less than total amount.';
+                    return;
+                }
+
+                if (this.paymentMethod === 'credit') {
+                    if (!this.selectedCustomerId) {
+                        this.errorMessage = 'Please select a customer for credit sale.';
+                        return;
+                    }
+                    if (!this.creditTerms) {
+                        this.errorMessage = 'Please select credit terms.';
+                        return;
+                    }
+                }
+
+                this.isProcessing = true;
+                this.errorMessage = '';
+
+                try {
+                    const response = await fetch('{{ url('/sales') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            payment_method: this.paymentMethod,
+                            customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId : null,
+                            credit_terms: this.paymentMethod === 'credit' ? this.creditTerms : null,
+                            customer_name: this.customerName || null,
+                            customer_phone: this.customerPhone || null,
+                            amount_received: this.paymentMethod === 'cash' ? this.amountReceived : null,
+                            items: this.cart.map(item => ({
+                                product_id: item.id,
+                                quantity: item.quantity
+                            }))
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        // Success - fetch the receipt HTML and print directly
+                        const saleId = data.sale.id;
+                        
+                        // Fetch the receipt page
+                        const receiptResponse = await fetch(`{{ url('/sales') }}/${saleId}`);
+                        const receiptHtml = await receiptResponse.text();
+                        
+                        // Create a hidden iframe for printing
+                        const printFrame = document.createElement('iframe');
+                        printFrame.style.display = 'none';
+                        document.body.appendChild(printFrame);
+                        
+                        // Write the receipt HTML to the iframe
+                        printFrame.contentDocument.open();
+                        printFrame.contentDocument.write(receiptHtml);
+                        printFrame.contentDocument.close();
+                        
+                        // Wait for content to load, then print
+                        printFrame.onload = () => {
+                            setTimeout(() => {
+                                printFrame.contentWindow.print();
+                                
+                                // Clean up after printing
+                                setTimeout(() => {
+                                    document.body.removeChild(printFrame);
+                                    
+                                    // Reset the cart and form
+                                    this.cart = [];
+                                    this.customerName = '';
+                                    this.customerPhone = '';
+                                    this.amountReceived = 0;
+                                    this.selectedCustomerId = '';
+                                    this.creditTerms = '';
+                                    this.calculateTotals();
+                                    
+                                    // Show success message
+                                    toastr.success('Sale completed and sent to printer!');
+                                    
+                                    // Refocus on search
+                                    this.$nextTick(() => {
+                                        document.querySelector('input[x-model="searchQuery"]')?.focus();
+                                    });
+                                }, 1000);
+                            }, 500);
+                        };
+                    } else {
+                        this.errorMessage = data.message || 'Error processing sale. Please try again.';
+                    }
+                } catch (error) {
+                    console.error('Sale error:', error);
+                    this.errorMessage = 'Error processing sale. Please try again.';
+                } finally {
+                    this.isProcessing = false;
                 }
             },
 
