@@ -75,6 +75,7 @@
                         <th class="text-left py-2 text-gray-700 dark:text-gray-300">Product</th>
                         <th class="text-center py-2 text-gray-700 dark:text-gray-300">Qty</th>
                         <th class="text-right py-2 text-gray-700 dark:text-gray-300">Price</th>
+                        <th class="text-right py-2 text-gray-700 dark:text-gray-300">Disc</th>
                         <th class="text-right py-2 text-gray-700 dark:text-gray-300">Total</th>
                     </tr>
                 </thead>
@@ -83,7 +84,21 @@
                     <tr class="border-b border-gray-200 dark:border-gray-700">
                         <td class="py-3">{{ $item->product->product_name }}</td>
                         <td class="py-3 text-center">{{ $item->quantity }}</td>
-                        <td class="py-3 text-right">{{ number_format($item->price, 2) }}</td>
+                        <td class="py-3 text-right">
+                            @if($item->hasDiscount())
+                                <span class="line-through text-gray-500 dark:text-gray-400 text-xs">{{ number_format($item->price_before_discount, 2) }}</span><br>
+                                <span class="text-green-600 dark:text-green-400">{{ number_format($item->price, 2) }}</span>
+                            @else
+                                {{ number_format($item->price, 2) }}
+                            @endif
+                        </td>
+                        <td class="py-3 text-right text-green-600 dark:text-green-400 text-sm">
+                            @if($item->hasDiscount())
+                                -{{ number_format($item->discount_amount, 2) }}
+                            @else
+                                -
+                            @endif
+                        </td>
                         <td class="py-3 text-right font-medium">{{ number_format($item->total, 2) }}</td>
                     </tr>
                     @endforeach
@@ -95,8 +110,14 @@
         <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 space-y-2">
             <div class="flex justify-between text-gray-700 dark:text-gray-300">
                 <span>Subtotal:</span>
-                <span class="font-medium">{{ number_format($sale->subtotal, 2) }}</span>
+                <span class="font-medium">{{ number_format($sale->subtotal_before_discount, 2) }}</span>
             </div>
+            @if($sale->total_discount > 0)
+            <div class="flex justify-between text-green-600 dark:text-green-400">
+                <span>Total Discount:</span>
+                <span class="font-medium">-{{ number_format($sale->total_discount, 2) }}</span>
+            </div>
+            @endif
             <div class="flex justify-between text-gray-700 dark:text-gray-300">
                 <span>Tax:</span>
                 <span class="font-medium">{{ number_format($sale->tax, 2) }}</span>
@@ -105,6 +126,11 @@
                 <span>Total:</span>
                 <span class="text-gray-900 dark:text-white font-bold">{{ number_format($sale->total, 2) }}</span>
             </div>
+            @if($sale->total_discount > 0)
+            <div class="text-center text-green-600 dark:text-green-400 text-sm font-medium pt-2">
+                You saved LKR {{ number_format($sale->total_discount, 2) }}!
+            </div>
+            @endif
         </div>
 
         <!-- Footer -->

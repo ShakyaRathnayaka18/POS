@@ -81,7 +81,10 @@
       "mcp__laravel-boost__tinker",
       "mcp__laravel-boost__database-schema",
       "mcp__filesystem__read_text_file",
-      "mcp__filesystem__write_file"
+      "mcp__filesystem__write_file",
+      "Bash(start powershell -Command \"ssh -L 3307:localhost:3306 root@84.247.167.199 -N\")",
+      "Bash(python:*)",
+      "Bash(wc:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

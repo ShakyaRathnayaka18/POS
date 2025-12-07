@@ -94,6 +94,7 @@
                             <th class="px-4 py-3 border-b dark:border-gray-600">Product</th>
                             <th class="px-4 py-3 border-b dark:border-gray-600 text-right">Price</th>
                             <th class="px-4 py-3 border-b dark:border-gray-600 text-center">Qty</th>
+                            <th class="px-4 py-3 border-b dark:border-gray-600 text-center">Discount</th>
                             <th class="px-4 py-3 border-b dark:border-gray-600 text-right">Total</th>
                             <th class="px-4 py-3 border-b dark:border-gray-600 text-center">Action</th>
                         </tr>
@@ -132,6 +133,28 @@
                                     </div>
                                     <div class="text-xs text-center text-gray-500 mt-1" x-text="item.base_unit || item.unit || 'pcs'"></div>
                                 </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <select x-model="item.discountType"
+                                                @change="applyDiscount(index)"
+                                                class="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs dark:bg-gray-700 dark:text-white">
+                                            <option value="none">None</option>
+                                            <option value="percentage">%</option>
+                                            <option value="fixed_amount">LKR</option>
+                                        </select>
+                                        <input type="number"
+                                               x-model.number="item.discountValue"
+                                               @input="applyDiscount(index)"
+                                               :disabled="item.discountType === 'none'"
+                                               min="0"
+                                               step="0.01"
+                                               class="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-xs dark:bg-gray-700 dark:text-white"
+                                               placeholder="0">
+                                    </div>
+                                    <div x-show="item.discountAmount > 0" class="text-xs text-green-600 dark:text-green-400 mt-1 text-center">
+                                        -LKR <span x-text="item.discountAmount.toFixed(2)"></span>
+                                    </div>
+                                </td>
                                 <td class="px-4 py-3 text-right font-bold text-gray-900 dark:text-white">
                                     <span x-text="calculateItemTotal(item).toFixed(2)"></span>
                                 </td>
@@ -143,7 +166,7 @@
                             </tr>
                         </template>
                         <tr x-show="cart.length === 0">
-                            <td colspan="6" class="py-12 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="7" class="py-12 text-center text-gray-500 dark:text-gray-400">
                                 <i class="fas fa-shopping-cart text-5xl mb-4 text-gray-300 dark:text-gray-600 block"></i>
                                 <p class="text-lg">Cart is empty</p>
                                 <p class="text-sm">Search and add products to get started</p>
@@ -223,6 +246,10 @@
                     <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
                     <span class="font-medium dark:text-white" x-text="'LKR ' + totals.subtotal.toFixed(2)"></span>
                 </div>
+                <div x-show="totals.discount > 0" class="flex justify-between text-sm text-green-600 dark:text-green-400">
+                    <span>Discount:</span>
+                    <span class="font-medium">- LKR <span x-text="totals.discount.toFixed(2)"></span></span>
+                </div>
                 <div class="flex justify-between text-sm">
                     <span class="text-gray-600 dark:text-gray-400">Tax:</span>
                     <span class="font-medium dark:text-white" x-text="'LKR ' + totals.tax.toFixed(2)"></span>
@@ -231,6 +258,9 @@
                 <div class="flex justify-between text-lg font-bold">
                     <span class="dark:text-white">Total:</span>
                     <span class="text-green-600 dark:text-green-400" x-text="'LKR ' + totals.total.toFixed(2)"></span>
+                </div>
+                <div x-show="totals.discount > 0" class="text-xs text-center text-green-600 dark:text-green-400 pt-1">
+                    You saved LKR <span x-text="totals.discount.toFixed(2)"></span>!
                 </div>
             </div>
 
@@ -605,7 +635,12 @@
                     const initialQty = product.allow_decimal_sales ? 0.1 : 1;
                     this.cart.push({
                         ...product,
-                        quantity: initialQty
+                        quantity: initialQty,
+                        // Discount fields
+                        discountType: 'none',
+                        discountValue: 0,
+                        discountAmount: 0,
+                        originalPrice: product.selling_price
                     });
                     this.calculateTotals();
                 }
@@ -672,26 +707,59 @@
                 this.calculateTotals();
             },
 
+            applyDiscount(index) {
+                const item = this.cart[index];
+
+                if (item.discountType === 'none') {
+                    // Reset to original price
+                    item.discountAmount = 0;
+                    item.discountValue = 0;
+                } else {
+                    // Calculate discount
+                    const subtotal = item.quantity * item.originalPrice;
+                    let discountAmount = 0;
+
+                    if (item.discountType === 'percentage') {
+                        discountAmount = (subtotal * item.discountValue) / 100;
+                    } else if (item.discountType === 'fixed_amount') {
+                        discountAmount = Math.min(item.discountValue, subtotal);
+                    }
+
+                    item.discountAmount = discountAmount;
+                }
+
+                this.calculateTotals();
+            },
+
             calculateItemTotal(item) {
-                const subtotal = item.quantity * parseFloat(item.selling_price);
-                const tax = subtotal * (parseFloat(item.tax) / 100);
-                return subtotal + tax;
+                const originalSubtotal = item.quantity * parseFloat(item.originalPrice || item.selling_price);
+                const discountAmount = parseFloat(item.discountAmount || 0);
+                const subtotalAfterDiscount = originalSubtotal - discountAmount;
+                const tax = subtotalAfterDiscount * (parseFloat(item.tax) / 100);
+                return subtotalAfterDiscount + tax;
             },
 
             calculateTotals() {
                 let subtotal = 0;
                 let tax = 0;
+                let totalDiscount = 0;
 
                 this.cart.forEach(item => {
-                    const itemSubtotal = item.quantity * parseFloat(item.selling_price);
-                    const itemTax = itemSubtotal * (parseFloat(item.tax) / 100);
+                    const originalPrice = parseFloat(item.originalPrice || item.selling_price);
+                    const discountAmount = parseFloat(item.discountAmount || 0);
+                    const itemSubtotal = item.quantity * originalPrice;
+                    const itemSubtotalAfterDiscount = itemSubtotal - discountAmount;
+                    const itemTax = itemSubtotalAfterDiscount * (parseFloat(item.tax) / 100);
+
                     subtotal += itemSubtotal;
+                    totalDiscount += discountAmount;
                     tax += itemTax;
                 });
 
                 this.totals.subtotal = subtotal;
+                this.totals.discount = totalDiscount;
                 this.totals.tax = tax;
-                this.totals.total = subtotal + tax;
+                this.totals.total = (subtotal - totalDiscount) + tax;
 
                 this.calculateChange();
             },
@@ -760,7 +828,15 @@
                             amount_received: this.paymentMethod === 'cash' ? this.amountReceived : null,
                             items: this.cart.map(item => ({
                                 product_id: item.id,
-                                quantity: item.quantity
+                                quantity: item.quantity,
+                                discount: item.discountType !== 'none' ? {
+                                    type: item.discountType,
+                                    value: item.discountValue,
+                                    amount: item.discountAmount,
+                                    discount_id: null,
+                                    approved_by: null,
+                                    final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
+                                } : null
                             }))
                         })
                     });

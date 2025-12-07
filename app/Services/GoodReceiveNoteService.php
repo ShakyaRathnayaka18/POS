@@ -56,9 +56,12 @@ class GoodReceiveNoteService
         $costPerBaseUnit = $conversionFactor > 1
             ? $itemData['cost_price'] / $conversionFactor
             : $itemData['cost_price'];
-        $sellingPerBaseUnit = $conversionFactor > 1
-            ? $itemData['selling_price'] / $conversionFactor
-            : $itemData['selling_price'];
+
+        // Handle optional selling price
+        $sellingPrice = $itemData['selling_price'] ?? null;
+        $sellingPerBaseUnit = $sellingPrice
+            ? ($conversionFactor > 1 ? $sellingPrice / $conversionFactor : $sellingPrice)
+            : 0;
 
         return Stock::create([
             'product_id' => $itemData['product_id'],

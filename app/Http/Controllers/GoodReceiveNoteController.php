@@ -100,7 +100,7 @@ class GoodReceiveNoteController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.cost_price' => 'required|numeric|min:0',
-            'items.*.selling_price' => 'required|numeric|min:0',
+            'items.*.selling_price' => 'nullable|numeric|min:0',
             'items.*.tax' => 'nullable|numeric|min:0',
             'items.*.barcode' => 'nullable|string|unique:batches,barcode',
             'items.*.manufacture_date' => 'nullable|date',

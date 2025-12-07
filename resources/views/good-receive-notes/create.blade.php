@@ -232,7 +232,7 @@ function addItem() {
                         <select name="items[${itemIndex}][product_id]" required onchange="handleProductChange(${itemIndex}, this.value); updateCalculations();"
                             class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md product-select bg-white dark:bg-gray-600 text-gray-900 dark:text-white" id="product-select-${itemIndex}">
                             <option value="">Select Product</option>
-                            ${products.map(p => `<option value="${p.id}" data-vendor-code="${p.vendor_product_code}" data-base-unit="${p.base_unit || 'pcs'}" data-purchase-unit="${p.purchase_unit || ''}" data-conversion-factor="${p.conversion_factor || 1}">${p.product_name} (Vendor: ${p.vendor_product_code}, SKU: ${p.sku})</option>`).join('')}
+                            ${products.map(p => `<option value="${p.id}" data-vendor-code="${p.vendor_product_code}" data-base-unit="${p.base_unit || 'pcs'}" data-purchase-unit="${p.purchase_unit || ''}" data-conversion-factor="${p.conversion_factor || 1}">${p.product_name}</option>`).join('')}
                         </select>
                         <button type="button" onclick="openCreateProductModal(${itemIndex})"
                             class="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
@@ -261,9 +261,9 @@ function addItem() {
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Selling Price <span id="sell-unit-${itemIndex}" class="text-gray-500"></span> *
+                        Selling Price <span id="sell-unit-${itemIndex}" class="text-gray-500"></span>
                     </label>
-                    <input type="number" name="items[${itemIndex}][selling_price]" required min="0" step="0.01"
+                    <input type="number" name="items[${itemIndex}][selling_price]" min="0" step="0.01"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
                 </div>
                 <div>

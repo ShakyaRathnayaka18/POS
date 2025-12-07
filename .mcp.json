@@ -12,6 +12,18 @@
                 "DB_PASSWORD": "cmx3212"
             }
         },
+        "mysql-live": {
+            "type": "stdio",
+            "command": "E:\\mysql-mcp-server\\build\\index.js",
+            "args": [],
+            "env": {
+                "DB_HOST": "localhost",
+                "DB_PORT": "3307",
+                "DB_NAME": "vpos_hmart",
+                "DB_USER": "admin",
+                "DB_PASSWORD": "VertexCoreAI@2025"
+            }
+        },
          "filesystem": {
             "command": "node",
             "args": [
