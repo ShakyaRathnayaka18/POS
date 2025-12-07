@@ -80,6 +80,16 @@
             <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Summary</h2>
             <div class="space-y-3">
                 <div class="flex justify-between">
+                    <span class="font-medium text-gray-700 dark:text-gray-300">Subtotal Before Discount:</span>
+                    <span class="text-gray-900 dark:text-white">LKR {{ number_format($goodReceiveNote->subtotal_before_discount, 2) }}</span>
+                </div>
+                @if($goodReceiveNote->discount > 0)
+                <div class="flex justify-between bg-green-50 dark:bg-green-900/30 -mx-2 px-2 py-1 rounded">
+                    <span class="font-medium text-green-700 dark:text-green-300">Discount:</span>
+                    <span class="text-green-700 dark:text-green-300">- LKR {{ number_format($goodReceiveNote->discount, 2) }}</span>
+                </div>
+                @endif
+                <div class="flex justify-between">
                     <span class="font-medium text-gray-700 dark:text-gray-300">Subtotal:</span>
                     <span class="text-gray-900 dark:text-white">LKR {{ number_format($goodReceiveNote->subtotal, 2) }}</span>
                 </div>

@@ -183,9 +183,9 @@ class TransactionIntegrationService
         $lines = [
             [
                 'account_id' => $inventoryAccount->id,
-                'debit_amount' => $grn->total_amount,
+                'debit_amount' => $grn->total,
                 'credit_amount' => 0,
-                'description' => 'Inventory purchase from GRN '.$grn->grn_number,
+                'description' => 'Inventory purchase from GRN '.$grn->grn_number.($grn->discount > 0 ? ' (after '.number_format($grn->discount, 2).' LKR discount)' : ''),
             ],
         ];
 
@@ -194,14 +194,14 @@ class TransactionIntegrationService
             $lines[] = [
                 'account_id' => $accountsPayableAccount->id,
                 'debit_amount' => 0,
-                'credit_amount' => $grn->total_amount,
+                'credit_amount' => $grn->total,
                 'description' => 'Payable to supplier for GRN '.$grn->grn_number,
             ];
         } else {
             $lines[] = [
                 'account_id' => $cashAccount->id,
                 'debit_amount' => 0,
-                'credit_amount' => $grn->total_amount,
+                'credit_amount' => $grn->total,
                 'description' => 'Cash payment for GRN '.$grn->grn_number,
             ];
         }
