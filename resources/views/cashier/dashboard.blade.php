@@ -598,7 +598,7 @@
                         }
                         
                         // F12 - Confirm Clock In (when Clock In modal is open)
-                        if (e.key === 'F12') {
+                        if (e.key === 'Enter') {
                             e.preventDefault(); // Prevent default F12 behavior
                             
                             if (this.showClockInModal) {
@@ -621,7 +621,7 @@
                         }
                         
                         // F10 - Confirm Clock Out (when Clock Out modal is open)
-                        if (e.key === 'F10') {
+                        if (e.key === 'Enter') {
                             e.preventDefault(); // Prevent default F10 behavior
                             
                             if (this.showClockOutModal) {
@@ -713,11 +713,14 @@
 
                 // Auto-focus on Amount Received field for faster checkout
                 this.$nextTick(() => {
-                    const amountReceivedInput = document.querySelector('input[x-model="amountReceived"]');
-                    if (amountReceivedInput && this.paymentMethod === 'cash') {
-                        amountReceivedInput.focus();
-                        amountReceivedInput.select(); // Select existing value for easy override
-                    }
+                    // Add a small delay to ensure the field is fully rendered and visible
+                    setTimeout(() => {
+                        const amountReceivedInput = document.querySelector('input[x-model="amountReceived"]');
+                        if (amountReceivedInput) {
+                            amountReceivedInput.focus();
+                            amountReceivedInput.select(); // Select existing value for easy override
+                        }
+                    }, 100); // 100ms delay to ensure field is visible
                 });
             },
 
