@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('mobile')->nullable();
             $table->string('payment_terms')->nullable();
             $table->decimal('credit_limit', 15, 2)->nullable();
+            $table->decimal('current_credit_used', 15, 2)->default(0);
             $table->timestamps();
         });
     }
