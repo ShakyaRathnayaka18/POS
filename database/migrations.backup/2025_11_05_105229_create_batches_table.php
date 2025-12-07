@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
             $table->string('batch_number')->unique();
+            $table->string('barcode')->nullable()->unique();
             $table->foreignId('good_receive_note_id')->constrained('good_receive_notes')->onDelete('cascade');
             $table->date('manufacture_date')->nullable();
             $table->date('expiry_date')->nullable();

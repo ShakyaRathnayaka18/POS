@@ -15,10 +15,17 @@ return new class extends Migration
             $table->id();
             $table->string('sale_number')->unique();
             $table->foreignId('user_id')->constrained('users');
+            $table->unsignedBigInteger('shift_id')->nullable();
+            $table->string('customer_name')->nullable();
+            $table->string('customer_phone', 20)->nullable();
             $table->decimal('subtotal', 15, 2);
             $table->decimal('tax', 15, 2);
             $table->decimal('total', 15, 2);
+            $table->string('payment_method')->nullable();
+            $table->string('status')->default('Pending');
             $table->timestamps();
+
+            $table->index('shift_id');
         });
 
         Schema::create('sale_items', function (Blueprint $table) {

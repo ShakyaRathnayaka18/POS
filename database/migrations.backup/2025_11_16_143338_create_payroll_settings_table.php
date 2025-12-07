@@ -16,6 +16,9 @@ return new class extends Migration
             $table->decimal('ot_weekday_multiplier', 5, 2)->default(1.5);
             $table->decimal('ot_weekend_multiplier', 5, 2)->default(2.0);
             $table->decimal('daily_hours_threshold', 5, 2)->default(8.0);
+            $table->enum('ot_calculation_mode', ['multiplier', 'fixed_rate'])->default('multiplier');
+            $table->decimal('ot_weekday_fixed_rate', 10, 2)->nullable();
+            $table->decimal('ot_weekend_fixed_rate', 10, 2)->nullable();
             $table->decimal('epf_employee_percentage', 5, 2)->default(8.0);
             $table->decimal('epf_employer_percentage', 5, 2)->default(12.0);
             $table->decimal('etf_employer_percentage', 5, 2)->default(3.0);
