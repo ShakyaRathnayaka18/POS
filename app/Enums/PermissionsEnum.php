@@ -46,7 +46,9 @@ enum PermissionsEnum: string
 
     // Stock Management
     case VIEW_STOCKS = 'view stocks';
+    case VIEW_STOCK_IN = 'view stock in';
     case MANAGE_STOCK_IN = 'manage stock in';
+    case MANAGE_STOCK_ADJUSTMENTS = 'manage stock adjustments';
 
     // Sales (POS)
     case CREATE_SALES = 'create sales';
@@ -230,7 +232,9 @@ enum PermissionsEnum: string
             ],
             'Stock' => [
                 self::VIEW_STOCKS,
+                self::VIEW_STOCK_IN,
                 self::MANAGE_STOCK_IN,
+                self::MANAGE_STOCK_ADJUSTMENTS,
             ],
             'Sales' => [
                 self::CREATE_SALES,

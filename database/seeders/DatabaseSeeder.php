@@ -23,8 +23,8 @@ class DatabaseSeeder extends Seeder
         // Seed permissions and roles first
         $this->call([
             PermissionSeeder::class,
-            RoleSeeder::class,
-            UserSeeder::class,
+            // RoleSeeder::class,
+            // UserSeeder::class,
         ]);
 
         // Seed accounting data
