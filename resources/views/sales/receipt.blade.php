@@ -31,9 +31,8 @@
             <!-- Store Header -->
             <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
-                <p class="text-gray-600 dark:text-gray-800">No 09, Kandy Road, Hasalaka</p>
-                <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">Telephone - 055225706</p>
-                <!-- <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">Shop smart, save big</p> -->
+                <p class="text-gray-600 dark:text-gray-800">අංක 09, මහනුවර පාර, හසලක</p>
+                <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">දු.ක - 055225706</p>
             </div>
 
 
@@ -81,22 +80,25 @@
 
             <!-- Items Table -->
             <div class="mb-6">
-                <table class="w-full">
+                <table class="w-full items-table">
                     <thead class="border-b-2 border-gray-300 dark:border-gray-600">
                         <tr>
-                            <th class="text-left py-2 text-gray-700 dark:text-gray-300">නිෂ්පාදනය</th>
-                            <th class="text-center py-2 text-gray-700 dark:text-gray-300">ප්‍රමාණය</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300">මිල</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300">වට්ටම්</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300">එකතුව</th>
+                            <th class="text-left py-2 text-gray-700 dark:text-gray-300" style="width: 40%;">නිෂ්පාදනය</th>
+                            <th class="text-center py-2 text-gray-700 dark:text-gray-300" style="width: 12%;">ප්‍රමාණය</th>
+                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">මිල</th>
+                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">වට්ටම්</th>
+                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">එකතුව</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($sale->items as $item)
                             <tr class="border-b border-gray-200 dark:border-gray-700">
-                                <td class="py-3">{{ $item->product->product_name }}</td>
-                                <td class="py-3 text-center">{{ $item->quantity }}</td>
-                                <td class="py-3 text-right">
+                                <td class="py-3" style="width: 40%;">{{ $item->product->product_name }}</td>
+
+                                <td class="py-3 text-center" style="width: 12%;">{{ number_format($item->quantity, 0) }}
+                                </td>
+
+                                <td class="py-3 text-right" style="width: 16%;">
                                     @if ($item->hasDiscount())
                                         <span
                                             class="line-through text-gray-500 dark:text-gray-400 text-xs">{{ number_format($item->price_before_discount, 2) }}</span><br>
@@ -106,14 +108,17 @@
                                         {{ number_format($item->price, 2) }}
                                     @endif
                                 </td>
-                                <td class="py-3 text-right text-green-600 dark:text-green-400 text-sm">
+
+                                <td class="py-3 text-right text-green-600 dark:text-green-400 text-sm" style="width: 16%;">
                                     @if ($item->hasDiscount())
-                                        -{{ number_format($item->discount_amount, 2) }}
+                                        {{ number_format($item->discount_amount, 2) }}
                                     @else
-                                        -
+                                        0.00
                                     @endif
                                 </td>
-                                <td class="py-3 text-right font-medium">{{ number_format($item->total, 2) }}</td>
+
+                                <td class="py-3 text-right font-medium" style="width: 16%;">
+                                    {{ number_format($item->total, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -128,8 +133,8 @@
                 </div>
                 @if ($sale->total_discount > 0)
                     <div class="flex justify-between text-green-600 dark:text-green-400">
-                        <span>Total Discount:</span>
-                        <span class="font-medium">-{{ number_format($sale->total_discount, 2) }}</span>
+                        <span>ලබාදුන් වට්ටම:</span>
+                        <span class="font-medium">{{ number_format($sale->total_discount, 2) }}</span>
                     </div>
                 @endif
                 <div class="flex justify-between text-gray-700 dark:text-gray-300">
@@ -138,21 +143,30 @@
                 </div>
                 <div
                     class="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-2">
-                    <span>එකතුව:</span>
+                    <span>මුලු එකතුව:</span>
                     <span class="text-gray-900 dark:text-white font-bold">{{ number_format($sale->total, 2) }}</span>
                 </div>
-                @if ($sale->total_discount > 0)
-                    <div class="text-center text-green-600 dark:text-green-400 text-sm font-medium pt-2">
-                        You saved LKR {{ number_format($sale->total_discount, 2) }}!
+
+                {{-- 💰 CASH PAYMENT AND CHANGE SECTION 💰 --}}
+                @if ($sale->payment_method->value === 'cash')
+                    <div class="flex justify-between text-gray-700 dark:text-gray-300 pt-2">
+                        {{-- Amount Received (ගෙවූ මුදල) --}}
+                        <span>ගෙවූ මුදල:</span>
+                        <span class="font-medium">{{ number_format($sale->amount_received, 2) }}</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold text-blue-600 dark:text-blue-400">
+                        {{-- Change (ශේෂය) --}}
+                        <span>ශේෂය:</span>
+                        <span class="font-bold">{{ number_format($sale->change_amount, 2) }}</span>
                     </div>
                 @endif
+                {{-- END CASH SECTION --}}
             </div>
 
             <!-- Footer -->
-            <!-- Footer -->
             <div
                 class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-800">
-                <p class="mb-2">Thank you for shopping at H Mart</p>
+                <p class="mb-2">ස්තූතියි, නැවත එන්න -H Mart©</p>
 
                 <p class="text-xs mt-4">Powered by VertexCore AI | vertexcoreai.com</p>
 
@@ -227,6 +241,73 @@
 
             #receipt .border-t-2.pt-4 {
                 border-top: 2px solid black !important;
+            }
+
+            /* ===== FIX COLUMN ALIGNMENT ===== */
+            /* Force table layout to be fixed */
+            .items-table {
+                table-layout: fixed !important;
+                width: 100% !important;
+            }
+
+            /* Define exact column widths for headers */
+            .items-table thead th:nth-child(1) {
+                width: 40% !important;
+                text-align: left !important;
+            }
+
+            .items-table thead th:nth-child(2) {
+                width: 12% !important;
+                text-align: center !important;
+            }
+
+            .items-table thead th:nth-child(3) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            .items-table thead th:nth-child(4) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            .items-table thead th:nth-child(5) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            /* Define exact column widths for body cells - MUST match headers */
+            .items-table tbody td:nth-child(1) {
+                width: 40% !important;
+                text-align: left !important;
+            }
+
+            .items-table tbody td:nth-child(2) {
+                width: 12% !important;
+                text-align: center !important;
+            }
+
+            .items-table tbody td:nth-child(3) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            .items-table tbody td:nth-child(4) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            .items-table tbody td:nth-child(5) {
+                width: 16% !important;
+                text-align: right !important;
+            }
+
+            /* Remove all padding/margin inconsistencies */
+            .items-table th,
+            .items-table td {
+                padding: 4px 2px !important;
+                margin: 0 !important;
+                word-wrap: break-word !important;
             }
         }
     </style>

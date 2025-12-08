@@ -29,7 +29,7 @@ class SaleService
         $lastNumber = (int) substr($lastSale->sale_number, 5);
         $newNumber = $lastNumber + 1;
 
-        return 'SALE-'.str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+        return 'SALE-' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -189,6 +189,8 @@ class SaleService
                 'tax' => $totals['tax'],
                 'total' => $totals['total'],
                 'payment_method' => $saleData['payment_method'],
+                'amount_received' => $saleData['amount_received'] ?? 0,
+                'change_amount' => $saleData['change_amount'] ?? 0,
                 'status' => 'Completed',
             ]);
 
@@ -223,7 +225,7 @@ class SaleService
                 try {
                     app(\App\Services\TransactionIntegrationService::class)->createSaleJournalEntry($sale);
                 } catch (Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Failed to create journal entry for sale: '.$e->getMessage(), [
+                    \Illuminate\Support\Facades\Log::error('Failed to create journal entry for sale: ' . $e->getMessage(), [
                         'sale_id' => $sale->id,
                         'sale_number' => $sale->sale_number,
                     ]);
