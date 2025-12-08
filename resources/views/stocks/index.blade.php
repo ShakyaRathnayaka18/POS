@@ -223,7 +223,7 @@
         <!-- Edit Stock Modal -->
         <div id="editStockModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-gray-900 bg-opacity-50">
             <div class="flex items-center justify-center min-h-screen px-4">
-                <div class="relative w-full max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl">
+                <div class="relative w-full max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-xl">
                     <!-- Modal Header -->
                     <div class="flex items-center justify-between p-5 border-b border-gray-200 dark:border-gray-700">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
@@ -241,106 +241,99 @@
                         @method('PATCH')
 
                         <div class="p-6 space-y-4">
-                            <div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                    Product: <span id="modalProductName"
-                                        class="font-semibold text-gray-900 dark:text-white"></span>
+                            <!-- Product Name -->
+                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md p-3">
+                                <p class="text-sm text-blue-800 dark:text-blue-300">
+                                    <i class="fas fa-box mr-2"></i>Product: <span id="modalProductName" class="font-semibold"></span>
                                 </p>
                             </div>
 
-                            <div>
-                                <label for="cost_price"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Cost Price (LKR) *
-                                </label>
-                                <input type="number" id="cost_price" name="cost_price" required min="0"
-                                    step="0.01"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <!-- Price Fields -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="cost_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Cost Price (LKR) <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" id="cost_price" name="cost_price" required min="0" step="0.01"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
+
+                                <div>
+                                    <label for="selling_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Selling Price (LKR) <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" id="selling_price" name="selling_price" required min="0" step="0.01"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                </div>
                             </div>
 
+                            <!-- Barcode Field -->
                             <div>
-                                <label for="selling_price"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Selling Price (LKR) *
-                                </label>
-                                <input type="number" id="selling_price" name="selling_price" required min="0"
-                                    step="0.01"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            </div>
-
-                            <div>
-                                <label for="barcode"
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="barcode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Batch Barcode
                                 </label>
                                 <input type="text" id="barcode" name="barcode" maxlength="255"
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono">
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional: Leave empty to remove
-                                    barcode</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional: Leave empty to remove barcode</p>
                             </div>
 
-                            <div
-                                class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
+                            <!-- Divider -->
+                            <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
+                                <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                    <i class="fas fa-adjust mr-2"></i>Quantity Adjustment (Optional)
+                                </h4>
+
+                                <!-- Adjustment Fields -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="quantity_adjustment" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Adjustment Quantity
+                                        </label>
+                                        <input type="number" id="quantity_adjustment" name="quantity_adjustment" step="0.0001"
+                                            placeholder="Enter positive or negative value"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                            Positive to increase, negative to decrease
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label for="adjustment_reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Reason <span class="text-red-500" id="reason_required" style="display: none;">*</span>
+                                        </label>
+                                        <select id="adjustment_reason" name="adjustment_reason"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                            <option value="">Select reason...</option>
+                                            <option value="Damage">Damage</option>
+                                            <option value="Theft/Loss">Theft/Loss</option>
+                                            <option value="Recount">Physical Recount</option>
+                                            <option value="Return to Supplier">Return to Supplier</option>
+                                            <option value="Found Item">Found Item</option>
+                                            <option value="Expired">Expired</option>
+                                            <option value="Other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Notes Field -->
+                                <div class="mt-4">
+                                    <label for="adjustment_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Notes (Optional)
+                                    </label>
+                                    <textarea id="adjustment_notes" name="adjustment_notes" rows="2" maxlength="1000"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        placeholder="Additional notes about this adjustment..."></textarea>
+                                </div>
+                            </div>
+
+                            <!-- Info Message -->
+                            <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
                                 <p class="text-xs text-yellow-800 dark:text-yellow-300">
                                     <i class="fas fa-info-circle mr-1"></i>
-                                    Changes will be logged in the batch and GRN records for audit purposes.
+                                    Price/barcode changes will be logged in GRN records. Quantity adjustments will be tracked separately in the Stock Adjustments panel.
                                 </p>
                             </div>
                         </div>
-                        <!-- Quantity Adjustment Section -->
-                        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4 col-span-2">
-                            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                <i class="fas fa-adjust mr-2"></i>Quantity Adjustment (Optional)
-                            </h4>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="quantity_adjustment" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Adjustment Quantity
-                                    </label>
-                                    <input type="number" id="quantity_adjustment" name="quantity_adjustment" step="0.0001"
-                                        placeholder="Enter positive or negative value"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        Positive to increase, negative to decrease
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <label for="adjustment_reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Reason <span class="text-red-500" id="reason_required" style="display: none;">*</span>
-                                    </label>
-                                    <select id="adjustment_reason" name="adjustment_reason"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                        <option value="">Select reason...</option>
-                                        <option value="Damage">Damage</option>
-                                        <option value="Theft/Loss">Theft/Loss</option>
-                                        <option value="Recount">Physical Recount</option>
-                                        <option value="Return to Supplier">Return to Supplier</option>
-                                        <option value="Found Item">Found Item</option>
-                                        <option value="Expired">Expired</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div class="mt-3">
-                                <label for="adjustment_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Notes (Optional)
-                                </label>
-                                <textarea id="adjustment_notes" name="adjustment_notes" rows="2" maxlength="1000"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                    placeholder="Additional notes about this adjustment..."></textarea>
-                            </div>
-                        </div>
-
-                        <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3 col-span-2">
-                            <p class="text-xs text-yellow-800 dark:text-yellow-300">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Price/barcode changes will be logged in GRN records. Quantity adjustments will be tracked separately in the Stock Adjustments panel.
-                            </p>
-                        </div>
-                    </div>
 
                         <!-- Modal Footer -->
                         <div class="flex items-center justify-end gap-3 p-5 border-t border-gray-200 dark:border-gray-700">
