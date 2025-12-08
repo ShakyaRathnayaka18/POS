@@ -361,20 +361,15 @@
 
     <script>
         function openEditModal(stockId, costPrice, sellingPrice, barcode, productName) {
+            // Check if this is a FOC stock
+            if (parseFloat(costPrice) === 0) {
+                alert('FOC (Free of Charge) stocks cannot be edited. Only paid stocks can be modified.');
+                return;
+            }
+
             // Set form action URL
             const form = document.getElementById('editStockForm');
-            form.action = `/stocks/${stockId}`;
-<script>
-function openEditModal(stockId, costPrice, sellingPrice, barcode, productName) {
-    // Check if this is a FOC stock
-    if (parseFloat(costPrice) === 0) {
-        alert('FOC (Free of Charge) stocks cannot be edited. Only paid stocks can be modified.');
-        return;
-    }
-
-    // Set form action URL
-    const form = document.getElementById('editStockForm');
-    form.action = "{{ url('stocks') }}/" + stockId;
+            form.action = "{{ url('stocks') }}/" + stockId;
 
             // Populate form fields
             document.getElementById('cost_price').value = costPrice;
