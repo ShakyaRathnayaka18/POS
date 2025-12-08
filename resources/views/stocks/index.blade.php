@@ -512,35 +512,28 @@ function openEditModal(stockId, costPrice, sellingPrice, barcode, productName) {
                 closeEditModal();
             }
         });
+
+        // Validate quantity adjustment requires reason
+        document.getElementById('editStockForm').addEventListener('submit', function(e) {
+            const adjustment = document.getElementById('quantity_adjustment').value;
+            const reason = document.getElementById('adjustment_reason').value;
+
+            if (adjustment && adjustment != 0 && !reason) {
+                e.preventDefault();
+                alert('Please select a reason for the quantity adjustment');
+                document.getElementById('adjustment_reason').focus();
+                return false;
+            }
+        });
+
+        // Show/hide required indicator on reason field
+        document.getElementById('quantity_adjustment').addEventListener('input', function(e) {
+            const reasonRequired = document.getElementById('reason_required');
+            if (e.target.value && e.target.value != 0) {
+                reasonRequired.style.display = 'inline';
+            } else {
+                reasonRequired.style.display = 'none';
+            }
+        });
     </script>
-// Close modal with Escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeEditModal();
-    }
-});
-
-// Validate quantity adjustment requires reason
-document.getElementById('editStockForm').addEventListener('submit', function(e) {
-    const adjustment = document.getElementById('quantity_adjustment').value;
-    const reason = document.getElementById('adjustment_reason').value;
-
-    if (adjustment && adjustment != 0 && !reason) {
-        e.preventDefault();
-        alert('Please select a reason for the quantity adjustment');
-        document.getElementById('adjustment_reason').focus();
-        return false;
-    }
-});
-
-// Show/hide required indicator on reason field
-document.getElementById('quantity_adjustment').addEventListener('input', function(e) {
-    const reasonRequired = document.getElementById('reason_required');
-    if (e.target.value && e.target.value != 0) {
-        reasonRequired.style.display = 'inline';
-    } else {
-        reasonRequired.style.display = 'none';
-    }
-});
-</script>
 @endsection
