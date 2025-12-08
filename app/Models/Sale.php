@@ -27,6 +27,9 @@ class Sale extends Model
         'sale_level_discount_type',
         'sale_level_discount_value',
         'sale_level_discount_amount',
+
+        'amount_received',
+        'change_amount',
     ];
 
     protected function casts(): array
@@ -37,6 +40,9 @@ class Sale extends Model
             'total_discount' => 'decimal:2',
             'sale_level_discount_value' => 'decimal:2',
             'sale_level_discount_amount' => 'decimal:2',
+
+            'amount_received' => 'decimal:2',
+            'change_amount' => 'decimal:2',
         ];
     }
 

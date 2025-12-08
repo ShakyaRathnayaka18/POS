@@ -74,6 +74,11 @@ class SaleController extends Controller
                 'sale_discount' => $request->sale_discount ?? null,
             ];
 
+            if (strtolower($request->payment_method) === 'cash') {
+                $saleData['amount_received'] = $request->input('amountReceived');
+                $saleData['change_amount'] = $request->input('changeAmount');
+            }
+
             $sale = $this->saleService->processSale($saleData, $request->items, $request->credit_terms);
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -84,6 +89,9 @@ class SaleController extends Controller
                         'id' => $sale->id,
                         'sale_number' => $sale->sale_number,
                         'total' => $sale->total,
+
+                        'amount_received' => $sale->amount_received,
+                        'change_amount' => $sale->change_amount,
                     ],
                 ]);
             }

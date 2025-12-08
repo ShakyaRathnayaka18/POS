@@ -486,10 +486,18 @@ function loadSupplierCreditInfo() {
         .then(data => {
             supplierCreditInfo = data;
             document.getElementById('supplierName').textContent = data.company_name + "'s";
-            document.getElementById('creditLimit').textContent = parseFloat(data.credit_limit).toFixed(2);
-            document.getElementById('currentUsed').textContent = parseFloat(data.current_credit_used).toFixed(2);
-            document.getElementById('availableCredit').textContent = parseFloat(data.available_credit).toFixed(2);
+            document.getElementById('creditLimit').textContent = parseFloat(data.credit_limit || 0).toFixed(2);
+            document.getElementById('currentUsed').textContent = parseFloat(data.current_credit_used || 0).toFixed(2);
+            document.getElementById('availableCredit').textContent = parseFloat(data.available_credit || 0).toFixed(2);
             document.getElementById('creditWarning').classList.remove('hidden');
+
+            // Handle zero credit limit - Just show warning, don't disable
+            const creditLimit = parseFloat(data.credit_limit || 0);
+
+            if (creditLimit <= 0) {
+                 // warning handled by checkCreditLimit
+            }
+
             checkCreditLimit();
         })
         .catch(error => {
@@ -502,21 +510,26 @@ function loadSupplierCreditInfo() {
 function checkCreditLimit() {
     if (!supplierCreditInfo) return;
 
-    const total = parseFloat(document.getElementById('totalDisplay').textContent);
+    const total = parseFloat(document.getElementById('totalDisplay').textContent.replace(/,/g, '')) || 0;
     const availableCredit = parseFloat(supplierCreditInfo.available_credit);
+    const creditLimit = parseFloat(supplierCreditInfo.credit_limit || 0);
     const warningElement = document.getElementById('creditExceededWarning');
 
-    if (total > availableCredit) {
+    if (creditLimit <= 0) {
+        warningElement.innerHTML = '<i class="fas fa-ban mr-1"></i>Credit facility not available (Limit is 0.00)';
         warningElement.classList.remove('hidden');
+        warningElement.className = 'mt-2 text-red-600 dark:text-red-400 font-semibold'; // Ensure red color
+    } else if (total > availableCredit) {
+        warningElement.innerHTML = '<i class="fas fa-times-circle mr-1"></i>Warning: This purchase exceeds available credit!';
+        warningElement.classList.remove('hidden');
+        warningElement.className = 'mt-2 text-red-600 dark:text-red-400 font-semibold';
     } else {
         warningElement.classList.add('hidden');
     }
 }
 
-// Add first item on page load
-document.addEventListener('DOMContentLoaded', function() {
-    addItem();
-});
+// Note: Items are added manually by clicking "Add Item" button after selecting a supplier
+// This prevents validation errors when no supplier is selected yet
 
 // Product creation modal
 let currentItemIndexForNewProduct = null;
