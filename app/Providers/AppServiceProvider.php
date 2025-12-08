@@ -2,17 +2,19 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\URL;
 use App\Models\Expense;
 use App\Models\GoodReceiveNote;
 use App\Models\PayrollPeriod;
 use App\Models\Sale;
+use App\Models\StockAdjustment;
 use App\Models\SupplierPayment;
 use App\Observers\ExpenseObserver;
 use App\Observers\GoodReceiveNoteObserver;
 use App\Observers\PayrollPeriodObserver;
 use App\Observers\SaleObserver;
+use App\Observers\StockAdjustmentObserver;
 use App\Observers\SupplierPaymentObserver;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -43,5 +45,6 @@ class AppServiceProvider extends ServiceProvider
         Expense::observe(ExpenseObserver::class);
         SupplierPayment::observe(SupplierPaymentObserver::class);
         PayrollPeriod::observe(PayrollPeriodObserver::class);
+        StockAdjustment::observe(StockAdjustmentObserver::class);
     }
 }

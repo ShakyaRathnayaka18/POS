@@ -84,7 +84,9 @@
       "mcp__filesystem__write_file",
       "Bash(start powershell -Command \"ssh -L 3307:localhost:3306 root@84.247.167.199 -N\")",
       "Bash(python:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(ls:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

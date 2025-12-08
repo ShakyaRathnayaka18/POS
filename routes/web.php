@@ -16,6 +16,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\SavedCartController;
 use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\StockAdjustmentController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierReturnController;
@@ -185,6 +186,22 @@ Route::middleware(['auth'])->group(function () {
             ->name('stocks.update-barcode');
         Route::patch('stocks/{stock}', [StockController::class, 'update'])
             ->name('stocks.update');
+    });
+
+    // Stock Adjustment routes - requires manage stock adjustments permission
+    Route::middleware(['permission:manage stock adjustments'])->group(function () {
+        Route::get('/stock-adjustments', [StockAdjustmentController::class, 'index'])
+            ->name('stock-adjustments.index');
+        Route::get('/stock-adjustments/create', [StockAdjustmentController::class, 'create'])
+            ->name('stock-adjustments.create');
+        Route::post('/stock-adjustments', [StockAdjustmentController::class, 'store'])
+            ->name('stock-adjustments.store');
+        Route::get('/stock-adjustments/{stockAdjustment}', [StockAdjustmentController::class, 'show'])
+            ->name('stock-adjustments.show');
+        Route::post('/stock-adjustments/{stockAdjustment}/approve', [StockAdjustmentController::class, 'approve'])
+            ->name('stock-adjustments.approve');
+        Route::post('/stock-adjustments/{stockAdjustment}/reject', [StockAdjustmentController::class, 'reject'])
+            ->name('stock-adjustments.reject');
     });
 
     // Stock In routes - requires view stock in permission

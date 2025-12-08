@@ -9,6 +9,7 @@ use App\Models\GoodReceiveNote;
 use App\Models\PayrollPeriod;
 use App\Models\Sale;
 use App\Models\SaleReturn;
+use App\Models\StockAdjustment;
 use App\Models\SupplierPayment;
 
 class TransactionIntegrationService
@@ -461,5 +462,72 @@ class TransactionIntegrationService
         };
 
         return Account::where('account_code', $accountCode)->firstOrFail();
+    }
+
+    /**
+     * Create journal entry for stock adjustment
+     *
+     * Increase: Dr Inventory / Cr Inventory Gain
+     * Decrease: Dr Inventory Loss / Cr Inventory
+     */
+    public function createStockAdjustmentJournalEntry(StockAdjustment $adjustment): void
+    {
+        $inventoryAccount = Account::where('account_code', '1300')->firstOrFail();
+
+        $lines = [];
+
+        if ($adjustment->isIncrease()) {
+            // Inventory increase
+            // Dr. Inventory (1300) / Cr. Inventory Gain (1310)
+            $gainAccount = Account::where('account_code', '1310')->firstOrFail();
+
+            $lines = [
+                [
+                    'account_id' => $inventoryAccount->id,
+                    'debit_amount' => $adjustment->total_value,
+                    'credit_amount' => 0,
+                    'description' => "Inventory increase - {$adjustment->product->product_name}",
+                    'line_number' => 1,
+                ],
+                [
+                    'account_id' => $gainAccount->id,
+                    'debit_amount' => 0,
+                    'credit_amount' => $adjustment->total_value,
+                    'description' => "Adjustment gain - {$adjustment->reason}",
+                    'line_number' => 2,
+                ],
+            ];
+        } else {
+            // Inventory decrease
+            // Dr. Inventory Loss (7100) / Cr. Inventory (1300)
+            $lossAccount = Account::where('account_code', '7100')->firstOrFail();
+
+            $lines = [
+                [
+                    'account_id' => $lossAccount->id,
+                    'debit_amount' => $adjustment->total_value,
+                    'credit_amount' => 0,
+                    'description' => "Inventory loss - {$adjustment->product->product_name} ({$adjustment->reason})",
+                    'line_number' => 1,
+                ],
+                [
+                    'account_id' => $inventoryAccount->id,
+                    'debit_amount' => 0,
+                    'credit_amount' => $adjustment->total_value,
+                    'description' => 'Inventory reduction',
+                    'line_number' => 2,
+                ],
+            ];
+        }
+
+        $journalEntry = $this->journalEntryService->createJournalEntry([
+            'entry_date' => $adjustment->adjustment_date,
+            'description' => "Stock adjustment {$adjustment->type} - {$adjustment->adjustment_number} ({$adjustment->reason})",
+            'reference_type' => StockAdjustment::class,
+            'reference_id' => $adjustment->id,
+            'lines' => $lines,
+        ]);
+
+        $this->journalEntryService->postJournalEntry($journalEntry);
     }
 }

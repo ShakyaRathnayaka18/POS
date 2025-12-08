@@ -11,13 +11,15 @@ class StockService
 {
     /**
      * Get available stock for a product using FIFO (First In First Out).
+     * Prioritizes FOC (Free of Charge) stock first to maximize profit.
      */
     public function getAvailableStockFIFO(int $productId, float $requestedQuantity): Collection
     {
         return Stock::where('product_id', $productId)
             ->where('available_quantity', '>', 0)
             ->with('batch')
-            ->orderBy('created_at', 'asc')
+            ->orderBy('cost_price', 'asc') // FOC (cost_price = 0) first
+            ->orderBy('created_at', 'asc') // Then FIFO within same cost type
             ->get()
             ->filter(function ($stock) use (&$requestedQuantity) {
                 if ($requestedQuantity <= 0) {

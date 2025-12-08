@@ -36,4 +36,33 @@ class Stock extends Model
     {
         return $this->belongsTo(Batch::class);
     }
+
+    /**
+     * Check if this stock is FOC (Free of Charge).
+     */
+    public function isFoc(): bool
+    {
+        return $this->cost_price == 0;
+    }
+
+    /**
+     * Scope a query to only include FOC stocks.
+     */
+    public function scopeFoc($query)
+    {
+        return $query->where('cost_price', 0);
+    }
+
+    /**
+     * Scope a query to only include non-FOC stocks.
+     */
+    public function scopeNonFoc($query)
+    {
+        return $query->where('cost_price', '>', 0);
+    }
+
+    public function adjustments()
+    {
+        return $this->hasMany(StockAdjustment::class);
+    }
 }

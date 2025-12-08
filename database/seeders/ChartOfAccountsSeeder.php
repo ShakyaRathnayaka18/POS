@@ -67,6 +67,14 @@ class ChartOfAccountsSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'account_code' => '1310',
+                'account_name' => 'Inventory Adjustment Gain',
+                'account_type_id' => $assetType->id,
+                'parent_account_id' => null,
+                'description' => 'Inventory increases from recounts or found items',
+                'is_active' => true,
+            ],
+            [
                 'account_code' => '1500',
                 'account_name' => 'Fixed Assets',
                 'account_type_id' => $assetType->id,
@@ -268,6 +276,14 @@ class ChartOfAccountsSeeder extends Seeder
                 'description' => 'Other operating expenses',
                 'is_active' => true,
             ],
+            [
+                'account_code' => '7100',
+                'account_name' => 'Inventory Loss/Shrinkage',
+                'account_type_id' => $expenseType->id,
+                'parent_account_id' => null,
+                'description' => 'Loss of inventory due to damage, theft, or obsolescence',
+                'is_active' => true,
+            ],
         ];
 
         foreach ($accounts as $accountData) {
@@ -286,6 +302,7 @@ class ChartOfAccountsSeeder extends Seeder
             '1100' => '1000', // Cash and Cash Equivalents -> Current Assets
             '1200' => '1000', // Accounts Receivable -> Current Assets
             '1300' => '1000', // Inventory -> Current Assets
+            '1310' => '1000', // Inventory Adjustment Gain -> Current Assets
             '2100' => '2000', // Accounts Payable -> Current Liabilities
             '2200' => '2000', // Salaries Payable -> Current Liabilities
             '2210' => '2000', // EPF Payable -> Current Liabilities
@@ -304,6 +321,7 @@ class ChartOfAccountsSeeder extends Seeder
             '6700' => '6000', // Transportation -> Operating Expenses
             '6800' => '6000', // Professional Fees -> Operating Expenses
             '6900' => '6000', // Miscellaneous -> Operating Expenses
+            '7100' => '6000', // Inventory Loss/Shrinkage -> Operating Expenses
         ];
 
         foreach ($parentMappings as $childCode => $parentCode) {

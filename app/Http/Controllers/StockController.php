@@ -13,25 +13,37 @@ class StockController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Stock::with(['product', 'batch.goodReceiveNote.supplier']);
+        // Aggregate stocks by product_id and batch_id to combine FOC and non-FOC
+        $query = Stock::query()
+            ->select('product_id', 'batch_id')
+            ->selectRaw('MAX(id) as id')
+            ->selectRaw('SUM(quantity) as total_quantity')
+            ->selectRaw('SUM(available_quantity) as total_available_quantity')
+            ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN cost_price END) as cost_price')
+            ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN selling_price END) as selling_price')
+            ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN quantity ELSE 0 END) as foc_quantity')
+            ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN available_quantity ELSE 0 END) as foc_available_quantity')
+            ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN quantity ELSE 0 END) as paid_quantity')
+            ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN available_quantity ELSE 0 END) as paid_available_quantity')
+            ->groupBy('product_id', 'batch_id');
 
         // Filter by product
         if ($request->filled('product_id')) {
             $query->where('product_id', $request->product_id);
         }
 
-        // Filter by status
+        // Filter by status (adjusted for aggregated view)
         if ($request->filled('status')) {
             switch ($request->status) {
                 case 'out_of_stock':
-                    $query->where('available_quantity', 0);
+                    $query->havingRaw('SUM(available_quantity) = 0');
                     break;
                 case 'low_stock':
-                    $query->whereColumn('available_quantity', '<=', \DB::raw('quantity / 2'))
-                        ->where('available_quantity', '>', 0);
+                    $query->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+                        ->havingRaw('SUM(available_quantity) > 0');
                     break;
                 case 'in_stock':
-                    $query->where('available_quantity', '>', 0);
+                    $query->havingRaw('SUM(available_quantity) > 0');
                     break;
             }
         }
@@ -39,23 +51,50 @@ class StockController extends Controller
         // Search by product name, SKU, batch number, or barcode
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('product', function ($q) use ($search) {
-                $q->where('product_name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%");
-            })->orWhereHas('batch', function ($q) use ($search) {
-                $q->where('batch_number', 'like', "%{$search}%")
-                    ->orWhere('barcode', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('product', function ($productQuery) use ($search) {
+                    $productQuery->where('product_name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                })->orWhereHas('batch', function ($batchQuery) use ($search) {
+                    $batchQuery->where('batch_number', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%");
+                });
             });
         }
 
-        $stocks = $query->latest()->paginate(15);
+        $stocks = $query->latest('id')->paginate(15);
 
-        // Calculate stats
-        $totalStocks = Stock::count();
-        $totalValue = Stock::sum(\DB::raw('cost_price * available_quantity'));
-        $outOfStock = Stock::where('available_quantity', 0)->count();
-        $lowStock = Stock::whereColumn('available_quantity', '<=', \DB::raw('quantity / 2'))
-            ->where('available_quantity', '>', 0)
+        // Load relationships for the aggregated results
+        $stocks->getCollection()->transform(function ($stock) {
+            $fullStock = Stock::with(['product', 'batch.goodReceiveNote.supplier'])->find($stock->id);
+            if ($fullStock) {
+                $stock->product = $fullStock->product;
+                $stock->batch = $fullStock->batch;
+            }
+
+            return $stock;
+        });
+
+        // Calculate stats (aggregated)
+        $totalStocks = Stock::select('product_id', 'batch_id')
+            ->groupBy('product_id', 'batch_id')
+            ->get()
+            ->count();
+
+        $totalValue = Stock::where('cost_price', '>', 0)
+            ->sum(\DB::raw('cost_price * available_quantity'));
+
+        $outOfStock = Stock::select('product_id', 'batch_id')
+            ->groupBy('product_id', 'batch_id')
+            ->havingRaw('SUM(available_quantity) = 0')
+            ->get()
+            ->count();
+
+        $lowStock = Stock::select('product_id', 'batch_id')
+            ->groupBy('product_id', 'batch_id')
+            ->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+            ->havingRaw('SUM(available_quantity) > 0')
+            ->get()
             ->count();
 
         $products = Product::orderBy('product_name')->get();
@@ -100,6 +139,12 @@ class StockController extends Controller
      */
     public function update(Request $request, Stock $stock)
     {
+        // Prevent editing FOC stocks
+        if ($stock->isFoc()) {
+            return redirect()->back()
+                ->with('error', 'FOC (Free of Charge) stocks cannot be edited. Only non-FOC stocks can be modified.');
+        }
+
         $validated = $request->validate([
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
@@ -137,7 +182,7 @@ class StockController extends Controller
             $changes[] = "Barcode: {$oldBarcode} → {$validated['barcode']}";
         }
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             $auditNote = "\n[{$timestamp}] {$userName}: ".implode(', ', $changes);
             $stock->batch->update([
                 'notes' => $stock->batch->notes.$auditNote,

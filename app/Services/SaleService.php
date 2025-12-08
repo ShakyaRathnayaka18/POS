@@ -241,11 +241,21 @@ class SaleService
     {
         $availableQuantity = $this->stockService->getProductAvailableQuantity($productId);
 
-        // Get the first available stock for pricing (FIFO)
+        // Get the first available NON-FOC stock for pricing (FIFO)
+        // This ensures cashier sees pricing from paid stock, not FOC stock
         $stock = \App\Models\Stock::where('product_id', $productId)
             ->where('available_quantity', '>', 0)
+            ->where('cost_price', '>', 0) // Only non-FOC
             ->orderBy('created_at', 'asc')
             ->first();
+
+        // If no non-FOC stock available, fall back to FOC stock
+        if (! $stock) {
+            $stock = \App\Models\Stock::where('product_id', $productId)
+                ->where('available_quantity', '>', 0)
+                ->orderBy('created_at', 'asc')
+                ->first();
+        }
 
         return [
             'available_quantity' => $availableQuantity,
