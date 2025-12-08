@@ -185,6 +185,35 @@
     </form>
 </div>
 
+<!-- Free Items Modal -->
+<div id="freeItemModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white mb-4">Add Free Items (FOC)</h3>
+            <div class="mt-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Quantity of Free Items
+                </label>
+                <input type="number" id="freeItemQuantity" min="1" step="1" value="1"
+                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                    This will add a free item line with cost price = 0
+                </p>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button type="button" onclick="addFreeItem()"
+                    class="flex-1 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                    Add Free Items
+                </button>
+                <button type="button" onclick="closeFreeItemModal()"
+                    class="flex-1 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let itemIndex = 0;
 let products = [];
@@ -235,9 +264,14 @@ function addItem() {
         <div class="border border-gray-300 dark:border-gray-600 rounded-md p-4 mb-4 bg-gray-50 dark:bg-gray-700" id="item-${itemIndex}">
             <div class="flex justify-between items-start mb-3">
                 <h3 class="font-semibold text-gray-900 dark:text-white">Item #${itemIndex + 1}</h3>
-                <button type="button" onclick="removeItem(${itemIndex})" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
-                    <i class="fas fa-trash"></i>
-                </button>
+                <div class="flex gap-2">
+                    <button type="button" onclick="openFreeItemModal(${itemIndex})" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300" title="Add Free Items">
+                        <i class="fas fa-gift"></i>
+                    </button>
+                    <button type="button" onclick="removeItem(${itemIndex})" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-3">
                 <div class="md:col-span-2">
@@ -654,4 +688,121 @@ function submitProductForm(event) {
         </form>
     </div>
 </div>
+
+<script>
+// Free Items Modal Functions
+let currentFreeItemIndex = null;
+
+function openFreeItemModal(index) {
+    // Check if product is selected
+    const productSelect = document.getElementById(`product-select-${index}`);
+    if (!productSelect || !productSelect.value) {
+        alert('Please select a product first before adding free items');
+        return;
+    }
+
+    currentFreeItemIndex = index;
+    document.getElementById('freeItemQuantity').value = '1';
+    document.getElementById('freeItemModal').classList.remove('hidden');
+}
+
+function closeFreeItemModal() {
+    document.getElementById('freeItemModal').classList.add('hidden');
+    currentFreeItemIndex = null;
+}
+
+function addFreeItem() {
+    if (currentFreeItemIndex === null) return;
+
+    const quantity = parseInt(document.getElementById('freeItemQuantity').value);
+    if (!quantity || quantity < 1) {
+        alert('Please enter a valid quantity');
+        return;
+    }
+
+    // Get the original item details
+    const originalItem = document.getElementById(`item-${currentFreeItemIndex}`);
+    const productSelect = originalItem.querySelector('[name*="[product_id]"]');
+    const selectedOption = productSelect.options[productSelect.selectedIndex];
+    const productId = productSelect.value;
+    const productName = selectedOption.text;
+
+    // Get batch details from original item
+    const barcode = originalItem.querySelector('[name*="[barcode]"]')?.value || '';
+    const manufactureDate = originalItem.querySelector('[name*="[manufacture_date]"]')?.value || '';
+    const expiryDate = originalItem.querySelector('[name*="[expiry_date]"]')?.value || '';
+
+    // Create new free item
+    const container = document.getElementById('itemsContainer');
+    const freeItemHtml = `
+        <div class="border border-green-300 dark:border-green-600 rounded-md p-4 mb-4 bg-green-50 dark:bg-green-900/20" id="item-${itemIndex}">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white">Item #${itemIndex + 1}</h3>
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                        FREE ITEM (FOC)
+                    </span>
+                </div>
+                <button type="button" onclick="removeItem(${itemIndex})" class="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-3">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product *</label>
+                    <select class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white" disabled>
+                        <option value="${productId}" selected>${productName}</option>
+                    </select>
+                    <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity *</label>
+                    <input type="number" name="items[${itemIndex}][quantity]" required value="${quantity}" min="1" step="1"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        onchange="updateCalculations()">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost Price *</label>
+                    <input type="number" name="items[${itemIndex}][cost_price]" required value="0" readonly
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling Price</label>
+                    <input type="number" name="items[${itemIndex}][selling_price]" min="0" step="0.01" value="0"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax %</label>
+                    <input type="number" name="items[${itemIndex}][tax]" min="0" step="0.01" value="0"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Batch Barcode</label>
+                    <input type="text" name="items[${itemIndex}][barcode]" value="${barcode}"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Manufacture Date</label>
+                    <input type="date" name="items[${itemIndex}][manufacture_date]" value="${manufactureDate}"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Expiry Date</label>
+                    <input type="date" name="items[${itemIndex}][expiry_date]" value="${expiryDate}"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', freeItemHtml);
+    itemIndex++;
+
+    closeFreeItemModal();
+    updateCalculations();
+}
+</script>
+
 @endsection

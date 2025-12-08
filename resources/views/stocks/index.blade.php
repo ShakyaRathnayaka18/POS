@@ -261,7 +261,7 @@
 function openEditModal(stockId, costPrice, sellingPrice, barcode, productName) {
     // Set form action URL
     const form = document.getElementById('editStockForm');
-    form.action = `/stocks/${stockId}`;
+    form.action = "{{ url('stocks') }}/" + stockId;
 
     // Populate form fields
     document.getElementById('cost_price').value = costPrice;

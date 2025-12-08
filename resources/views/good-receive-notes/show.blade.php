@@ -145,10 +145,19 @@
                     </thead>
                     <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
                         @foreach($batch->stocks as $stock)
-                        <tr>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $stock->product->product_name }}</td>
+                        <tr class="{{ $stock->cost_price == 0 ? 'bg-green-50 dark:bg-green-900/10' : '' }}">
+                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
+                                {{ $stock->product->product_name }}
+                                @if($stock->cost_price == 0)
+                                    <span class="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                                        FREE
+                                    </span>
+                                @endif
+                            </td>
                             <td class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">{{ $stock->product->sku }}</td>
-                            <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">LKR {{ number_format($stock->cost_price, 2) }}</td>
+                            <td class="px-4 py-2 text-sm {{ $stock->cost_price == 0 ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-gray-900 dark:text-white' }}">
+                                LKR {{ number_format($stock->cost_price, 2) }}
+                            </td>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">LKR {{ number_format($stock->selling_price, 2) }}</td>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $stock->tax }}%</td>
                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">{{ $stock->quantity }}</td>
@@ -162,6 +171,15 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($batch->stocks->where('cost_price', 0)->count() > 0)
+                <div class="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded">
+                    <p class="text-sm text-green-800 dark:text-green-300">
+                        <i class="fas fa-gift mr-1"></i>
+                        <strong>Free Items:</strong> {{ $batch->stocks->where('cost_price', 0)->sum('quantity') }} units received as FOC
+                    </p>
+                </div>
+            @endif
         </div>
         @endforeach
     </div>
