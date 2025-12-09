@@ -130,7 +130,7 @@
 
                 @if ($sale->payment_method->value === 'cash' && $sale->change_amount > 0)
                     <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white">
-                        <span>ඉතිරි රුපි ලාභය</span>
+                        <span>ඉතිරි ලාභය</span>
                         <span>{{ number_format($sale->change_amount, 2) }}</span>
                     </div>
                 @endif

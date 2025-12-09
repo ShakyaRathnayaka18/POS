@@ -104,116 +104,145 @@
         </div>
 
         <!-- Stock Table -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-900">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">SKU</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Batch</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Barcode</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cost Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Selling Price</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Quantity</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Available</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    @forelse($stocks as $stock)
-                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $stock->product->product_name }}</div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">{{ $stock->product->sku }}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $stock->product->sku }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ $stock->batch->batch_number }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
-                            {{ $stock->batch->barcode ?? '-' }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            @if($stock->cost_price > 0)
-                                LKR {{ number_format($stock->cost_price, 2) }}
-                            @else
-                                <span class="text-gray-400 dark:text-gray-500">-</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            @if($stock->selling_price > 0)
-                                LKR {{ number_format($stock->selling_price, 2) }}
-                            @else
-                                <span class="text-gray-400 dark:text-gray-500">-</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm">
-                                <div class="font-medium text-gray-900 dark:text-white">
-                                    {{ number_format($stock->total_quantity, 2) }}
-                                </div>
-                                @if($stock->foc_quantity > 0)
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <span class="text-green-600 dark:text-green-400">FOC: {{ number_format($stock->foc_quantity, 2) }}</span>
-                                    @if($stock->paid_quantity > 0)
-                                        + Paid: {{ number_format($stock->paid_quantity, 2) }}
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-900">
+                        <tr>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Product</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                SKU</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Batch</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Barcode</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Cost Price</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Selling Price</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Quantity</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Available</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Status</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        @forelse($stocks as $stock)
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ $stock->product->product_name }}</div>
+                                    <div class="text-sm text-gray-500 dark:text-gray-400">{{ $stock->product->sku }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $stock->product->sku }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                                    {{ $stock->batch->batch_number }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 font-mono">
+                                    {{ $stock->batch->barcode ?? '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    @if ($stock->cost_price > 0)
+                                        LKR {{ number_format($stock->cost_price, 2) }}
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">-</span>
                                     @endif
-                                </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-semibold">
-                                <div class="{{ $stock->total_available_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                    {{ number_format($stock->total_available_quantity, 2) }}
-                                </div>
-                                @if($stock->foc_available_quantity > 0)
-                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <span class="text-green-600 dark:text-green-400">FOC: {{ number_format($stock->foc_available_quantity, 2) }}</span>
-                                    @if($stock->paid_available_quantity > 0)
-                                        + Paid: {{ number_format($stock->paid_available_quantity, 2) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    @if ($stock->selling_price > 0)
+                                        LKR {{ number_format($stock->selling_price, 2) }}
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">-</span>
                                     @endif
-                                </div>
-                                @endif
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            @if($stock->total_available_quantity == 0)
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
-                                Out of Stock
-                            </span>
-                            @elseif($stock->total_available_quantity <= ($stock->total_quantity / 2))
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
-                                    Low Stock
-                                </span>
-                                @else
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
-                                    In Stock
-                                </span>
-                                @endif
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                            <button onclick="openEditModal({{ $stock->id }}, '{{ $stock->cost_price }}', '{{ $stock->selling_price }}', '{{ $stock->batch->barcode }}', '{{ addslashes($stock->product->product_name) }}')"
-                                    class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <a href="{{ route('stocks.show', $stock) }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">View</a>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-                            No stock items found.
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm">
+                                        <div class="font-medium text-gray-900 dark:text-white">
+                                            {{ number_format($stock->total_quantity, 0) }}
+                                        </div>
+                                        @if ($stock->foc_quantity > 0)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                <span class="text-green-600 dark:text-green-400">FOC:
+                                                    {{ number_format($stock->foc_quantity, 0) }}</span>
+                                                @if ($stock->paid_quantity > 0)
+                                                    + Paid: {{ number_format($stock->paid_quantity, 0) }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-semibold">
+                                        <div
+                                            class="{{ $stock->total_available_quantity > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                            {{ number_format($stock->total_available_quantity, 0) }}
+                                        </div>
+                                        @if ($stock->foc_available_quantity > 0)
+                                            <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                <span class="text-green-600 dark:text-green-400">FOC:
+                                                    {{ number_format($stock->foc_available_quantity, 0) }}</span>
+                                                @if ($stock->paid_available_quantity > 0)
+                                                    + Paid: {{ number_format($stock->paid_available_quantity, 0) }}
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    @if ($stock->total_available_quantity == 0)
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400">
+                                            Out of Stock
+                                        </span>
+                                    @elseif($stock->total_available_quantity <= $stock->total_quantity / 2)
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400">
+                                            Low Stock
+                                        </span>
+                                    @else
+                                        <span
+                                            class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
+                                            In Stock
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
+                                    <button
+                                        onclick="openEditModal({{ $stock->id }}, '{{ $stock->cost_price }}', '{{ $stock->selling_price }}', '{{ $stock->batch->barcode }}', '{{ addslashes($stock->product->product_name) }}')"
+                                        class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <a href="{{ route('stocks.show', $stock) }}"
+                                        class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">View</a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="10" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+                                    No stock items found.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
 
             <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                 {{ $stocks->links() }}
@@ -242,39 +271,47 @@
 
                         <div class="p-6 space-y-4">
                             <!-- Product Name -->
-                            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md p-3">
+                            <div
+                                class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-md p-3">
                                 <p class="text-sm text-blue-800 dark:text-blue-300">
-                                    <i class="fas fa-box mr-2"></i>Product: <span id="modalProductName" class="font-semibold"></span>
+                                    <i class="fas fa-box mr-2"></i>Product: <span id="modalProductName"
+                                        class="font-semibold"></span>
                                 </p>
                             </div>
 
                             <!-- Price Fields -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label for="cost_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label for="cost_price"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Cost Price (LKR) <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" id="cost_price" name="cost_price" required min="0" step="0.01"
+                                    <input type="number" id="cost_price" name="cost_price" required min="0"
+                                        step="0.01"
                                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                 </div>
 
                                 <div>
-                                    <label for="selling_price" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label for="selling_price"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Selling Price (LKR) <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="number" id="selling_price" name="selling_price" required min="0" step="0.01"
+                                    <input type="number" id="selling_price" name="selling_price" required
+                                        min="0" step="0.01"
                                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                 </div>
                             </div>
 
                             <!-- Barcode Field -->
                             <div>
-                                <label for="barcode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="barcode"
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Batch Barcode
                                 </label>
                                 <input type="text" id="barcode" name="barcode" maxlength="255"
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono">
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional: Leave empty to remove barcode</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Optional: Leave empty to remove
+                                    barcode</p>
                             </div>
 
                             <!-- Divider -->
@@ -286,11 +323,12 @@
                                 <!-- Adjustment Fields -->
                                 <div class="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label for="quantity_adjustment" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        <label for="quantity_adjustment"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                             Adjustment Quantity
                                         </label>
-                                        <input type="number" id="quantity_adjustment" name="quantity_adjustment" step="0.0001"
-                                            placeholder="Enter positive or negative value"
+                                        <input type="number" id="quantity_adjustment" name="quantity_adjustment"
+                                            step="0.0001" placeholder="Enter positive or negative value"
                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                                         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                             Positive to increase, negative to decrease
@@ -298,8 +336,10 @@
                                     </div>
 
                                     <div>
-                                        <label for="adjustment_reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            Reason <span class="text-red-500" id="reason_required" style="display: none;">*</span>
+                                        <label for="adjustment_reason"
+                                            class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                            Reason <span class="text-red-500" id="reason_required"
+                                                style="display: none;">*</span>
                                         </label>
                                         <select id="adjustment_reason" name="adjustment_reason"
                                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
@@ -317,7 +357,8 @@
 
                                 <!-- Notes Field -->
                                 <div class="mt-4">
-                                    <label for="adjustment_notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    <label for="adjustment_notes"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                         Notes (Optional)
                                     </label>
                                     <textarea id="adjustment_notes" name="adjustment_notes" rows="2" maxlength="1000"
@@ -327,10 +368,12 @@
                             </div>
 
                             <!-- Info Message -->
-                            <div class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
+                            <div
+                                class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
                                 <p class="text-xs text-yellow-800 dark:text-yellow-300">
                                     <i class="fas fa-info-circle mr-1"></i>
-                                    Price/barcode changes will be logged in GRN records. Quantity adjustments will be tracked separately in the Stock Adjustments panel.
+                                    Price/barcode changes will be logged in GRN records. Quantity adjustments will be
+                                    tracked separately in the Stock Adjustments panel.
                                 </p>
                             </div>
                         </div>

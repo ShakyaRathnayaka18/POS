@@ -4,10 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Stock;
+use App\Services\StockAdjustmentService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB; // Added DB for raw sum
 
 class StockController extends Controller
 {
+    protected StockAdjustmentService $adjustmentService;
+
+    public function __construct(
+        StockAdjustmentService $adjustmentService
+    ) {
+        $this->adjustmentService = $adjustmentService;
+    }
+
     /**
      * Display a listing of stocks.
      */
@@ -82,7 +92,7 @@ class StockController extends Controller
             ->count();
 
         $totalValue = Stock::where('cost_price', '>', 0)
-            ->sum(\DB::raw('cost_price * available_quantity'));
+            ->sum(DB::raw('cost_price * available_quantity'));
 
         $outOfStock = Stock::select('product_id', 'batch_id')
             ->groupBy('product_id', 'batch_id')
@@ -123,7 +133,7 @@ class StockController extends Controller
     public function updateBarcode(Request $request, Stock $stock)
     {
         $validated = $request->validate([
-            'barcode' => 'nullable|string|max:255|unique:batches,barcode,'.$stock->batch_id,
+            'barcode' => 'nullable|string|max:255|unique:batches,barcode,' . $stock->batch_id,
         ]);
 
         $stock->batch->update([
@@ -135,26 +145,46 @@ class StockController extends Controller
     }
 
     /**
-     * Update stock details (cost price, selling price, barcode).
+     * Update stock details (cost price, selling price, barcode, and optionally quantity adjustment).
      */
     public function update(Request $request, Stock $stock)
     {
-        // Prevent editing FOC stocks
-        if ($stock->isFoc()) {
-            return redirect()->back()
-                ->with('error', 'FOC (Free of Charge) stocks cannot be edited. Only non-FOC stocks can be modified.');
-        }
+        // Uncomment if needed:
+        // if ($stock->isFoc()) {
+        //     return redirect()->back()
+        //         ->with('error', 'FOC (Free of Charge) stocks cannot be edited. Only non-FOC stocks can be modified.');
+        // }
 
+        // *** 1. VALIDATION ***
         $validated = $request->validate([
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'barcode' => 'nullable|string|max:255|unique:batches,barcode,'.$stock->batch_id,
+            'barcode' => 'nullable|string|max:255|unique:batches,barcode,' . $stock->batch_id,
+
+            // Validation for adjustment fields
+            'quantity_adjustment' => 'nullable|numeric|sometimes',
+            'adjustment_reason' => 'required_with:quantity_adjustment|nullable|string|max:255',
+            'adjustment_notes' => 'nullable|string|max:1000',
         ]);
 
-        // Track old values for audit
+        // Setup state variables
+        $adjustmentQuantity = (float)($validated['quantity_adjustment'] ?? 0);
+        $hasQuantityAdjustment = $adjustmentQuantity !== 0.0;
+        $successMessage = 'Stock updated successfully.';
+
+        // If quantity_adjustment is present, enforce required reason
+        if ($hasQuantityAdjustment && empty($validated['adjustment_reason'])) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Adjustment reason is required when adjusting quantity.');
+        }
+
+        // *** 2. PRICE/BARCODE UPDATE & AUDIT ***
         $oldCostPrice = $stock->cost_price;
         $oldSellingPrice = $stock->selling_price;
         $oldBarcode = $stock->batch->barcode;
+        $changes = [];
+        $priceOrBarcodeUpdated = false;
 
         // Update stock-level fields
         $stock->update([
@@ -167,35 +197,90 @@ class StockController extends Controller
             $stock->batch->update(['barcode' => $validated['barcode']]);
         }
 
-        // Add audit trail to Batch notes
-        $userName = auth()->user()->name;
-        $timestamp = now()->format('Y-m-d H:i:s');
-        $changes = [];
-
+        // Build audit trail for Price/Barcode changes
         if ($oldCostPrice != $validated['cost_price']) {
             $changes[] = "Cost Price: LKR {$oldCostPrice} → LKR {$validated['cost_price']}";
+            $priceOrBarcodeUpdated = true;
         }
         if ($oldSellingPrice != $validated['selling_price']) {
             $changes[] = "Selling Price: LKR {$oldSellingPrice} → LKR {$validated['selling_price']}";
+            $priceOrBarcodeUpdated = true;
         }
         if ($validated['barcode'] !== $oldBarcode) {
             $changes[] = "Barcode: {$oldBarcode} → {$validated['barcode']}";
+            $priceOrBarcodeUpdated = true;
         }
 
+        // *** 3. QUANTITY ADJUSTMENT LOGIC ***
+        if ($hasQuantityAdjustment) {
+            try {
+                $type = $adjustmentQuantity > 0 ? 'increase' : 'decrease';
+
+                // Use float to preserve decimal precision, but format for display if needed
+                $absoluteQuantity = abs($adjustmentQuantity);
+
+                $adjustment = $this->adjustmentService->createAdjustment([
+                    'stock_id' => $stock->id,
+                    'quantity_adjusted' => $absoluteQuantity,
+                    'type' => $type,
+                    'reason' => $validated['adjustment_reason'],
+                    'notes' => $validated['adjustment_notes'] ?? null,
+                ]);
+
+                // Auto-approve the adjustment since this is a direct edit
+                $this->adjustmentService->approveAdjustment($adjustment);
+
+                // Append adjustment to changes log
+                $sign = $adjustmentQuantity > 0 ? '+' : '';
+                $changes[] = "Quantity Adjustment: {$sign}{$adjustmentQuantity} (Reason: {$validated['adjustment_reason']})";
+                if (!empty($validated['adjustment_notes'])) {
+                    $changes[] = "Adjustment Notes: {$validated['adjustment_notes']}";
+                }
+
+                // Set the custom success message
+                if ($priceOrBarcodeUpdated) {
+                    $successMessage = 'Price/Barcode updated and Quantity adjusted successfully.';
+                } else {
+                    $successMessage = 'Quantity adjusted successfully.';
+                }
+            } catch (\Exception $e) {
+                // If the adjustment fails, notify the user and return immediately
+                // We should still log the price changes if any occurred
+                if (! empty($changes)) {
+                    // Log what succeeded (Price/Barcode)
+                    $userName = auth()->user()->name;
+                    $timestamp = now()->format('Y-m-d H:i:s');
+                    $auditNote = "\n[{$timestamp}] {$userName}: " . implode(', ', $changes);
+                    $stock->batch->update(['notes' => ($stock->batch->notes ?? '') . $auditNote]);
+                }
+
+                $warningMessage = ($priceOrBarcodeUpdated ? 'Price/Barcode updated, but ' : '') . 'Quantity adjustment failed: ' . $e->getMessage();
+                return redirect()->route('stocks.index')->with('warning', $warningMessage);
+            }
+        }
+
+        // Apply audit trail to Batch/GRN notes
         if (! empty($changes)) {
-            $auditNote = "\n[{$timestamp}] {$userName}: ".implode(', ', $changes);
+            $userName = auth()->user()->name;
+            $timestamp = now()->format('Y-m-d H:i:s');
+            $auditNote = "\n[{$timestamp}] {$userName}: " . implode(', ', $changes);
+
+            // Append note to Batch
             $stock->batch->update([
-                'notes' => $stock->batch->notes.$auditNote,
+                'notes' => ($stock->batch->notes ?? '') . $auditNote,
             ]);
 
-            // Also add to GRN notes
+            // Append note to GRN
             $grn = $stock->batch->goodReceiveNote;
-            $grn->update([
-                'notes' => $grn->notes.$auditNote." (Stock ID: {$stock->id}, Product: {$stock->product->product_name})",
-            ]);
+            if ($grn) {
+                $grn->update([
+                    'notes' => ($grn->notes ?? '') . $auditNote . " (Stock ID: {$stock->id}, Product: {$stock->product->product_name})",
+                ]);
+            }
         }
 
+        // *** 4. FINAL REDIRECT ***
         return redirect()->route('stocks.index')
-            ->with('success', 'Stock updated successfully.');
+            ->with('success', $successMessage);
     }
 }
