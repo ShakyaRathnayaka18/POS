@@ -61,7 +61,7 @@
             <!-- Column Headers -->
             <div class="text-xs font-bold text-gray-900 dark:text-white mb-2 items-header">
                 <div class="flex justify-between">
-                    <span style="width: 35%">ප්‍රමාණය සහජාත මිල</span>
+                    <span style="width: 35%">ප්‍රමාණය සහ සදහන් මිල</span>
                     <span style="width: 20%; text-align: right">අඩු මිල</span>
                     <span style="width: 20%; text-align: right">එකතුව</span>
                 </div>
@@ -123,7 +123,7 @@
 
                 @if ($sale->total_discount > 0)
                     <div class="flex justify-between text-sm text-gray-700 dark:text-gray-300">
-                        <span>ලබාදුන් වට්ටම [S]</span>
+                        <span>ලබාදුන් වට්ටම</span>
                         <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2) }}</span>
                     </div>
                 @endif
