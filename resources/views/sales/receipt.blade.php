@@ -29,147 +29,122 @@
             </div>
 
             <!-- Store Header -->
-            <div class="text-center mb-6 border-b-2 border-gray-300 dark:border-gray-600 pb-4">
+            <div class="text-center mb-4 pb-3 receipt-header">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-white">H Mart</h1>
-                <p class="text-gray-600 dark:text-gray-800">අංක 09, මහනුවර පාර, හසලක</p>
-                <p class="text-sm text-gray-500 dark:text-gray-800 mt-2">දු.ක - 055225706</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">අංක 09, මහනුවර පාර, හසලක</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">☎ 055225706</p>
+                <p class="text-sm font-bold text-gray-900 dark:text-white mt-2">බිල්පත</p>
             </div>
-
 
             <!-- Sale Information -->
-            <div class="grid grid-cols-2 gap-4 mb-6 text-sm">
-                <div>
-                    <p class="text-gray-600 dark:text-gray-800">Invoice No:</p>
-                    <p class="font-bold text-gray-900 dark:text-white">{{ $sale->sale_number }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold text-gray-900 dark:text-white text-sm">
-
-                        <span class="text-gray-700 dark:text-gray-300">දිනය:</span>
-                        {{ $sale->created_at->setTimezone('Asia/Colombo')->format('Y-m-d') }}
-
-                        <br>
-
-                        <span class="text-gray-700 dark:text-gray-300">වේලාව:</span>
-                        {{ $sale->created_at->setTimezone('Asia/Colombo')->format('h:i:s A') }}
-                    </p>
-                </div>
-                <div>
-                    <p class="text-gray-600 dark:text-gray-800">මුදල් අයකැමි:</p>
-                    <p class="font-bold text-gray-900 dark:text-white">{{ $sale->user->name ?? 'System' }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-gray-600 dark:text-gray-800">ගෙවීමේ ක්‍රමය:</p>
-                    <p class="font-bold text-gray-900 dark:text-white">{{ $sale->payment_method }}</p>
+            <div class="mb-4 text-sm sale-info">
+                <div class="flex justify-between mb-1">
+                    <span
+                        class="text-gray-600 dark:text-gray-400">{{ $sale->created_at->setTimezone('Asia/Colombo')->format('d/m/Y  h:i:sA') }}</span>
+                    <span class="text-gray-900 dark:text-white font-bold">No: {{ $sale->sale_number }}</span>
                 </div>
             </div>
 
-            @if ($sale->customer_name || $sale->customer_phone)
-                <div class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg no-print">
-                    <h3 class="font-semibold text-gray-900 dark:text-white mb-2">Customer Information</h3>
-                    @if ($sale->customer_name)
-                        <p class="text-sm text-gray-700 dark:text-gray-300">Name: <span
-                                class="font-medium">{{ $sale->customer_name }}</span></p>
-                    @endif
-                    @if ($sale->customer_phone)
-                        <p class="text-sm text-gray-700 dark:text-gray-300">Phone: <span
-                                class="font-medium">{{ $sale->customer_phone }}</span></p>
-                    @endif
+            <!-- Cashier & Payment Info -->
+            <div class="mb-3 text-xs info-section">
+                <div class="flex justify-between">
+                    <span class="text-gray-700 dark:text-gray-300">මුදල් අයකැමි:
+                        <strong>{{ $sale->user->name ?? 'System' }}</strong></span>
+                    <span class="text-gray-700 dark:text-gray-300">ගෙවීමේ ක්‍රමය:
+                        <strong>{{ $sale->payment_method }}</strong></span>
                 </div>
-            @endif
-
-            <!-- Items Table -->
-            <div class="mb-6">
-                <table class="w-full items-table">
-                    <thead class="border-b-2 border-gray-300 dark:border-gray-600">
-                        <tr>
-                            <th class="text-left py-2 text-gray-700 dark:text-gray-300" style="width: 40%;">නිෂ්පාදනය</th>
-                            <th class="text-center py-2 text-gray-700 dark:text-gray-300" style="width: 12%;">ප්‍රමාණය</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">මිල</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">වට්ටම්</th>
-                            <th class="text-right py-2 text-gray-700 dark:text-gray-300" style="width: 16%;">එකතුව</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($sale->items as $item)
-                            <tr class="border-b border-gray-200 dark:border-gray-700">
-                                <td class="py-3" style="width: 40%;">{{ $item->product->product_name }}</td>
-
-                                <td class="py-3 text-center" style="width: 12%;">{{ number_format($item->quantity, 0) }}
-                                </td>
-
-                                <td class="py-3 text-right" style="width: 16%;">
-                                    @if ($item->hasDiscount())
-                                        <span
-                                            class="line-through text-gray-500 dark:text-gray-400 text-xs">{{ number_format($item->price_before_discount, 2) }}</span><br>
-                                        <span
-                                            class="text-green-600 dark:text-green-400">{{ number_format($item->price, 2) }}</span>
-                                    @else
-                                        {{ number_format($item->price, 2) }}
-                                    @endif
-                                </td>
-
-                                <td class="py-3 text-right text-green-600 dark:text-green-400 text-sm" style="width: 16%;">
-                                    @if ($item->hasDiscount())
-                                        {{ number_format($item->discount_amount, 2) }}
-                                    @else
-                                        0.00
-                                    @endif
-                                </td>
-
-                                <td class="py-3 text-right font-medium" style="width: 16%;">
-                                    {{ number_format($item->total, 2) }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
             </div>
+
+            <!-- Divider -->
+            <div class="border-t-2 border-dashed border-gray-400 my-3"></div>
+
+            <!-- Column Headers -->
+            <div class="text-xs font-bold text-gray-900 dark:text-white mb-2 items-header">
+                <div class="flex justify-between">
+                    <span style="width: 35%">ප්‍රමාණය සහජාත මිල</span>
+                    <span style="width: 20%; text-align: right">අඩු මිල</span>
+                    <span style="width: 20%; text-align: right">එකතුව</span>
+                </div>
+            </div>
+
+            <!-- Items List -->
+            <div class="mb-4 items-list">
+                @foreach ($sale->items as $item)
+                    <!-- Product Name -->
+                    <div class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                        {{ $item->product->product_name }}
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="flex justify-between text-xs text-gray-700 dark:text-gray-300 mb-3">
+                        <span style="width: 35%">
+                            <strong>{{ number_format($item->quantity, 0) }}</strong>
+                            <span class="ml-3">
+                                @if ($item->hasDiscount())
+                                    <span
+                                        class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2) }}</span>
+                                @else
+                                    {{ number_format($item->price, 2) }}
+                                @endif
+                            </span>
+                        </span>
+                        <span style="width: 20%; text-align: right">
+                            @if ($item->hasDiscount())
+                                {{ number_format($item->price, 2) }}
+                            @else
+                                -
+                            @endif
+                        </span>
+                        <span style="width: 20%; text-align: right; font-weight: bold">
+                            {{ number_format($item->total, 2) }}
+                        </span>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Divider -->
+            <div class="border-t-2 border-gray-400 my-3"></div>
 
             <!-- Totals Section -->
-            <div class="border-t-2 border-gray-300 dark:border-gray-600 pt-4 space-y-2">
-                <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                    <span>උප එකතුව:</span>
-                    <span class="font-medium">{{ number_format($sale->subtotal_before_discount, 2) }}</span>
-                </div>
-                @if ($sale->total_discount > 0)
-                    <div class="flex justify-between text-green-600 dark:text-green-400">
-                        <span>ලබාදුන් වට්ටම:</span>
-                        <span class="font-medium">{{ number_format($sale->total_discount, 2) }}</span>
-                    </div>
-                @endif
-                <div class="flex justify-between text-gray-700 dark:text-gray-300">
-                    <span>බදු:</span>
-                    <span class="font-medium">{{ number_format($sale->tax, 2) }}</span>
-                </div>
-                <div
-                    class="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-t border-gray-300 dark:border-gray-600 pt-2">
-                    <span>මුලු එකතුව:</span>
-                    <span class="text-gray-900 dark:text-white font-bold">{{ number_format($sale->total, 2) }}</span>
+            <div class="space-y-2 totals-section">
+                <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
+                    <span>මුලු එකතුව</span>
+                    <span>{{ number_format($sale->total, 2) }}</span>
                 </div>
 
-                {{-- 💰 CASH PAYMENT AND CHANGE SECTION 💰 --}}
-                @if ($sale->payment_method->value === 'cash')
-                    <div class="flex justify-between text-gray-700 dark:text-gray-300 pt-2">
-                        {{-- Amount Received (ගෙවූ මුදල) --}}
-                        <span>ගෙවූ මුදල:</span>
-                        <span class="font-medium">{{ number_format($sale->amount_received, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {{-- Change (ශේෂය) --}}
-                        <span>ශේෂය:</span>
-                        <span class="font-bold">{{ number_format($sale->change_amount, 2) }}</span>
+                <div class="text-center text-xl font-black my-3">
+                    **** ගෙවීම ****
+                </div>
+
+                <div class="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+                    <span>ගෙවූ මුදල</span>
+                    <span class="font-bold">{{ number_format($sale->amount_received ?? $sale->total, 2) }}</span>
+                </div>
+
+                @if ($sale->total_discount > 0)
+                    <div class="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+                        <span>ලබාදුන් වට්ටම [S]</span>
+                        <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2) }}</span>
                     </div>
                 @endif
-                {{-- END CASH SECTION --}}
+
+                @if ($sale->payment_method->value === 'cash' && $sale->change_amount > 0)
+                    <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white">
+                        <span>ඉතිරි රුපි ලාභය</span>
+                        <span>{{ number_format($sale->change_amount, 2) }}</span>
+                    </div>
+                @endif
             </div>
 
+            <!-- Divider -->
+            <div class="border-t border-dashed border-gray-400 my-4"></div>
+
             <!-- Footer -->
-            <div
-                class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600 text-center text-sm text-gray-500 dark:text-gray-800">
-                <p class="mb-2">ස්තූතියි, නැවත එන්න -H Mart©</p>
-
-                <p class="text-xs mt-4">Powered by VertexCore AI | vertexcoreai.com</p>
-
+            <div class="text-center text-xs text-gray-600 dark:text-gray-400 footer-section">
+                <p class="mb-2 font-bold">Cashier: {{ $sale->user->name ?? 'System' }}</p>
+                <p class="mb-3 text-sm font-bold">ස්තූතියි, නැවත එන්න !</p>
+                <p class="text-xs">Powered by VertexCore AI</p>
+                <p class="text-xs">vertexcoreai.com</p>
             </div>
         </div>
 
@@ -185,6 +160,8 @@
     <!-- Print Styles -->
     <style>
         @media print {
+
+            /* Hide everything except receipt */
             body * {
                 visibility: hidden;
             }
@@ -192,122 +169,213 @@
             #receipt,
             #receipt * {
                 visibility: visible;
-                font-family: 'Courier New', Courier, monospace;
             }
 
+            /* Receipt Container */
             #receipt {
                 position: absolute;
-                left: 0;
+                left: 50%;
                 top: 0;
-                width: 100%;
-                box-shadow: none;
+                transform: translateX(-50%);
+                width: 80mm !important;
+                max-width: 80mm !important;
                 background: white !important;
+                padding: 4mm !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                font-family: Arial, 'Noto Sans Sinhala', sans-serif !important;
             }
 
-            /* Hide customer info */
-            .no-print,
-            .no-print * {
-                display: none !important;
-                visibility: hidden !important;
-            }
-
-            /* THERMAL PRINTER: Bold text */
+            /* All text black and bold */
             #receipt * {
                 color: black !important;
                 font-weight: 700 !important;
             }
 
-            #receipt h1,
-            #receipt .font-bold,
-            #receipt th,
-            #receipt .text-xl {
+            /* Store Logo */
+            #receipt img {
+                width: 45px !important;
+                height: auto !important;
+                margin: 0 auto 4px !important;
+            }
+
+            /* Store Header */
+            #receipt .receipt-header {
+                border-bottom: 2px solid black !important;
+                padding-bottom: 4mm !important;
+                margin-bottom: 3mm !important;
+            }
+
+            #receipt h1 {
+                font-size: 24px !important;
+                font-weight: 900 !important;
+                margin: 3px 0 !important;
+                letter-spacing: 1px !important;
+            }
+
+            #receipt .receipt-header p {
+                font-size: 11px !important;
+                line-height: 1.4 !important;
+                margin: 2px 0 !important;
+            }
+
+            #receipt .receipt-header p:last-of-type {
+                font-size: 12px !important;
+                font-weight: 900 !important;
+                margin-top: 4px !important;
+            }
+
+            /* Sale Info */
+            #receipt .sale-info {
+                font-size: 11px !important;
+                margin-bottom: 2mm !important;
+            }
+
+            #receipt .sale-info strong {
                 font-weight: 900 !important;
             }
 
-            /* THERMAL PRINTER: Remove all borders */
-            #receipt [class*="border"] {
-                border: none !important;
+            /* Cashier & Payment Info */
+            #receipt .info-section {
+                font-size: 10px !important;
+                line-height: 1.5 !important;
             }
 
-            /* Keep only 3 lines: after header, before items, after total */
-            #receipt .text-center.mb-6.border-b-2 {
-                border-bottom: 2px solid black !important;
+            /* Dividers */
+            #receipt .border-dashed {
+                border-style: dashed !important;
+                border-color: black !important;
+                margin: 2mm 0 !important;
             }
 
-            #receipt thead {
-                border-top: 2px solid black !important;
-                border-bottom: 2px solid black !important;
+            #receipt .border-t-2 {
+                border-top: 1px solid black !important;
             }
 
-            #receipt .border-t-2.pt-4 {
-                border-top: 2px solid black !important;
+            /* Items Header */
+            #receipt .items-header {
+                font-size: 8px !important;
+                font-weight: 900 !important;
+                margin-bottom: 2mm !important;
+                border-bottom: 1px dashed black !important;
+                padding-bottom: 1mm !important;
             }
 
-            /* ===== FIX COLUMN ALIGNMENT ===== */
-            /* Force table layout to be fixed */
-            .items-table {
-                table-layout: fixed !important;
-                width: 100% !important;
+            /* Items List */
+            #receipt .items-list>div:first-child {
+                font-size: 10px !important;
+                font-weight: 800 !important;
+                margin-bottom: 1mm !important;
+                line-height: 1.2 !important;
             }
 
-            /* Define exact column widths for headers */
-            .items-table thead th:nth-child(1) {
-                width: 40% !important;
-                text-align: left !important;
+            #receipt .items-list>div:nth-child(2) {
+                font-size: 9px !important;
+                margin-bottom: 3mm !important;
             }
 
-            .items-table thead th:nth-child(2) {
-                width: 12% !important;
-                text-align: center !important;
+            #receipt .items-list span {
+                display: inline-block;
             }
 
-            .items-table thead th:nth-child(3) {
-                width: 16% !important;
-                text-align: right !important;
+            /* Totals Section */
+            #receipt .totals-section {
+                font-size: 10px !important;
             }
 
-            .items-table thead th:nth-child(4) {
-                width: 16% !important;
-                text-align: right !important;
+            #receipt .totals-section>div:first-child {
+                font-size: 14px !important;
+                font-weight: 900 !important;
+                margin: 2mm 0 !important;
             }
 
-            .items-table thead th:nth-child(5) {
-                width: 16% !important;
-                text-align: right !important;
+            #receipt .totals-section .text-center {
+                font-size: 11px !important;
+                font-weight: 900 !important;
+                letter-spacing: 2px !important;
+                margin: 3mm 0 !important;
             }
 
-            /* Define exact column widths for body cells - MUST match headers */
-            .items-table tbody td:nth-child(1) {
-                width: 40% !important;
-                text-align: left !important;
+            #receipt .totals-section .text-sm {
+                font-size: 9px !important;
+                margin: 1.5mm 0 !important;
             }
 
-            .items-table tbody td:nth-child(2) {
-                width: 12% !important;
-                text-align: center !important;
+            #receipt .totals-section .text-base {
+                font-size: 11px !important;
+                font-weight: 900 !important;
+                margin: 2mm 0 !important;
             }
 
-            .items-table tbody td:nth-child(3) {
-                width: 16% !important;
-                text-align: right !important;
+            /* Footer */
+            #receipt .footer-section {
+                font-size: 8px !important;
+                line-height: 1.4 !important;
             }
 
-            .items-table tbody td:nth-child(4) {
-                width: 16% !important;
-                text-align: right !important;
+            #receipt .footer-section p {
+                margin: 1.5mm 0 !important;
             }
 
-            .items-table tbody td:nth-child(5) {
-                width: 16% !important;
-                text-align: right !important;
+            #receipt .footer-section .font-bold {
+                font-weight: 900 !important;
             }
 
-            /* Remove all padding/margin inconsistencies */
-            .items-table th,
-            .items-table td {
-                padding: 4px 2px !important;
-                margin: 0 !important;
-                word-wrap: break-word !important;
+            #receipt .footer-section .text-sm {
+                font-size: 10px !important;
+                font-weight: 900 !important;
+            }
+
+            /* Spacing adjustments */
+            #receipt .mb-1 {
+                margin-bottom: 1mm !important;
+            }
+
+            #receipt .mb-2 {
+                margin-bottom: 2mm !important;
+            }
+
+            #receipt .mb-3 {
+                margin-bottom: 3mm !important;
+            }
+
+            #receipt .mb-4 {
+                margin-bottom: 4mm !important;
+            }
+
+            #receipt .mt-1 {
+                margin-top: 1mm !important;
+            }
+
+            #receipt .mt-2 {
+                margin-top: 2mm !important;
+            }
+
+            #receipt .mt-3 {
+                margin-top: 3mm !important;
+            }
+
+            #receipt .my-3 {
+                margin-top: 3mm !important;
+                margin-bottom: 3mm !important;
+            }
+
+            #receipt .my-4 {
+                margin-top: 4mm !important;
+                margin-bottom: 4mm !important;
+            }
+
+            #receipt .pb-3 {
+                padding-bottom: 3mm !important;
+            }
+
+            /* Remove dark mode classes */
+            #receipt .dark\:text-white,
+            #receipt .dark\:text-gray-300,
+            #receipt .dark\:text-gray-400,
+            #receipt .dark\:bg-gray-800 {
+                color: black !important;
+                background: white !important;
             }
         }
     </style>

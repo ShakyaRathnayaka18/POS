@@ -22,7 +22,7 @@ class SupplierCreditService
             $invoiceDate = Carbon::parse($data['invoice_date'] ?? now());
             $dueDate = $this->calculateDueDate($invoiceDate, $creditTerms);
 
-            $this->checkCreditLimit($supplier, $grn->total);
+            $this->checkCreditLimit($supplier, (float) $grn->total);
 
             $credit = SupplierCredit::create([
                 'credit_number' => SupplierCredit::generateCreditNumber(),
@@ -47,7 +47,7 @@ class SupplierCreditService
                 'supplier_credit_id' => $credit->id,
             ]);
 
-            $supplier->increment('current_credit_used', $grn->total);
+            $supplier->increment('current_credit_used', (float) $grn->total);
 
             return $credit;
         });
@@ -130,13 +130,17 @@ class SupplierCreditService
 
     public function checkCreditLimit(Supplier $supplier, float $amount): bool
     {
+        // Check if supplier has credit facility (credit limit > 0)
+        // We allow the transaction even if limit is 0 or exceeded, as per user request
+        if ($supplier->credit_limit <= 0) {
+            return true;
+        }
+
         $availableCredit = $supplier->available_credit;
 
         if ($amount > $availableCredit) {
-            throw new \Exception(
-                'Credit limit exceeded. Available credit: LKR '.number_format($availableCredit, 2).
-                ', Requested: LKR '.number_format($amount, 2)
-            );
+            // Allow transaction effectively overriding the limit
+            return true;
         }
 
         return true;
