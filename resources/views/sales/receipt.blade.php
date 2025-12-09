@@ -141,7 +141,6 @@
 
             <!-- Footer -->
             <div class="text-center text-xs text-gray-600 dark:text-gray-400 footer-section">
-                <p class="mb-2 font-bold">Cashier: {{ $sale->user->name ?? 'System' }}</p>
                 <p class="mb-3 text-sm font-bold">ස්තූතියි, නැවත එන්න !</p>
                 <p class="text-xs">Powered by VertexCore AI</p>
                 <p class="text-xs">vertexcoreai.com</p>
