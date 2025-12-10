@@ -61,8 +61,8 @@
                 </div>
 
                 <!-- Products & Inventory Section -->
-                @canany(['view products', 'view categories', 'view brands', 'view suppliers', 'view grns', 'view batches', 'view stocks', 'view vendor codes', 'view stock in'])
-                <div class="space-y-1" x-show="hasMatchInSection(['Products', 'Inventory', 'All Products', 'Categories', 'Brands', 'Suppliers', 'Good Receive Notes', 'GRN', 'Batches', 'Stocks', 'Vendor Codes', 'Stock In'])">
+                @canany(['view products', 'view categories', 'view brands', 'view suppliers', 'view grns', 'view batches', 'view stocks', 'view vendor codes', 'view stock in', 'manage stock adjustments'])
+                <div class="space-y-1" x-show="hasMatchInSection(['Products', 'Inventory', 'All Products', 'Categories', 'Brands', 'Suppliers', 'Good Receive Notes', 'GRN', 'Batches', 'Stocks', 'Stock Adjustments', 'Adjustments', 'Vendor Codes', 'Stock In'])">
                     <button @click="openSections.includes('products-inventory') ? openSections = openSections.filter(s => s !== 'products-inventory') : openSections.push('products-inventory')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
@@ -144,6 +144,16 @@
                             <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Stocks</span>
                         </a>
                         @endcan
+                        @can('manage stock adjustments')
+                        <a href="{{ route('stock-adjustments.index') }}"
+                            x-show="matchesSearch('Stock Adjustments') || matchesSearch('Adjustments')"
+                            class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out {{ request()->routeIs('stock-adjustments.*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
+                            :class="sidebarCollapsed ? 'justify-center' : ''"
+                            title="Stock Adjustments">
+
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Stock Adjustments</span>
+                        </a>
+                        @endcan
                         @can('view vendor codes')
                         <a href="{{ route('vendor-codes.index') }}"
                             x-show="matchesSearch('Vendor Codes')"
@@ -169,8 +179,8 @@
                 @endcanany
 
                 <!-- Sales & Operations Section -->
-                @canany(['view sales', 'view sales returns', 'view supplier returns', 'view expenses', 'manage own shifts', 'view reports', 'view shifts'])
-                <div class="space-y-1" x-show="hasMatchInSection(['Sales', 'Operations', 'Sales History', 'My Shifts', 'Sales Returns', 'Supplier Returns', 'Expenses', 'Analytics', 'Reports', 'All Shifts'])">
+                @canany(['view sales', 'view sales returns', 'view supplier returns', 'view expenses', 'manage own shifts', 'view reports', 'view shifts', 'view manual sales reconciliation'])
+                <div class="space-y-1" x-show="hasMatchInSection(['Sales', 'Operations', 'Sales History', 'Manual Sales', 'Manual Sales History', 'Reconciliation', 'My Shifts', 'Sales Returns', 'Supplier Returns', 'Expenses', 'Analytics', 'Reports', 'All Shifts'])">
                     <button @click="openSections.includes('sales-operations') ? openSections = openSections.filter(s => s !== 'sales-operations') : openSections.push('sales-operations')"
                             class="w-full flex items-center justify-between px-2 py-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors group"
                             :class="sidebarCollapsed ? 'justify-center' : ''"
@@ -190,6 +200,26 @@
                             title="Sales History">
 
                             <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Sales History</span>
+                        </a>
+                        @endcan
+                        @can('view sales')
+                        <a href="{{ route('manual-sales.index') }}"
+                            x-show="matchesSearch('Manual Sales') || matchesSearch('Manual Sales History')"
+                            class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out {{ request()->routeIs('manual-sales.*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
+                            :class="sidebarCollapsed ? 'justify-center' : ''"
+                            title="Manual Sales History">
+
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Manual Sales History</span>
+                        </a>
+                        @endcan
+                        @can('view manual sales reconciliation')
+                        <a href="{{ route('manual-sales.reconciliation.index') }}"
+                            x-show="matchesSearch('Reconciliation') || matchesSearch('Manual Sales Reconciliation')"
+                            class="group flex items-center px-2 py-2 text-base font-semibold rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white transition-all duration-200 ease-in-out {{ request()->routeIs('manual-sales.reconciliation.*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
+                            :class="sidebarCollapsed ? 'justify-center' : ''"
+                            title="Manual Sales Reconciliation">
+
+                            <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Reconciliation</span>
                         </a>
                         @endcan
                         @can('manage own shifts')
