@@ -765,7 +765,7 @@
 
                     try {
                         const response = await fetch(
-                            `{{ url('/') }}/api/products/search?q=${encodeURIComponent(this.searchQuery)}`);
+                            `{{ route('api.products.search') }}?q=${encodeURIComponent(this.searchQuery)}`);
                         const data = await response.json();
                         this.searchResults = data;
                     } catch (error) {
@@ -1101,7 +1101,7 @@
 
                     try {
                         // Determine endpoint and payload based on cart type
-                        const endpoint = this.cartType === 'manual' ? '{{ url('/manual-sales') }}' : '{{ url('/sales') }}';
+                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' : '{{ route('sales.store') }}';
 
                         let payload;
                         if (this.cartType === 'manual') {
@@ -1251,7 +1251,7 @@
 
                     try {
                         // Determine endpoint and payload based on cart type
-                        const endpoint = this.cartType === 'manual' ? '{{ url('/manual-sales') }}' : '{{ url('/sales') }}';
+                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' : '{{ route('sales.store') }}';
 
                         let payload;
                         if (this.cartType === 'manual') {
@@ -1342,7 +1342,7 @@
                     this.errorMessage = '';
 
                     try {
-                        const response = await fetch('{{ url('/api/saved-carts') }}', {
+                        const response = await fetch('{{ route('api.saved-carts.store') }}', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1392,7 +1392,7 @@
                     this.isLoadingSavedCarts = true;
 
                     try {
-                        const response = await fetch('{{ url('/api/saved-carts') }}');
+                        const response = await fetch('{{ route('api.saved-carts.index') }}');
                         const data = await response.json();
                         this.savedCarts = data;
                     } catch (error) {
@@ -1412,7 +1412,7 @@
                     this.errorMessage = '';
 
                     try {
-                        const response = await fetch(`{{ url('/') }}/api/saved-carts/${savedCartId}`);
+                        const response = await fetch(`{{ url('/api/saved-carts') }}/${savedCartId}`);
                         const savedCart = await response.json();
 
                         // Map saved cart items to cart format
@@ -1455,7 +1455,7 @@
                     }
 
                     try {
-                        const response = await fetch(`{{ url('/') }}/api/saved-carts/${savedCartId}`, {
+                        const response = await fetch(`{{ url('/api/saved-carts') }}/${savedCartId}`, {
                             method: 'DELETE',
                             headers: {
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -1545,7 +1545,7 @@
                     if (!this.activeShift) return;
 
                     try {
-                        const response = await fetch(`{{ url('/') }}/shifts/${this.activeShift.id}/clock-out`, {
+                        const response = await fetch(`{{ url('/shifts') }}/${this.activeShift.id}/clock-out`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
