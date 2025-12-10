@@ -124,7 +124,9 @@ class StockController extends Controller
         $profitMargin = $stock->selling_price - $stock->cost_price;
         $profitPercentage = $stock->cost_price > 0 ? (($profitMargin / $stock->cost_price) * 100) : 0;
 
-        return view('stocks.show', compact('stock', 'totalValue', 'potentialRevenue', 'profitMargin', 'profitPercentage'));
+        $currentPage = request()->query('page', 1);
+
+        return view('stocks.show', compact('stock', 'totalValue', 'potentialRevenue', 'profitMargin', 'profitPercentage', 'currentPage'));
     }
 
     /**
@@ -136,11 +138,13 @@ class StockController extends Controller
             'barcode' => 'nullable|string|max:255|unique:batches,barcode,' . $stock->batch_id,
         ]);
 
+        $currentPage = $request->input('current_page', 1);
+
         $stock->batch->update([
             'barcode' => $validated['barcode'],
         ]);
 
-        return redirect()->route('stocks.show', $stock)
+        return redirect()->route('stocks.show', ['stock' => $stock->id, 'page' => $currentPage])
             ->with('success', 'Barcode updated successfully.');
     }
 
@@ -169,6 +173,7 @@ class StockController extends Controller
 
         // Setup state variables
         $adjustmentQuantity = (float)($validated['quantity_adjustment'] ?? 0);
+        $currentPage = $request->input('current_page', 1);
         $hasQuantityAdjustment = $adjustmentQuantity !== 0.0;
         $successMessage = 'Stock updated successfully.';
 
@@ -255,7 +260,7 @@ class StockController extends Controller
                 }
 
                 $warningMessage = ($priceOrBarcodeUpdated ? 'Price/Barcode updated, but ' : '') . 'Quantity adjustment failed: ' . $e->getMessage();
-                return redirect()->route('stocks.index')->with('warning', $warningMessage);
+                return redirect()->route('stocks.index', ['page' => $currentPage])->with('warning', $warningMessage);
             }
         }
 
@@ -280,7 +285,7 @@ class StockController extends Controller
         }
 
         // *** 4. FINAL REDIRECT ***
-        return redirect()->route('stocks.index')
+        return redirect()->route('stocks.index', ['page' => $currentPage])
             ->with('success', $successMessage);
     }
 }

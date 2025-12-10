@@ -3,7 +3,8 @@
 @section('content')
     <div class="container mx-auto px-4 py-6">
         <div class="mb-6">
-            <a href="{{ route('stocks.index') }}" class="text-indigo-600 hover:text-indigo-900 mb-4 inline-block">
+            <a href="{{ route('stocks.index', ['page' => $currentPage ?? 1]) }}"
+                class="text-indigo-600 hover:text-indigo-900 mb-4 inline-block">
                 ← Back to Stocks
             </a>
             <h1 class="text-3xl font-bold text-gray-800">Stock Details</h1>
@@ -60,6 +61,7 @@
                                 class="inline-flex items-center gap-2 mt-1">
                                 @csrf
                                 @method('PATCH')
+                                <input type="hidden" name="current_page" value="{{ $currentPage ?? 1 }}">
                                 <input type="text" name="barcode" value="{{ $stock->batch->barcode }}"
                                     class="border border-gray-300 rounded px-2 py-1 text-sm font-mono focus:ring-indigo-500 focus:border-indigo-500"
                                     placeholder="Enter barcode">

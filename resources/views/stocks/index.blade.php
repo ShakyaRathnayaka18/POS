@@ -229,7 +229,7 @@
                                         class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <a href="{{ route('stocks.show', $stock) }}"
+                                    <a href="{{ route('stocks.show', ['stock' => $stock->id, 'page' => $stocks->currentPage()]) }}"
                                         class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300">View</a>
                                 </td>
                             </tr>
@@ -268,6 +268,8 @@
                     <form id="editStockForm" method="POST">
                         @csrf
                         @method('PATCH')
+                        <input type="hidden" name="current_page" id="current_page"
+                            value="{{ $stocks->currentPage() }}">
 
                         <div class="p-6 space-y-4">
                             <!-- Product Name -->
@@ -412,6 +414,9 @@
             document.getElementById('selling_price').value = sellingPrice;
             document.getElementById('barcode').value = barcode || '';
             document.getElementById('modalProductName').textContent = productName;
+
+            // Set current page value
+            document.getElementById('current_page').value = "{{ $stocks->currentPage() }}";
 
             // Show modal
             document.getElementById('editStockModal').classList.remove('hidden');
