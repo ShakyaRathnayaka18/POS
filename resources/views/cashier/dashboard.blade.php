@@ -3,11 +3,30 @@
 @section('title', 'Cashier Dashboard')
 
 @section('content')
-    <div x-data="cashierPos()" x-init="init()" class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-6rem)]">
+    <div x-data="cashierPos()" x-init="init()"
+         @keydown.window.ctrl.m.prevent="toggleManualModeShortcut()"
+         class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-6rem)]">
         <!-- Left Main Area: Product Search & Cart -->
         <div class="flex-1 flex flex-col gap-2 overflow-hidden">
+            <!-- Manual Entry Mode Toggle -->
+            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex-shrink-0">
+                <div class="flex items-center justify-between">
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" x-model="isManualMode" @change="toggleManualMode"
+                               :disabled="cart.length > 0" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-500"></div>
+                        <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
+                            <i class="fas fa-edit mr-1"></i> Manual Entry Mode
+                        </span>
+                    </label>
+                    <span x-show="cart.length > 0" class="text-xs text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-info-circle mr-1"></i> Clear cart to switch modes
+                    </span>
+                </div>
+            </div>
+
             <!-- Product Search -->
-            <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-0 flex-shrink-0">
+            <div x-show="!isManualMode" x-transition class="bg-white dark:bg-gray-800 shadow rounded-lg p-0 flex-shrink-0">
                 <div class="relative">
                     <input type="text" x-model="searchQuery" @input.debounce.300ms="searchProducts"
                         @keydown.enter.prevent="selectFirstProduct" placeholder="Search products by name, barcode, or SKU..."
@@ -53,6 +72,62 @@
                 <div x-show="isSearching" class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex items-center">
                     <i class="fas fa-spinner fa-spin mr-2"></i>Searching...
                 </div>
+            </div>
+
+            <!-- Manual Entry Form (Manual Mode) -->
+            <div x-show="isManualMode" x-transition class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 shadow rounded-lg p-4 flex-shrink-0">
+                <div class="flex items-center mb-3">
+                    <i class="fas fa-edit text-yellow-600 dark:text-yellow-400 text-xl mr-2"></i>
+                    <h3 class="text-lg font-semibold text-yellow-900 dark:text-yellow-100">Manual Product Entry</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Product Name <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" x-model="manualEntry.product_name"
+                               @keydown.enter.prevent="$refs.priceInput.focus()"
+                               placeholder="Enter product name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Price (LKR) <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" x-model="manualEntry.price" step="0.01" min="0"
+                               x-ref="priceInput"
+                               @keydown.enter.prevent="$refs.quantityInput.focus()"
+                               placeholder="0.00"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Quantity <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" x-model="manualEntry.quantity" step="0.01" min="0.01"
+                               x-ref="quantityInput"
+                               @keydown.enter.prevent="$refs.barcodeInput.focus()"
+                               placeholder="1"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Barcode (Optional)
+                        </label>
+                        <input type="text" x-model="manualEntry.entered_barcode"
+                               x-ref="barcodeInput"
+                               @keydown.enter.prevent="addManualItemToCart()"
+                               placeholder="Scan or enter barcode"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                    </div>
+                </div>
+                <button @click="addManualItemToCart()" type="button"
+                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                    <i class="fas fa-plus-circle mr-2"></i> Add to Cart
+                </button>
+                <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                    <i class="fas fa-info-circle mr-1"></i> Manual entries will be reconciled later with actual products
+                </p>
             </div>
 
             <!-- Shopping Cart Table -->
@@ -342,7 +417,7 @@
 
                 <!-- Action Buttons -->
                 <div class="mt-auto pt-4">
-                    <button @click="completeSale" type="button"
+                    <button @click="completeSaleAndPrint" type="button"
                         :disabled="cart.length === 0 || isProcessing || !paymentMethod || (paymentMethod === 'cash' &&
                             amountReceived < totals.total)"
                         class="w-full bg-green-600 text-white py-3 px-4 rounded-md hover:bg-green-700 font-bold text-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
@@ -566,6 +641,17 @@
                 savedCarts: [],
                 isLoadingSavedCarts: false,
 
+                // Manual entry mode properties
+                isManualMode: false,
+                cartType: 'regular', // 'regular' or 'manual'
+                manualEntry: {
+                    product_name: '',
+                    price: '',
+                    quantity: 1,
+                    entered_barcode: '',
+                    tax: 0
+                },
+
                 // Shift management properties
                 activeShift: null,
                 shiftStats: null,
@@ -649,6 +735,20 @@
                             // Only trigger if cart has items and payment is valid
                             if (this.cart.length > 0 && !this.isProcessing) {
                                 this.completeSaleAndPrint();
+                            }
+                        }
+
+                        // Ctrl+M - Toggle Manual Mode
+                        if (e.ctrlKey && e.key === 'm') {
+                            e.preventDefault();
+                            this.isManualMode = !this.isManualMode;
+                            this.toggleManualMode();
+
+                            // Focus on product name field when entering manual mode
+                            if (this.isManualMode) {
+                                this.$nextTick(() => {
+                                    document.querySelector('input[x-model="manualEntry.product_name"]')?.focus();
+                                });
                             }
                         }
                     });
@@ -858,9 +958,113 @@
                 clearCart() {
                     if (confirm('Are you sure you want to clear the cart?')) {
                         this.cart = [];
+                        this.cartType = 'regular';
                         this.calculateTotals();
                         this.errorMessage = '';
                     }
+                },
+
+                toggleManualMode() {
+                    // Prevent switching if cart has items
+                    if (this.cart.length > 0) {
+                        this.isManualMode = !this.isManualMode; // Revert toggle
+                        alert('Please clear the cart before switching modes.');
+                        return;
+                    }
+
+                    // Update cart type based on mode
+                    this.cartType = this.isManualMode ? 'manual' : 'regular';
+                    this.errorMessage = '';
+
+                    // Reset manual entry form when switching modes
+                    this.manualEntry = {
+                        product_name: '',
+                        price: '',
+                        quantity: 1,
+                        entered_barcode: '',
+                        tax: 0
+                    };
+                },
+
+                toggleManualModeShortcut() {
+                    // Toggle manual mode with Ctrl+M
+                    this.isManualMode = !this.isManualMode;
+                    this.toggleManualMode();
+
+                    // Focus on product name field when entering manual mode
+                    if (this.isManualMode) {
+                        this.$nextTick(() => {
+                            const input = document.querySelector('input[x-model="manualEntry.product_name"]');
+                            if (input) input.focus();
+                        });
+                    }
+                },
+
+                addManualItemToCart() {
+                    // Validate required fields
+                    if (!this.manualEntry.product_name || !this.manualEntry.product_name.trim()) {
+                        alert('Product name is required!');
+                        return;
+                    }
+
+                    if (!this.manualEntry.price || parseFloat(this.manualEntry.price) <= 0) {
+                        alert('Valid price is required!');
+                        return;
+                    }
+
+                    if (!this.manualEntry.quantity || parseFloat(this.manualEntry.quantity) <= 0) {
+                        alert('Valid quantity is required!');
+                        return;
+                    }
+
+                    // Add manual item to cart
+                    const price = parseFloat(this.manualEntry.price);
+                    const quantity = parseFloat(this.manualEntry.quantity);
+                    const tax = parseFloat(this.manualEntry.tax) || 0;
+                    const subtotal = price * quantity;
+                    const taxAmount = subtotal * (tax / 100);
+                    const total = subtotal + taxAmount;
+
+                    this.cart.push({
+                        id: Date.now(), // Unique ID for manual items
+                        product_name: this.manualEntry.product_name.trim(),
+                        price: price,
+                        selling_price: price, // For cart display (line 175)
+                        originalPrice: price, // For discount calculations
+                        quantity: quantity,
+                        entered_barcode: this.manualEntry.entered_barcode || null,
+                        tax: tax,
+                        subtotal: subtotal,
+                        total: total,
+                        isManual: true, // Flag to identify manual items
+                        sku: 'MANUAL', // Display as MANUAL in cart
+                        unit: 'pcs',
+                        discountType: 'none', // For consistency with regular items
+                        discountValue: 0, // For discount functionality
+                        discountAmount: 0, // For discount functionality
+                        allow_decimal_sales: true // For quantity validation
+                    });
+
+                    // Set cart type
+                    this.cartType = 'manual';
+
+                    // Reset manual entry form
+                    this.manualEntry = {
+                        product_name: '',
+                        price: '',
+                        quantity: 1,
+                        entered_barcode: '',
+                        tax: 0
+                    };
+
+                    // Recalculate totals
+                    this.calculateTotals();
+                    this.errorMessage = '';
+
+                    // Focus back on product name input
+                    this.$nextTick(() => {
+                        document.querySelector('input[x-model="manualEntry.product_name"]')?.focus();
+                    });
                 },
 
                 async completeSaleAndPrint() {
@@ -896,39 +1100,71 @@
                     this.errorMessage = '';
 
                     try {
-                        const response = await fetch('{{ url('/sales') }}', {
+                        // Determine endpoint and payload based on cart type
+                        const endpoint = this.cartType === 'manual' ? '{{ url('/manual-sales') }}' : '{{ url('/sales') }}';
+
+                        let payload;
+                        if (this.cartType === 'manual') {
+                            // Manual sale payload
+                            payload = {
+                                payment_method: this.paymentMethod,
+                                customer_id: this.selectedCustomerId || null,
+                                customer_name: this.customerName || null,
+                                customer_phone: this.customerPhone || null,
+                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : null,
+                                changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
+                                items: this.cart.map(item => ({
+                                    product_name: item.product_name,
+                                    price: item.price,
+                                    quantity: item.quantity,
+                                    entered_barcode: item.entered_barcode,
+                                    tax: item.tax || 0,
+                                    discount: item.discountType !== 'none' ? {
+                                        type: item.discountType,
+                                        value: item.discountValue,
+                                        amount: item.discountAmount,
+                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
+                                    } : null
+                                }))
+                            };
+                        } else {
+                            // Regular sale payload
+                            payload = {
+                                payment_method: this.paymentMethod,
+                                customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId : null,
+                                credit_terms: this.paymentMethod === 'credit' ? this.creditTerms : null,
+                                customer_name: this.customerName || null,
+                                customer_phone: this.customerPhone || null,
+                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : null,
+                                changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
+                                items: this.cart.map(item => ({
+                                    product_id: item.id,
+                                    quantity: item.quantity
+                                }))
+                            };
+                        }
+
+                        const response = await fetch(endpoint, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                                 'Accept': 'application/json',
                             },
-                            body: JSON.stringify({
-                                payment_method: this.paymentMethod,
-                                customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId :
-                                    null,
-                                credit_terms: this.paymentMethod === 'credit' ? this.creditTerms : null,
-                                customer_name: this.customerName || null,
-                                customer_phone: this.customerPhone || null,
-                                customer_phone: this.customerPhone || null,
-                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived :
-                                    null,
-                                changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
-                                items: this.cart.map(item => ({
-                                    product_id: item.id,
-                                    quantity: item.quantity
-                                }))
-                            })
+                            body: JSON.stringify(payload)
                         });
 
                         const data = await response.json();
 
                         if (data.success) {
                             // Success - fetch the receipt HTML and print directly
-                            const saleId = data.sale.id;
+                            const saleId = this.cartType === 'manual' ? data.manual_sale.id : data.sale.id;
+                            const receiptUrl = this.cartType === 'manual' ?
+                                `{{ url('/manual-sales') }}/${saleId}` :
+                                `{{ url('/sales') }}/${saleId}`;
 
                             // Fetch the receipt page
-                            const receiptResponse = await fetch(`{{ url('/sales') }}/${saleId}`);
+                            const receiptResponse = await fetch(receiptUrl);
                             const receiptHtml = await receiptResponse.text();
 
                             // Create a hidden iframe for printing
@@ -952,6 +1188,7 @@
 
                                         // Reset the cart and form
                                         this.cart = [];
+                                        this.cartType = 'regular';
                                         this.customerName = '';
                                         this.customerPhone = '';
                                         this.amountReceived = 0;
@@ -1013,23 +1250,42 @@
                     this.errorMessage = '';
 
                     try {
-                        const response = await fetch('{{ url('/sales') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                                'Accept': 'application/json',
-                            },
-                            body: JSON.stringify({
+                        // Determine endpoint and payload based on cart type
+                        const endpoint = this.cartType === 'manual' ? '{{ url('/manual-sales') }}' : '{{ url('/sales') }}';
+
+                        let payload;
+                        if (this.cartType === 'manual') {
+                            // Manual sale payload
+                            payload = {
                                 payment_method: this.paymentMethod,
-                                customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId :
-                                    null,
+                                customer_id: this.selectedCustomerId || null,
+                                customer_name: this.customerName || null,
+                                customer_phone: this.customerPhone || null,
+                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : null,
+                                changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
+                                items: this.cart.map(item => ({
+                                    product_name: item.product_name,
+                                    price: item.price,
+                                    quantity: item.quantity,
+                                    entered_barcode: item.entered_barcode,
+                                    tax: item.tax || 0,
+                                    discount: item.discountType !== 'none' ? {
+                                        type: item.discountType,
+                                        value: item.discountValue,
+                                        amount: item.discountAmount,
+                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
+                                    } : null
+                                }))
+                            };
+                        } else {
+                            // Regular sale payload
+                            payload = {
+                                payment_method: this.paymentMethod,
+                                customer_id: this.paymentMethod === 'credit' ? this.selectedCustomerId : null,
                                 credit_terms: this.paymentMethod === 'credit' ? this.creditTerms : null,
                                 customer_name: this.customerName || null,
                                 customer_phone: this.customerPhone || null,
-                                customer_phone: this.customerPhone || null,
-                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived :
-                                    null,
+                                amountReceived: this.paymentMethod === 'cash' ? this.amountReceived : null,
                                 changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
                                 items: this.cart.map(item => ({
                                     product_id: item.id,
@@ -1040,19 +1296,31 @@
                                         amount: item.discountAmount,
                                         discount_id: null,
                                         approved_by: null,
-                                        final_price: (item.quantity * item
-                                                .originalPrice - item.discountAmount) /
-                                            item.quantity
+                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
                                     } : null
                                 }))
-                            })
+                            };
+                        }
+
+                        const response = await fetch(endpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify(payload)
                         });
 
                         const data = await response.json();
 
                         if (data.success) {
                             // Success - redirect to receipt
-                            window.location.href = `{{ url('/sales') }}/${data.sale.id}`;
+                            if (this.cartType === 'manual') {
+                                window.location.href = `{{ url('/manual-sales') }}/${data.manual_sale.id}`;
+                            } else {
+                                window.location.href = `{{ url('/sales') }}/${data.sale.id}`;
+                            }
                         } else {
                             this.errorMessage = data.message || 'Error processing sale. Please try again.';
                         }

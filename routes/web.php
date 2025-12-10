@@ -9,6 +9,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoodReceiveNoteController;
+use App\Http\Controllers\ManualSaleController;
+use App\Http\Controllers\ManualSaleReconciliationController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
@@ -151,6 +153,28 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
         Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
         Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
+    });
+
+    // Manual Sales routes - requires create sales permission (same as cashier)
+    Route::middleware(['permission:create sales'])->group(function () {
+        Route::post('/manual-sales', [ManualSaleController::class, 'store'])->name('manual-sales.store');
+    });
+
+    Route::middleware(['permission:view sales'])->group(function () {
+        Route::get('/manual-sales', [ManualSaleController::class, 'index'])->name('manual-sales.index');
+        Route::get('/manual-sales/{manualSale}', [ManualSaleController::class, 'show'])->name('manual-sales.show');
+    });
+
+    // Manual Sales Reconciliation routes - requires view sales permission
+    Route::middleware(['permission:view sales'])->group(function () {
+        Route::get('/manual-sales/reconciliation', [ManualSaleReconciliationController::class, 'index'])
+            ->name('manual-sales.reconciliation.index');
+        Route::get('/manual-sales/{manualSale}/reconciliation', [ManualSaleReconciliationController::class, 'show'])
+            ->name('manual-sales.reconciliation.show');
+        Route::post('/manual-sales/reconciliation/search-product', [ManualSaleReconciliationController::class, 'searchProductByBarcode'])
+            ->name('manual-sales.reconciliation.search-product');
+        Route::post('/manual-sales/{manualSale}/reconciliation', [ManualSaleReconciliationController::class, 'reconcile'])
+            ->name('manual-sales.reconciliation.reconcile');
     });
 
     // API routes for cashier

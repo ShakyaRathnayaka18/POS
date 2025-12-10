@@ -55,6 +55,10 @@ enum PermissionsEnum: string
     case VIEW_SALES = 'view sales';
     case VIEW_SALE_DETAILS = 'view sale details';
 
+    // Manual Sales Reconciliation
+    case VIEW_MANUAL_SALES_RECONCILIATION = 'view manual sales reconciliation';
+    case RECONCILE_MANUAL_SALES = 'reconcile manual sales';
+
     // Sales Returns
     case VIEW_SALES_RETURNS = 'view sales returns';
     case CREATE_SALES_RETURNS = 'create sales returns';
@@ -241,6 +245,10 @@ enum PermissionsEnum: string
                 self::VIEW_SALES,
                 self::VIEW_SALE_DETAILS,
                 self::MANAGE_SAVED_CARTS,
+            ],
+            'Manual Sales Reconciliation' => [
+                self::VIEW_MANUAL_SALES_RECONCILIATION,
+                self::RECONCILE_MANUAL_SALES,
             ],
             'Sales Returns' => [
                 self::VIEW_SALES_RETURNS,

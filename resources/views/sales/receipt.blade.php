@@ -37,21 +37,18 @@
             </div>
 
             <!-- Sale Information -->
-            <div class="mb-4 text-sm sale-info">
+            <div class="mb-3 text-xs info-section">
                 <div class="flex justify-between mb-1">
-                    <span
-                        class="text-gray-600 dark:text-gray-400">{{ $sale->created_at->setTimezone('Asia/Colombo')->format('d/m/Y  h:i:sA') }}</span>
-                    <span class="text-gray-900 dark:text-white font-bold">No: {{ $sale->sale_number }}</span>
+                    <span class="text-gray-900 dark:text-white">දිනය: <strong>{{ $sale->created_at->setTimezone('Asia/Colombo')->format('d/m/Y  h:i:sA') }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">අංකය: <strong>{{ $sale->sale_number }}</strong></span>
                 </div>
             </div>
 
             <!-- Cashier & Payment Info -->
             <div class="mb-3 text-xs info-section">
                 <div class="flex justify-between">
-                    <span class="text-gray-700 dark:text-gray-300">මුදල් අයකැමි:
-                        <strong>{{ $sale->user->name ?? 'System' }}</strong></span>
-                    <span class="text-gray-700 dark:text-gray-300">ගෙවීමේ ක්‍රමය:
-                        <strong>{{ $sale->payment_method }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">මුදල් අයකැමි: <strong>{{ $sale->user->name ?? 'System' }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">ගෙවීමේ ක්‍රමය: <strong>{{ $sale->payment_method }}</strong></span>
                 </div>
             </div>
 
@@ -61,8 +58,9 @@
             <!-- Column Headers -->
             <div class="text-xs font-bold text-gray-900 dark:text-white mb-2 items-header">
                 <div class="flex justify-between">
-                    <span style="width: 35%">ප්‍රමාණය සහ සදහන් මිල</span>
-                    <span style="width: 20%; text-align: right">අඩු මිල</span>
+                    <span style="width: 15%">ප්‍රමාණය</span>
+                    <span style="width: 20%">සදහන් මිල</span>
+                    <span style="width: 20%; text-align: right">අපේ මිල</span>
                     <span style="width: 20%; text-align: right">එකතුව</span>
                 </div>
             </div>
@@ -76,24 +74,20 @@
                     </div>
 
                     <!-- Product Details -->
-                    <div class="flex justify-between text-xs text-gray-700 dark:text-gray-300 mb-3">
-                        <span style="width: 35%">
+                    <div class="flex justify-between text-xs text-gray-900 dark:text-white mb-3">
+                        <span style="width: 15%">
                             <strong>{{ number_format($item->quantity, 0) }}</strong>
-                            <span class="ml-3">
-                                @if ($item->hasDiscount())
-                                    <span
-                                        class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2) }}</span>
-                                @else
-                                    {{ number_format($item->price, 2) }}
-                                @endif
-                            </span>
+                        </span>
+                        <span style="width: 20%">
+                            @if ((method_exists($item, 'hasDiscount') && $item->hasDiscount()) || (property_exists($item, 'discount_type') && $item->discount_type !== 'none' && $item->discount_amount > 0))
+                                <span
+                                    class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2) }}</span>
+                            @else
+                                {{ number_format($item->price, 2) }}
+                            @endif
                         </span>
                         <span style="width: 20%; text-align: right">
-                            @if ($item->hasDiscount())
-                                {{ number_format($item->price, 2) }}
-                            @else
-                                -
-                            @endif
+                            {{ number_format($item->price, 2) }}
                         </span>
                         <span style="width: 20%; text-align: right; font-weight: bold">
                             {{ number_format($item->total, 2) }}
@@ -116,13 +110,13 @@
                     **** ගෙවීම ****
                 </div>
 
-                <div class="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+                <div class="flex justify-between text-sm text-gray-900 dark:text-white">
                     <span>ගෙවූ මුදල</span>
                     <span class="font-bold">{{ number_format($sale->amount_received ?? $sale->total, 2) }}</span>
                 </div>
 
                 @if ($sale->total_discount > 0)
-                    <div class="flex justify-between text-sm text-gray-700 dark:text-gray-300">
+                    <div class="flex justify-between text-sm text-gray-900 dark:text-white">
                         <span>ලබාදුන් වට්ටම</span>
                         <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2) }}</span>
                     </div>
@@ -130,7 +124,7 @@
 
                 @if ($sale->payment_method->value === 'cash' && $sale->change_amount > 0)
                     <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white">
-                        <span>ඉතිරි ලාභය</span>
+                        <span>ඉතිරිය</span>
                         <span>{{ number_format($sale->change_amount, 2) }}</span>
                     </div>
                 @endif
