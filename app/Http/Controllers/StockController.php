@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Services\StockAdjustmentService;
@@ -36,6 +37,15 @@ class StockController extends Controller
             ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN quantity ELSE 0 END) as paid_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN available_quantity ELSE 0 END) as paid_available_quantity')
             ->groupBy('product_id', 'batch_id');
+
+        // Filter by category
+        $selectedCategoryId = null;
+        if ($request->filled('category_id')) {
+            $selectedCategoryId = $request->category_id;
+            $query->whereHas('product', function ($q) use ($selectedCategoryId) {
+                $q->where('category_id', $selectedCategoryId);
+            });
+        }
 
         // Filter by product
         if ($request->filled('product_id')) {
@@ -81,7 +91,6 @@ class StockController extends Controller
                 $stock->product = $fullStock->product;
                 $stock->batch = $fullStock->batch;
             }
-
             return $stock;
         });
 
@@ -108,8 +117,113 @@ class StockController extends Controller
             ->count();
 
         $products = Product::orderBy('product_name')->get();
+        $categories = Category::orderBy('cat_name')->get();
 
-        return view('stocks.index', compact('stocks', 'products', 'totalStocks', 'totalValue', 'outOfStock', 'lowStock'));
+        // Calculate category-specific stats only if category is selected
+        $categoryStats = null;
+        $selectedCategory = null;
+
+        if ($selectedCategoryId) {
+            $selectedCategory = Category::find($selectedCategoryId);
+
+            // Get all products in this category
+            $categoryProducts = Product::where('category_id', $selectedCategoryId)->pluck('id');
+
+            // Calculate stats for selected category
+            $categoryTotalProducts = $categoryProducts->count();
+
+            $categoryTotalStocks = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->get()
+                ->count();
+
+            $categoryTotalValue = Stock::where('cost_price', '>', 0)
+                ->whereIn('product_id', $categoryProducts)
+                ->sum(DB::raw('cost_price * available_quantity'));
+
+            $categoryOutOfStock = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->havingRaw('SUM(available_quantity) = 0')
+                ->get()
+                ->count();
+
+            $categoryLowStock = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+                ->havingRaw('SUM(available_quantity) > 0')
+                ->get()
+                ->count();
+
+            $categoryInStock = $categoryTotalStocks - $categoryOutOfStock;
+
+            $categoryBrandIds = Product::where('category_id', $selectedCategoryId)
+                ->whereNotNull('brand_id')
+                ->distinct()
+                ->pluck('brand_id');
+
+            $categoryBrands = \App\Models\Brand::whereIn('id', $categoryBrandIds)
+                ->orderBy('brand_name')
+                ->get()
+                ->map(function ($brand) use ($selectedCategoryId) {
+                    // Get products for this brand within the selected category
+                    $brandProductIds = Product::where('category_id', $selectedCategoryId)
+                        ->where('brand_id', $brand->id)
+                        ->pluck('id');
+
+                    // Calculate stats
+                    $brand->total_products = $brandProductIds->count();
+
+                    $brand->total_stocks = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->get()
+                        ->count();
+
+                    $brand->out_of_stock = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->havingRaw('SUM(available_quantity) = 0')
+                        ->get()
+                        ->count();
+
+                    $brand->low_stock = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+                        ->havingRaw('SUM(available_quantity) > 0')
+                        ->get()
+                        ->count();
+
+                    $brand->in_stock = $brand->total_stocks - $brand->out_of_stock;
+
+                    return $brand;
+                });
+
+            $categoryStats = [
+                'total_products' => $categoryTotalProducts,
+                'total_stocks' => $categoryTotalStocks,
+                'total_value' => $categoryTotalValue,
+                'out_of_stock' => $categoryOutOfStock,
+                'low_stock' => $categoryLowStock,
+                'in_stock' => $categoryInStock,
+                'brands' => $categoryBrands,
+            ];
+        }
+
+        return view('stocks.index', compact(
+            'stocks',
+            'products',
+            'categories',
+            'totalStocks',
+            'totalValue',
+            'outOfStock',
+            'lowStock',
+            'categoryStats',
+            'selectedCategory'
+        ));
     }
 
     /**

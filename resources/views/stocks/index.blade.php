@@ -50,20 +50,142 @@
             </div>
         </div>
 
+        <!-- Category Statistics Card -->
+        @if ($categoryStats && $selectedCategory)
+            <div class="mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center">
+                            @if ($selectedCategory->icon)
+                                <i class="{{ $selectedCategory->icon }} text-4xl mr-4"></i>
+                            @else
+                                <i class="fas fa-folder text-blue-500 text-4xl mr-4"></i>
+                            @endif
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+                                    {{ $selectedCategory->cat_name }}</h3>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">Category Statistics</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('stocks.index') }}"
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times mr-2"></i> Clear Filter
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
+                        <!-- Total Products -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Products</p>
+                            <p class="text-3xl font-bold text-gray-900 dark:text-white">
+                                {{ $categoryStats['total_products'] }}</p>
+                        </div>
+
+                        <!-- Stock Items -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Stock Items</p>
+                            <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ $categoryStats['total_stocks'] }}
+                            </p>
+                        </div>
+
+                        <!-- Total Value -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Value</p>
+                            <p class="text-xl font-bold text-gray-900 dark:text-white">LKR
+                                {{ number_format($categoryStats['total_value'], 2) }}</p>
+                        </div>
+
+                        <!-- In Stock -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">In Stock</p>
+                            <p class="text-3xl font-bold text-green-600 dark:text-green-400">
+                                {{ $categoryStats['in_stock'] }}</p>
+                        </div>
+
+                        <!-- Out of Stock -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Out of Stock</p>
+                            <p class="text-3xl font-bold text-red-600 dark:text-red-400">
+                                {{ $categoryStats['out_of_stock'] }}</p>
+                        </div>
+
+                        <!-- Low Stock -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Low Stock</p>
+                            <p class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                                {{ $categoryStats['low_stock'] }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Brands Section -->
+                    @if (isset($categoryStats['brands']) && $categoryStats['brands']->count() > 0)
+                        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                                <i class="fas fa-tags mr-2 text-blue-500"></i>Brands in {{ $selectedCategory->cat_name }}
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                @foreach ($categoryStats['brands'] as $brand)
+                                    <div
+                                        class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 flex flex-col">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <h5 class="font-bold text-gray-900 dark:text-white truncate"
+                                                title="{{ $brand->brand_name }}">
+                                                {{ $brand->brand_name }}
+                                            </h5>
+                                            <span
+                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                                {{ $brand->total_products }} Items
+                                            </span>
+                                        </div>
+
+                                        <div class="mt-auto space-y-2">
+                                            <div class="flex justify-between items-center text-xs">
+                                                <span class="text-green-600 dark:text-green-400 font-medium">In
+                                                    Stock:</span>
+                                                <span
+                                                    class="font-bold text-gray-700 dark:text-gray-300">{{ $brand->in_stock }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+
+                </div>
+            </div>
+        @endif
+
+
         <!-- Filters -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-            <form method="GET" action="{{ route('stocks.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form method="GET" action="{{ route('stocks.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <!-- Category Filter -->
                 <div>
-                    <label for="search"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}"
-                        placeholder="Product name, SKU, batch, or barcode..."
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <label for="category_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <i class="fas fa-filter mr-1"></i> Category
+                    </label>
+                    <select name="category_id" id="category_id"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        @if (isset($categories))
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}"
+                                    {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                    {{ $category->cat_name }}
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
                 </div>
 
+                <!-- Product Filter -->
                 <div>
-                    <label for="product_id"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Product</label>
+                    <label for="product_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Product
+                    </label>
                     <select name="product_id" id="product_id"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="">All Products</option>
@@ -76,9 +198,11 @@
                     </select>
                 </div>
 
+                <!-- Status Filter -->
                 <div>
-                    <label for="status"
-                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                    <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Status
+                    </label>
                     <select name="status" id="status"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="">All Status</option>
@@ -90,13 +214,24 @@
                     </select>
                 </div>
 
-                <div class="flex items-end gap-4">
+                <!-- Search -->
+                <div>
+                    <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Search
+                    </label>
+                    <input type="text" name="search" id="search" value="{{ request('search') }}"
+                        placeholder="Product name, SKU, batch..."
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-end gap-2">
                     <button type="submit"
                         class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
                         <i class="fas fa-search mr-2"></i>Filter
                     </button>
                     <a href="{{ route('stocks.index') }}"
-                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
                         <i class="fas fa-redo"></i>
                     </a>
                 </div>
