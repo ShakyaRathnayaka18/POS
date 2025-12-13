@@ -132,11 +132,46 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
+    public function bulkStore(Request $request)
+    {
+        $validated = $request->validate([
+            'common_category_id' => 'required|exists:categories,id',
+            'common_brand_id' => 'nullable|exists:brands,id',
+            'products' => 'required|array|min:1',
+            'products.*.name' => 'required|string|max:255',
+            'products.*.unit' => 'nullable|string',
+            'products.*.initial_stock' => 'nullable|integer|min:0',
+            'products.*.min_stock' => 'nullable|integer|min:0',
+            'products.*.max_stock' => 'nullable|integer|min:0',
+            'products.*.description' => 'nullable|string',
+        ]);
+
+        $count = 0;
+        foreach ($request->products as $productData) {
+            if (empty($productData['name'])) continue;
+
+            Product::create([
+                'product_name' => $productData['name'],
+                'category_id' => $request->common_category_id,
+                'brand_id' => $request->common_brand_id,
+                'unit' => $productData['unit'] ?? 'pcs',
+                'base_unit' => $productData['unit'] ?? 'pcs',
+                'initial_stock' => $productData['initial_stock'] ?? 0,
+                'minimum_stock' => $productData['min_stock'] ?? 0,
+                'maximum_stock' => $productData['max_stock'] ?? 0,
+                'description' => $productData['description'] ?? null,
+            ]);
+            $count++;
+        }
+
+        return redirect()->route('products.index')->with('success', "$count products added successfully.");
+    }
+
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
-            'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
+            'sku' => 'required|string|max:255|unique:products,sku,' . $product->id,
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',
