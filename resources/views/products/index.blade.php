@@ -585,6 +585,91 @@
                                 </p>
                             </div>
                         </div>
+
+                        <!-- Unit Configuration Section (Common) -->
+                        <div
+                            class="mt-4 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Unit Configuration</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sales
+                                        Unit</label>
+                                    <select name="common_base_unit" id="bulk_base_unit"
+                                        onchange="updateConversionFactor('bulk')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Purchase
+                                        Unit (GRN)</label>
+                                    <select name="common_purchase_unit" id="bulk_purchase_unit"
+                                        onchange="updateConversionFactor('bulk')"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                        <option value="">Same as Sales Unit</option>
+                                        <option value="pcs">Pieces (pcs)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="ml">Milliliters (ml)</option>
+                                        <option value="L">Liters (L)</option>
+                                        <option value="box">Box</option>
+                                        <option value="pack">Pack</option>
+                                        <option value="dozen">Dozen</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3" id="bulk_conversion_container" style="display: none;">
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Conversion Factor <span id="bulk_conversion_hint" class="text-gray-400"></span>
+                                </label>
+                                <input name="common_conversion_factor" id="bulk_conversion_factor" type="number"
+                                    step="0.0001" min="0.0001" value="1"
+                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                            </div>
+                            <div class="mt-3">
+                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                    <input type="checkbox" name="common_allow_decimal_sales" value="1"
+                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                    Allow decimal quantities at POS (e.g., 0.5 kg)
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Supplier Section (Common) -->
+                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Supplier Information
+                                (Optional)</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supplier</label>
+                                    <select id="bulk_supplier_id" name="common_supplier_id"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                        <option value="">Select Supplier</option>
+                                        @foreach (\App\Models\Supplier::orderBy('company_name')->get() as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="flex items-center mt-6">
+                                    <input type="checkbox" id="bulk_auto_generate_vendor_code"
+                                        name="common_auto_generate_vendor_code" value="1" checked
+                                        class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                    <label for="bulk_auto_generate_vendor_code"
+                                        class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        Auto-generate vendor code
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- Scrollable Table Area -->
