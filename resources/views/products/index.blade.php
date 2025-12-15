@@ -569,9 +569,9 @@
                                 </select>
                             </div>
                             <div>
-                                <label
-                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
-                                <select name="common_brand_id"
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand
+                                    <span class="text-red-500">*</span></label>
+                                <select name="common_brand_id" required
                                     class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
                                     <option value="">Select Brand</option>
                                     @foreach ($brands as $brand)

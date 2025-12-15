@@ -134,9 +134,15 @@ class ProductController extends Controller
 
     public function bulkStore(Request $request)
     {
+        $messages = [
+            'common_category_id.required' => 'Please select a category.',
+            'common_brand_id.required' => 'Please select a brand.',
+            'products.required' => 'Please add at least one product to save.',
+        ];
+
         $validated = $request->validate([
             'common_category_id' => 'required|exists:categories,id',
-            'common_brand_id' => 'nullable|exists:brands,id',
+            'common_brand_id' => 'required|exists:brands,id',
             'common_base_unit' => 'nullable|string|max:20',
             'common_purchase_unit' => 'nullable|string|max:20',
             'common_conversion_factor' => 'nullable|numeric|min:0.0001',
@@ -150,7 +156,7 @@ class ProductController extends Controller
             'products.*.min_stock' => 'nullable|integer|min:0',
             'products.*.max_stock' => 'nullable|integer|min:0',
             'products.*.description' => 'nullable|string',
-        ]);
+        ], $messages);
 
         $count = 0;
 
