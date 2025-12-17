@@ -9,6 +9,32 @@
         </a>
     </div>
 
+    <!-- Filter Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <form action="{{ route('good-receive-notes.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="w-full md:w-1/2">
+                <label for="supplier_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Supplier</label>
+                <select name="supplier_id" id="supplier_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">All Suppliers</option>
+                    @foreach($suppliers as $supplier)
+                        <option value="{{ $supplier->id }}" {{ request('supplier_id') == $supplier->id ? 'selected' : '' }}>
+                            {{ $supplier->company_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            
+            <div class="flex gap-2">
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-md transition duration-150 ease-in-out">
+                    Check
+                </button>
+                <a href="{{ route('good-receive-notes.index') }}" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 font-medium py-2 px-6 rounded-md transition duration-150 ease-in-out flex items-center justify-center">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
     @if(session('success'))
         <div class="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-400 px-4 py-3 rounded relative mb-4" role="alert">
             <span class="block sm:inline">{{ session('success') }}</span>
