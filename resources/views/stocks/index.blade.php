@@ -264,6 +264,9 @@
                                 Selling Price</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                Discount</th>
+                            <th
+                                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                 Quantity</th>
                             <th
                                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -305,6 +308,13 @@
                                         LKR {{ number_format($stock->selling_price, 2) }}
                                     @else
                                         <span class="text-gray-400 dark:text-gray-500">-</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                                    @if ($stock->discount_price > 0)
+                                        <span class="text-red-500">- LKR {{ number_format($stock->discount_price, 2) }}</span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-gray-500">0.00</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -360,7 +370,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
                                     <button
-                                        onclick="openEditModal({{ $stock->id }}, '{{ $stock->cost_price }}', '{{ $stock->selling_price }}', '{{ $stock->batch->barcode }}', '{{ addslashes($stock->product->product_name) }}')"
+                                        onclick="openEditModal({{ $stock->id }}, '{{ $stock->cost_price }}', '{{ $stock->selling_price }}', '{{ $stock->discount_price }}', '{{ $stock->batch->barcode }}', '{{ addslashes($stock->product->product_name) }}')"
                                         class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
@@ -435,7 +445,29 @@
                                     </label>
                                     <input type="number" id="selling_price" name="selling_price" required
                                         min="0" step="0.01"
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        oninput="calculateFinalPrice()">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label for="discount_price"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Discount (LKR)
+                                    </label>
+                                    <input type="number" id="discount_price" name="discount_price" min="0"
+                                        step="0.01"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                        oninput="calculateFinalPrice()">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Final Selling Price
+                                    </label>
+                                    <div class="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white font-bold" id="final_price_display">
+                                        LKR 0.00
+                                    </div>
                                 </div>
                             </div>
 
@@ -533,7 +565,7 @@
     </div>
 
     <script>
-        function openEditModal(stockId, costPrice, sellingPrice, barcode, productName) {
+        function openEditModal(stockId, costPrice, sellingPrice, discountPrice, barcode, productName) {
             // Check if this is a FOC stock
             if (parseFloat(costPrice) === 0) {
                 alert('FOC (Free of Charge) stocks cannot be edited. Only paid stocks can be modified.');
@@ -546,15 +578,33 @@
 
             // Populate form fields
             document.getElementById('cost_price').value = costPrice;
-            document.getElementById('selling_price').value = sellingPrice;
+            
+            // The stored selling_price is the FINAL price (Base - Discount).
+            // To show the Base Price in the modal for editing, we add the discount back.
+            const storedSellingPrice = parseFloat(sellingPrice) || 0;
+            const storedDiscount = parseFloat(discountPrice) || 0;
+            const basePrice = (storedSellingPrice + storedDiscount).toFixed(2);
+
+            document.getElementById('selling_price').value = basePrice;
+            document.getElementById('discount_price').value = storedDiscount;
             document.getElementById('barcode').value = barcode || '';
             document.getElementById('modalProductName').textContent = productName;
 
             // Set current page value
             document.getElementById('current_page').value = "{{ $stocks->currentPage() }}";
 
+            // Update final price display
+            calculateFinalPrice();
+
             // Show modal
             document.getElementById('editStockModal').classList.remove('hidden');
+        }
+
+        function calculateFinalPrice() {
+            const sellingPrice = parseFloat(document.getElementById('selling_price').value) || 0;
+            const discount = parseFloat(document.getElementById('discount_price').value) || 0;
+            const finalPrice = Math.max(0, sellingPrice - discount);
+            document.getElementById('final_price_display').textContent = 'LKR ' + finalPrice.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function closeEditModal() {

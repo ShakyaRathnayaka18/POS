@@ -32,6 +32,7 @@ class StockController extends Controller
             ->selectRaw('SUM(available_quantity) as total_available_quantity')
             ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN cost_price END) as cost_price')
             ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN selling_price END) as selling_price')
+            ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN discount_price END) as discount_price')
             ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN quantity ELSE 0 END) as foc_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN available_quantity ELSE 0 END) as foc_available_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN quantity ELSE 0 END) as paid_quantity')
@@ -276,7 +277,8 @@ class StockController extends Controller
         // *** 1. VALIDATION ***
         $validated = $request->validate([
             'cost_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0', // This is interpreted as base selling price
+            'discount_price' => 'nullable|numeric|min:0', // LKR discount
             'barcode' => 'nullable|string|max:255|unique:batches,barcode,' . $stock->batch_id,
 
             // Validation for adjustment fields
@@ -286,6 +288,10 @@ class StockController extends Controller
         ]);
 
         // Setup state variables
+        $discountAmount = (float)($validated['discount_price'] ?? 0);
+        $baseSellingPrice = (float)$validated['selling_price'];
+        $finalSellingPrice = $baseSellingPrice - $discountAmount;
+
         $adjustmentQuantity = (float)($validated['quantity_adjustment'] ?? 0);
         $currentPage = $request->input('current_page', 1);
         $hasQuantityAdjustment = $adjustmentQuantity !== 0.0;
@@ -301,6 +307,7 @@ class StockController extends Controller
         // *** 2. PRICE/BARCODE UPDATE & AUDIT ***
         $oldCostPrice = $stock->cost_price;
         $oldSellingPrice = $stock->selling_price;
+        $oldDiscountPrice = $stock->discount_price;
         $oldBarcode = $stock->batch->barcode;
         $changes = [];
         $priceOrBarcodeUpdated = false;
@@ -308,7 +315,8 @@ class StockController extends Controller
         // Update stock-level fields
         $stock->update([
             'cost_price' => $validated['cost_price'],
-            'selling_price' => $validated['selling_price'],
+            'selling_price' => $finalSellingPrice,
+            'discount_price' => $discountAmount,
         ]);
 
         // Update batch-level barcode if changed
@@ -321,8 +329,12 @@ class StockController extends Controller
             $changes[] = "Cost Price: LKR {$oldCostPrice} → LKR {$validated['cost_price']}";
             $priceOrBarcodeUpdated = true;
         }
-        if ($oldSellingPrice != $validated['selling_price']) {
-            $changes[] = "Selling Price: LKR {$oldSellingPrice} → LKR {$validated['selling_price']}";
+        if ($oldSellingPrice != $finalSellingPrice) {
+            $changes[] = "Selling Price: LKR {$oldSellingPrice} → LKR {$finalSellingPrice}";
+            $priceOrBarcodeUpdated = true;
+        }
+        if ($oldDiscountPrice != $discountAmount) {
+            $changes[] = "Discount: LKR {$oldDiscountPrice} → LKR {$discountAmount}";
             $priceOrBarcodeUpdated = true;
         }
         if ($validated['barcode'] !== $oldBarcode) {
@@ -393,6 +405,7 @@ class StockController extends Controller
             $grn = $stock->batch->goodReceiveNote;
             if ($grn) {
                 $grn->update([
+                    'discount' => $discountAmount, // Syncing stock discount to GRN discount
                     'notes' => ($grn->notes ?? '') . $auditNote . " (Stock ID: {$stock->id}, Product: {$stock->product->product_name})",
                 ]);
             }

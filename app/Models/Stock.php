@@ -11,6 +11,7 @@ class Stock extends Model
         'batch_id',
         'cost_price',
         'selling_price',
+        'discount_price',
         'tax',
         'quantity',
         'available_quantity',

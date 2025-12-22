@@ -55,6 +55,9 @@
                                             <span class="text-xs font-normal text-gray-500"
                                                 x-text="'/' + (product.base_unit || product.unit || 'pcs')"></span>
                                         </div>
+                                        <div x-show="product.discount_amount > 0" class="text-xs text-red-500 font-medium">
+                                            - LKR <span x-text="parseFloat(product.discount_amount).toFixed(2)"></span> Discount
+                                        </div>
                                         <div class="text-xs"
                                             :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
                                             <span
@@ -605,6 +608,58 @@
                 </div>
             </div>
         </div>
+
+        <!-- Batch Selection Modal -->
+        <div x-show="showBatchSelectionModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="fixed inset-0 bg-black opacity-50" @click="showBatchSelectionModal = false"></div>
+                <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Select Batch</h3>
+                        <button @click="showBatchSelectionModal = false" class="text-gray-400 hover:text-gray-500">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Multiple batches found. Please select the one you want to checkout.</p>
+
+                    <div class="space-y-3 max-h-96 overflow-y-auto p-1">
+                        <template x-for="stock in selectedProductStocks" :key="stock.stock_id">
+                            <button @click="addToCart(stock); showBatchSelectionModal = false" type="button"
+                                class="w-full text-left border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all transform hover:scale-[1.01] shadow-sm">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex-1">
+                                        <div class="font-bold text-gray-900 dark:text-white text-lg" x-text="stock.product_name"></div>
+                                        <div class="flex items-center gap-2 mt-2">
+                                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded text-xs font-mono font-bold" x-text="'Batch: ' + stock.batch_number"></span>
+                                            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded text-xs font-bold" 
+                                                x-text="'Qty: ' + parseFloat(stock.available_quantity).toFixed(stock.allow_decimal_sales ? 2 : 0)"></span>
+                                        </div>
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <div class="font-bold text-primary-600 dark:text-primary-400 text-xl">
+                                            <span x-text="'LKR ' + parseFloat(stock.selling_price).toFixed(2)"></span>
+                                        </div>
+                                        <div x-show="stock.discount_amount > 0" class="text-sm text-red-500 font-bold mt-1">
+                                            <i class="fas fa-tag mr-1"></i> - LKR <span x-text="parseFloat(stock.discount_amount).toFixed(2)"></span> Off
+                                        </div>
+                                    </div>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+
+                    <div class="mt-6">
+                        <button @click="showBatchSelectionModal = false" type="button"
+                            class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 font-bold transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -640,6 +695,8 @@
                 isSavingCart: false,
                 savedCarts: [],
                 isLoadingSavedCarts: false,
+                showBatchSelectionModal: false,
+                selectedProductStocks: [],
 
                 // Manual entry mode properties
                 isManualMode: false,
@@ -768,6 +825,18 @@
                             `{{ route('api.products.search') }}?q=${encodeURIComponent(this.searchQuery)}`);
                         const data = await response.json();
                         this.searchResults = data;
+
+                        // Check for exact barcode match with multiple results
+                        if (this.searchResults.length > 1) {
+                            const exactMatch = this.searchResults.filter(p => p.barcode === this.searchQuery);
+                            if (exactMatch.length > 1) {
+                                // Multiple batches for same barcode
+                                this.openBatchSelectionModal(exactMatch);
+                            }
+                        } else if (this.searchResults.length === 1 && this.searchResults[0].barcode === this.searchQuery) {
+                            // Exact unique barcode match - add directly
+                            this.addToCart(this.searchResults[0]);
+                        }
                     } catch (error) {
                         console.error('Search error:', error);
                         this.errorMessage = 'Error searching products. Please try again.';
@@ -776,9 +845,19 @@
                     }
                 },
 
+                openBatchSelectionModal(stocks) {
+                    this.selectedProductStocks = stocks;
+                    this.showBatchSelectionModal = true;
+                    this.searchResults = [];
+                    this.searchQuery = '';
+                },
+
                 selectFirstProduct() {
-                    if (this.searchResults.length > 0) {
+                    if (this.searchResults.length === 1) {
                         this.addToCart(this.searchResults[0]);
+                    } else if (this.searchResults.length > 1) {
+                        // If multiple results, show modal
+                        this.openBatchSelectionModal(this.searchResults);
                     }
                 },
 
@@ -788,8 +867,8 @@
                         return;
                     }
 
-                    // Check if product already in cart
-                    const existingIndex = this.cart.findIndex(item => item.id === product.id);
+                    // Check if specific stock already in cart
+                    const existingIndex = this.cart.findIndex(item => item.stock_id === product.stock_id);
 
                     if (existingIndex !== -1) {
                         // Increment quantity if not exceeding available stock
@@ -799,28 +878,32 @@
 
                         if (newQty <= currentItem.available_quantity) {
                             currentItem.quantity = newQty;
-                            this.calculateTotals();
+                            this.applyDiscount(existingIndex);
                         } else {
-                            const unit = currentItem.base_unit || currentItem.unit || 'pcs';
-                            this.errorMessage =
-                                `Maximum available quantity (${currentItem.available_quantity} ${unit}) reached for ${product.product_name}.`;
+                            this.errorMessage = `Cannot add more. Only ${currentItem.available_quantity} available.`;
                         }
                     } else {
-                        // Add new item to cart - start with 1 unit or 0.1 for decimal products
-                        const initialQty = product.allow_decimal_sales ? 0.1 : 1;
+                        // Add new item to cart
                         this.cart.push({
-                            ...product,
-                            quantity: initialQty,
-                            // Discount fields
+                            id: product.id,
+                            stock_id: product.stock_id,
+                            product_name: product.product_name,
+                            sku: product.sku,
+                            selling_price: product.selling_price,
+                            tax: product.tax || 0,
+                            quantity: 1,
+                            available_quantity: product.available_quantity,
+                            unit: product.unit,
+                            base_unit: product.base_unit,
+                            allow_decimal_sales: product.allow_decimal_sales,
                             discountType: 'none',
                             discountValue: 0,
                             discountAmount: 0,
-                            originalPrice: product.selling_price
+                            final_price: product.selling_price
                         });
-                        this.calculateTotals();
                     }
 
-                    // Clear search
+                    this.calculateTotals();
                     this.searchQuery = '';
                     this.searchResults = [];
                     this.errorMessage = '';
@@ -897,9 +980,10 @@
                         // Reset to original price
                         item.discountAmount = 0;
                         item.discountValue = 0;
+                        item.final_price = item.selling_price; // Reset final price
                     } else {
                         // Calculate discount
-                        const subtotal = item.quantity * item.originalPrice;
+                        const subtotal = item.quantity * item.selling_price;
                         let discountAmount = 0;
 
                         if (item.discountType === 'percentage') {
@@ -909,13 +993,14 @@
                         }
 
                         item.discountAmount = discountAmount;
+                        item.final_price = (subtotal - discountAmount) / item.quantity; // Update final price per unit
                     }
 
                     this.calculateTotals();
                 },
 
                 calculateItemTotal(item) {
-                    const originalSubtotal = item.quantity * parseFloat(item.originalPrice || item.selling_price);
+                    const originalSubtotal = item.quantity * parseFloat(item.selling_price);
                     const discountAmount = parseFloat(item.discountAmount || 0);
                     const subtotalAfterDiscount = originalSubtotal - discountAmount;
                     const tax = subtotalAfterDiscount * (parseFloat(item.tax) / 100);
@@ -928,7 +1013,7 @@
                     let totalDiscount = 0;
 
                     this.cart.forEach(item => {
-                        const originalPrice = parseFloat(item.originalPrice || item.selling_price);
+                        const originalPrice = parseFloat(item.selling_price);
                         const discountAmount = parseFloat(item.discountAmount || 0);
                         const itemSubtotal = item.quantity * originalPrice;
                         const itemSubtotalAfterDiscount = itemSubtotal - discountAmount;
@@ -1139,7 +1224,16 @@
                                 changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
                                 items: this.cart.map(item => ({
                                     product_id: item.id,
-                                    quantity: item.quantity
+                                    stock_id: item.stock_id,
+                                    quantity: item.quantity,
+                                    selling_price: item.selling_price,
+                                    tax: item.tax,
+                                    discount: {
+                                        type: item.discountType,
+                                        value: item.discountValue,
+                                        amount: item.discountAmount,
+                                        final_price: item.final_price
+                                    }
                                 }))
                             };
                         }
@@ -1289,15 +1383,16 @@
                                 changeAmount: this.paymentMethod === 'cash' ? this.changeAmount : 0,
                                 items: this.cart.map(item => ({
                                     product_id: item.id,
+                                    stock_id: item.stock_id,
                                     quantity: item.quantity,
-                                    discount: item.discountType !== 'none' ? {
+                                    selling_price: item.selling_price,
+                                    tax: item.tax,
+                                    discount: {
                                         type: item.discountType,
                                         value: item.discountValue,
                                         amount: item.discountAmount,
-                                        discount_id: null,
-                                        approved_by: null,
-                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
-                                    } : null
+                                        final_price: item.final_price
+                                    }
                                 }))
                             };
                         }

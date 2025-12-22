@@ -67,11 +67,20 @@ class SaleService
             $totalItemDiscounts = 0;
 
             foreach ($cartItems as $item) {
-                // Allocate stock using FIFO
-                $allocations = $this->stockService->allocateStock(
-                    $item['product_id'],
-                    $item['quantity']
-                );
+                // Determine allocation strategy
+                if (isset($item['stock_id']) && $item['stock_id']) {
+                    // Use specific stock record if provided
+                    $allocations = $this->stockService->allocateFromSpecificStock(
+                        $item['stock_id'],
+                        $item['quantity']
+                    );
+                } else {
+                    // Fallback to FIFO if no specific stock_id
+                    $allocations = $this->stockService->allocateStock(
+                        $item['product_id'],
+                        $item['quantity']
+                    );
+                }
 
                 if (empty($allocations)) {
                     throw new Exception("Product ID {$item['product_id']} is out of stock");
@@ -208,14 +217,13 @@ class SaleService
                 SaleItem::create($item);
             }
 
-            // Deduct stock
+            // Deduct stock using the allocations identified at the start
             $stockAllocations = [];
-            foreach ($cartItems as $item) {
-                $allocations = $this->stockService->allocateStock(
-                    $item['product_id'],
-                    $item['quantity']
-                );
-                $stockAllocations = array_merge($stockAllocations, $allocations);
+            foreach ($processedItems as $item) {
+                $stockAllocations[] = [
+                    'stock_id' => $item['stock_id'],
+                    'quantity' => $item['quantity'],
+                ];
             }
 
             $this->stockService->deductStock($stockAllocations);
