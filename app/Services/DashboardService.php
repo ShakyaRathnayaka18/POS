@@ -183,7 +183,7 @@ class DashboardService
     /**
      * Calculate profit margin percentage
      */
-    public function getProfitMargin(?string $asOfDate = null): float
+    public function getProfitMargin(?string $asOfDate = null): array
     {
         if ($asOfDate) {
             $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
@@ -207,10 +207,16 @@ class DashboardService
                 ->sum('journal_entry_lines.debit_amount');
 
             if ($revenue <= 0) {
-                return 0;
+                return [
+                    'percentage' => 0,
+                    'amount' => 0
+                ];
             }
 
-            return round((($revenue - $cogs) / $revenue) * 100, 2);
+            return [
+                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
+                'amount' => $revenue - $cogs
+            ];
         }
 
         return Cache::remember('dashboard.profit_margin', 900, function () {
@@ -231,10 +237,16 @@ class DashboardService
                 ->sum('journal_entry_lines.debit_amount');
 
             if ($revenue <= 0) {
-                return 0;
+                return [
+                    'percentage' => 0,
+                    'amount' => 0
+                ];
             }
 
-            return round((($revenue - $cogs) / $revenue) * 100, 2);
+            return [
+                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
+                'amount' => $revenue - $cogs
+            ];
         });
     }
 
@@ -446,7 +458,7 @@ class DashboardService
                 ->whereBetween('je.entry_date', [$start, $end])
                 ->whereIn('a.account_code', ['4100', '5100', '6100']) // Revenue, COGS, Operating Expenses
                 ->select(
-                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date').' as period'),
+                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date') . ' as period'),
                     'a.account_code',
                     DB::raw('SUM(jel.credit_amount) as total_credit'),
                     DB::raw('SUM(jel.debit_amount) as total_debit')
@@ -471,7 +483,7 @@ class DashboardService
                 ->whereBetween('je.entry_date', [$start, $end])
                 ->whereIn('a.account_code', ['4100', '5100', '6100']) // Revenue, COGS, Operating Expenses
                 ->select(
-                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date').' as period'),
+                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date') . ' as period'),
                     'a.account_code',
                     DB::raw('SUM(jel.credit_amount) as total_credit'),
                     DB::raw('SUM(jel.debit_amount) as total_debit')
@@ -583,7 +595,7 @@ class DashboardService
         while ($current <= $end) {
             $labels[] = match ($grouping) {
                 'daily' => $current->format('M d'),
-                'weekly' => 'Week '.$current->format('W, Y'),
+                'weekly' => 'Week ' . $current->format('W, Y'),
                 'monthly' => $current->format('M Y'),
                 default => $current->format('M d'),
             };
@@ -613,7 +625,7 @@ class DashboardService
 
         return match ($grouping) {
             'daily' => \Carbon\Carbon::parse($period)->format('M d'),
-            'monthly' => \Carbon\Carbon::parse($period.'-01')->format('M Y'),
+            'monthly' => \Carbon\Carbon::parse($period . '-01')->format('M Y'),
             default => $period,
         };
     }
@@ -655,8 +667,8 @@ class DashboardService
             if (str_contains($key, '*')) {
                 // Clear pattern-based keys
                 $pattern = str_replace('*', '', $key);
-                Cache::forget($pattern.'daily');
-                Cache::forget($pattern.'monthly');
+                Cache::forget($pattern . 'daily');
+                Cache::forget($pattern . 'monthly');
                 // Custom date ranges would have unique keys
             } else {
                 Cache::forget($key);
