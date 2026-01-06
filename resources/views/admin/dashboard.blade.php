@@ -158,6 +158,21 @@
             </div>
         </div>
 
+        <!-- Total Products -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Products</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                        {{ number_format($totalProducts) }}
+                    </p>
+                </div>
+                <div class="p-3 bg-cyan-100 dark:bg-cyan-900 rounded-full">
+                    <i class="fas fa-tags text-2xl text-cyan-600 dark:text-cyan-400"></i>
+                </div>
+            </div>
+        </div>
+
         <!-- Customer Credits Outstanding -->
         <div style="perspective: 1000px;">
             <div class="relative transform-gpu transition-all duration-700 ease-in-out"

@@ -373,6 +373,22 @@ class DashboardService
     }
 
     /**
+     * Get total count of products
+     */
+    public function getTotalProductsCount(?string $asOfDate = null): int
+    {
+        if ($asOfDate) {
+            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
+
+            return Product::where('created_at', '<=', $targetDate)->count();
+        }
+
+        return Cache::remember('dashboard.total_products', 900, function () {
+            return Product::count();
+        });
+    }
+
+    /**
      * Get overdue customer credits
      */
     public function getOverdueCustomerCredits(?string $asOfDate = null): array
@@ -659,6 +675,7 @@ class DashboardService
             'dashboard.customer_credits',
             'dashboard.supplier_credits',
             'dashboard.active_customers',
+            'dashboard.total_products',
             'dashboard.overdue_credits',
             'dashboard.profit_over_time.*',
         ];

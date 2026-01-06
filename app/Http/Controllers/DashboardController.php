@@ -38,6 +38,7 @@ class DashboardController extends Controller
             'activeCustomers' => $this->dashboardService->getActiveCustomersCount($asOfDate),
             'overdueCredits' => $this->dashboardService->getOverdueCustomerCredits($asOfDate),
             'activeShifts' => $this->dashboardService->getActiveShifts(),
+            'totalProducts' => $this->dashboardService->getTotalProductsCount($asOfDate),
             'profitData' => $this->dashboardService->getProfitOverTime('daily', null, null, $asOfDate),
         ];
 
