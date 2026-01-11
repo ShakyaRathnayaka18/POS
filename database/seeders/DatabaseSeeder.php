@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         // Seed permissions and roles first
         $this->call([
             // PermissionSeeder::class, 
-            WeightUnitSeeder::class,
+            WeightedProductsSeeder::class,
             // RoleSeeder::class,
             // UserSeeder::class,
         ]);

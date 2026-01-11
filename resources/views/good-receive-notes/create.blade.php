@@ -24,16 +24,35 @@
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                     </div>
 
-                    <div>
+                    <div x-data="supplierSearch()" @click.away="showDropdown = false">
                         <label for="supplier_id"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supplier *</label>
-                        <select name="supplier_id" id="supplier_id" required
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                            <option value="">Select Supplier</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="relative">
+                            <input type="text"
+                                x-model="searchQuery"
+                                @focus="showDropdown = true"
+                                @input="filterSuppliers()"
+                                placeholder="Search supplier..."
+                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+
+                            <input type="hidden" name="supplier_id" id="supplier_id" x-model="selectedSupplierId" required>
+
+                            <div x-show="showDropdown && filteredSuppliers.length > 0"
+                                class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
+                                <template x-for="supplier in filteredSuppliers" :key="supplier.id">
+                                    <div @click="selectSupplier(supplier)"
+                                        class="px-3 py-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 text-gray-900 dark:text-white"
+                                        :class="{ 'bg-blue-100 dark:bg-blue-900/50': selectedSupplierId == supplier.id }">
+                                        <span x-text="supplier.company_name"></span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <div x-show="showDropdown && searchQuery && filteredSuppliers.length === 0"
+                                class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg p-3">
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">No suppliers found</p>
+                            </div>
+                        </div>
                         @error('supplier_id')
                             <p class="text-red-500 dark:text-red-400 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -237,6 +256,39 @@
     </div>
 
     <script>
+        // Alpine.js supplier search component
+        function supplierSearch() {
+            return {
+                suppliers: @json($suppliers),
+                searchQuery: '',
+                selectedSupplierId: '',
+                showDropdown: false,
+                filteredSuppliers: @json($suppliers),
+
+                filterSuppliers() {
+                    if (!this.searchQuery.trim()) {
+                        this.filteredSuppliers = this.suppliers;
+                        return;
+                    }
+
+                    const query = this.searchQuery.toLowerCase();
+                    this.filteredSuppliers = this.suppliers.filter(supplier =>
+                        supplier.company_name.toLowerCase().includes(query)
+                    );
+                },
+
+                selectSupplier(supplier) {
+                    this.selectedSupplierId = supplier.id;
+                    this.searchQuery = supplier.company_name;
+                    this.showDropdown = false;
+
+                    // Trigger the existing change event
+                    const event = new Event('change', { bubbles: true });
+                    document.getElementById('supplier_id').dispatchEvent(event);
+                }
+            };
+        }
+
         let itemIndex = 0;
         let products = [];
         let currentSupplierId = null;

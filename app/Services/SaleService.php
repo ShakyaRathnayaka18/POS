@@ -89,7 +89,15 @@ class SaleService
                 // Process each allocation (may span multiple batches)
                 foreach ($allocations as $allocation) {
                     $unitPrice = $allocation['selling_price'];
-                    $lineSubtotalBeforeDiscount = $allocation['quantity'] * $unitPrice;
+
+                    // For weighted products, quantity is in grams but price is per kg
+                    // So we need to convert: (quantity_in_grams / 1000) * price_per_kg
+                    $product = \App\Models\Product::find($item['product_id']);
+                    $effectiveQuantity = $product && $product->is_weighted
+                        ? $allocation['quantity'] / 1000
+                        : $allocation['quantity'];
+
+                    $lineSubtotalBeforeDiscount = $effectiveQuantity * $unitPrice;
                     $subtotalBeforeDiscount += $lineSubtotalBeforeDiscount;
 
                     // Apply discount if present
@@ -118,7 +126,8 @@ class SaleService
                     }
 
                     // Calculate tax on discounted price
-                    $itemSubtotal = $discountData['price'] * $allocation['quantity'];
+                    // Use effectiveQuantity for weighted products
+                    $itemSubtotal = $discountData['price'] * $effectiveQuantity;
                     $itemTax = $itemSubtotal * ($allocation['tax'] / 100);
 
                     $processedItems[] = [
@@ -168,7 +177,10 @@ class SaleService
             ];
 
             foreach ($processedItems as $item) {
-                $totals['subtotal'] += ($item['quantity'] * $item['price']);
+                // Use the already calculated item total minus tax to get subtotal
+                // This ensures weighted products are handled correctly
+                $itemSubtotal = $item['total'] - $item['tax'];
+                $totals['subtotal'] += $itemSubtotal;
                 $totals['tax'] += $item['tax'];
                 $totals['total'] += $item['total'];
             }

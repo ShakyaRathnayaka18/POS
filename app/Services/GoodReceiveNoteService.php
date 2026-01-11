@@ -35,7 +35,6 @@ class GoodReceiveNoteService
         // For weighted products, use or create a master batch
         if ($product->is_weighted) {
             $masterBatchNumber = 'WEIGHTED-'.$product->weighted_product_code;
-            $masterBarcode = 'WEIGHTED-'.$product->weighted_product_code;
 
             // Check if master batch already exists
             $existingBatch = Batch::where('batch_number', $masterBatchNumber)->first();
@@ -47,7 +46,7 @@ class GoodReceiveNoteService
             // Create new master batch for weighted product
             return Batch::create([
                 'batch_number' => $masterBatchNumber,
-                'barcode' => $masterBarcode,
+                'barcode' => $product->weighted_product_code,
                 'good_receive_note_id' => $grn->id,
                 'manufacture_date' => null,
                 'expiry_date' => null,
@@ -74,24 +73,31 @@ class GoodReceiveNoteService
         // Example: 5 kg × 1000 = 5000 g stored in stock
         $baseQuantity = $itemData['quantity'] * ($product->conversion_factor ?? 1);
 
-        // Calculate cost and selling price per base unit
-        // Example: 500 LKR per kg / 1000 = 0.50 LKR per gram
-        $conversionFactor = $product->conversion_factor ?? 1;
-        $costPerBaseUnit = $conversionFactor > 1
-            ? $itemData['cost_price'] / $conversionFactor
-            : $itemData['cost_price'];
+        // For weighted products, store prices as per-kg (not per-gram)
+        // For regular products, convert to base unit price
+        if ($product->is_weighted) {
+            // Weighted products: Store price as per-kg
+            // Example: Enter 500 LKR/kg, store 500 LKR/kg
+            $costPrice = $itemData['cost_price'];
+            $sellingPrice = $itemData['selling_price'] ?? 0;
+        } else {
+            // Regular products: Convert to base unit price
+            // Example: 500 LKR per kg / 1000 = 0.50 LKR per gram
+            $conversionFactor = $product->conversion_factor ?? 1;
+            $costPrice = $conversionFactor > 1
+                ? $itemData['cost_price'] / $conversionFactor
+                : $itemData['cost_price'];
 
-        // Handle optional selling price
-        $sellingPrice = $itemData['selling_price'] ?? null;
-        $sellingPerBaseUnit = $sellingPrice
-            ? ($conversionFactor > 1 ? $sellingPrice / $conversionFactor : $sellingPrice)
-            : 0;
+            $sellingPrice = isset($itemData['selling_price'])
+                ? ($conversionFactor > 1 ? $itemData['selling_price'] / $conversionFactor : $itemData['selling_price'])
+                : 0;
+        }
 
         return Stock::create([
             'product_id' => $itemData['product_id'],
             'batch_id' => $batchId,
-            'cost_price' => $costPerBaseUnit,
-            'selling_price' => $sellingPerBaseUnit,
+            'cost_price' => $costPrice,
+            'selling_price' => $sellingPrice,
             'tax' => $itemData['tax'] ?? 0,
             'quantity' => $baseQuantity,
             'available_quantity' => $baseQuantity,

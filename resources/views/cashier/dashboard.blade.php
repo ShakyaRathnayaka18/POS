@@ -890,10 +890,11 @@
                             ...product,
                             quantity: product.quantity, // Weight in grams
                             allow_quantity_edit: false, // Cannot edit weighted product quantity
-                            discountType: 'none',
+                            discountType: 'percentage',
                             discountValue: 0,
                             discountAmount: 0,
-                            originalPrice: product.selling_price // Price per kg
+                            originalPrice: product.selling_price, // Price per kg
+                            final_price: product.selling_price // Initialize final_price
                         });
                         this.calculateTotals();
                     } else {
@@ -923,10 +924,11 @@
                                 quantity: initialQty,
                                 allow_quantity_edit: true,
                                 // Discount fields
-                                discountType: 'none',
+                                discountType: 'percentage',
                                 discountValue: 0,
                                 discountAmount: 0,
-                                originalPrice: product.selling_price
+                                originalPrice: product.selling_price,
+                                final_price: product.selling_price // Initialize final_price
                             });
                             this.calculateTotals();
                         }
@@ -1172,10 +1174,11 @@
                         isManual: true, // Flag to identify manual items
                         sku: 'MANUAL', // Display as MANUAL in cart
                         unit: 'pcs',
-                        discountType: 'none', // For consistency with regular items
+                        discountType: 'percentage', // For consistency with regular items
                         discountValue: 0, // For discount functionality
                         discountAmount: 0, // For discount functionality
-                        allow_decimal_sales: true // For quantity validation
+                        allow_decimal_sales: true, // For quantity validation
+                        final_price: this.manualPrice // Initialize final_price
                     });
 
                     // Set cart type

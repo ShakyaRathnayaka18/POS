@@ -88,7 +88,9 @@
       "Bash(xargs ls:*)",
       "Bash(ls:*)",
       "mcp__excel__excel_describe_sheets",
-      "mcp__excel__excel_read_sheet"
+      "mcp__excel__excel_read_sheet",
+      "mcp__mysql-live__execute_query",
+      "mcp__mysql-live__describe_table"
     ]
   },
   "enableAllProjectMcpServers": true,

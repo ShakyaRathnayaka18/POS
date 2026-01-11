@@ -71,11 +71,11 @@
                     <!-- Product Name -->
                     <div class="text-sm font-medium text-gray-900 dark:text-white mb-1">
                         {{ $item->product->product_name }}
-                        @if ($item->product->is_weighted)
+                        <!-- @if ($item->product->is_weighted)
                             <span class="text-xs text-gray-600 dark:text-gray-400">
                                 ({{ number_format($item->quantity / 1000, 3) }}kg @ LKR {{ number_format($item->price, 2) }}/kg)
                             </span>
-                        @endif
+                        @endif -->
                     </div>
 
                     <!-- Product Details -->
@@ -90,16 +90,16 @@
                         <span style="width: 20%">
                             @if ((method_exists($item, 'hasDiscount') && $item->hasDiscount()) || (property_exists($item, 'discount_type') && $item->discount_type !== 'none' && $item->discount_amount > 0))
                                 <span
-                                    class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2) }}</span>
+                                    class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2, '.', ',') }}</span>
                             @else
-                                {{ number_format($item->price, 2) }}
+                                {{ number_format($item->price, 2, '.', ',') }}
                             @endif
                         </span>
                         <span style="width: 20%; text-align: right">
-                            {{ number_format($item->price, 2) }}
+                            {{ number_format($item->price, 2, '.', ',') }}
                         </span>
                         <span style="width: 20%; text-align: right; font-weight: bold">
-                            {{ number_format($item->total, 2) }}
+                            {{ number_format($item->total, 2, '.', ',') }}
                         </span>
                     </div>
                 @endforeach
@@ -112,7 +112,7 @@
             <div class="space-y-2 totals-section">
                 <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
                     <span>මුලු එකතුව</span>
-                    <span>{{ number_format($sale->total, 2) }}</span>
+                    <span>{{ number_format($sale->total, 2, '.', ',') }}</span>
                 </div>
 
                 <div class="text-center text-xl font-black my-3">
@@ -121,20 +121,20 @@
 
                 <div class="flex justify-between text-sm text-gray-900 dark:text-white">
                     <span>ගෙවූ මුදල</span>
-                    <span class="font-bold">{{ number_format($sale->amount_received ?? $sale->total, 2) }}</span>
+                    <span class="font-bold">{{ number_format($sale->amount_received ?? $sale->total, 2, '.', ',') }}</span>
                 </div>
 
                 @if ($sale->total_discount > 0)
                     <div class="flex justify-between text-sm text-gray-900 dark:text-white">
                         <span>ලබාදුන් වට්ටම</span>
-                        <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2) }}</span>
+                        <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2, '.', ',') }}</span>
                     </div>
                 @endif
 
                 @if ($sale->payment_method->value === 'cash' && $sale->change_amount > 0)
                     <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white">
                         <span>ඉතිරිය</span>
-                        <span>{{ number_format($sale->change_amount, 2) }}</span>
+                        <span>{{ number_format($sale->change_amount, 2, '.', ',') }}</span>
                     </div>
                 @endif
             </div>
