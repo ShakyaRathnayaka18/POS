@@ -74,6 +74,9 @@ class ProductController extends Controller
             'supplier_id' => 'nullable|exists:suppliers,id',
             'vendor_product_code' => 'nullable|string|max:255',
             'auto_generate_vendor_code' => 'nullable|boolean',
+            'is_weighted' => 'nullable|boolean',
+            'weighted_product_code' => 'nullable|required_if:is_weighted,true|string|min:1|max:6|regex:/^[0-9]+$/',
+            'pricing_type' => 'nullable|string|in:unit,per_kg',
         ]);
 
         // If supplier is selected, require either manual vendor code or auto-generate
@@ -88,10 +91,35 @@ class ProductController extends Controller
             }
         }
 
-        // Set defaults for unit conversion fields
-        $validated['base_unit'] = $validated['base_unit'] ?? $validated['unit'] ?? 'pcs';
-        $validated['conversion_factor'] = $validated['conversion_factor'] ?? 1;
-        $validated['allow_decimal_sales'] = $request->boolean('allow_decimal_sales');
+        // Handle weighted products
+        $validated['is_weighted'] = $request->boolean('is_weighted');
+        if ($validated['is_weighted']) {
+            // Pad weighted product code to 6 digits
+            if (isset($validated['weighted_product_code'])) {
+                $paddedCode = str_pad($validated['weighted_product_code'], 6, '0', STR_PAD_LEFT);
+
+                // Check if padded code already exists
+                if (Product::where('weighted_product_code', $paddedCode)->exists()) {
+                    return back()->withErrors([
+                        'weighted_product_code' => "The weighted product code {$paddedCode} is already taken.",
+                    ])->withInput();
+                }
+
+                $validated['weighted_product_code'] = $paddedCode;
+            }
+
+            $validated['pricing_type'] = 'per_kg';
+            $validated['unit'] = 'kg';
+            $validated['base_unit'] = 'g';
+            $validated['conversion_factor'] = 1000;
+            $validated['allow_decimal_sales'] = true;
+        } else {
+            // Set defaults for unit conversion fields for regular products
+            $validated['base_unit'] = $validated['base_unit'] ?? $validated['unit'] ?? 'pcs';
+            $validated['conversion_factor'] = $validated['conversion_factor'] ?? 1;
+            $validated['allow_decimal_sales'] = $request->boolean('allow_decimal_sales');
+            $validated['pricing_type'] = 'unit';
+        }
 
         if ($request->hasFile('product_image')) {
             $validated['product_image'] = $request->file('product_image')->store('products', 'public');

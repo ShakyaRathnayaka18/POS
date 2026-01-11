@@ -32,6 +32,30 @@ class GoodReceiveNoteService
 
     public function createBatch(GoodReceiveNote $grn, Product $product, ?array $batchData = null): Batch
     {
+        // For weighted products, use or create a master batch
+        if ($product->is_weighted) {
+            $masterBatchNumber = 'WEIGHTED-'.$product->weighted_product_code;
+            $masterBarcode = 'WEIGHTED-'.$product->weighted_product_code;
+
+            // Check if master batch already exists
+            $existingBatch = Batch::where('batch_number', $masterBatchNumber)->first();
+
+            if ($existingBatch) {
+                return $existingBatch;
+            }
+
+            // Create new master batch for weighted product
+            return Batch::create([
+                'batch_number' => $masterBatchNumber,
+                'barcode' => $masterBarcode,
+                'good_receive_note_id' => $grn->id,
+                'manufacture_date' => null,
+                'expiry_date' => null,
+                'notes' => "Master batch for weighted product: {$product->product_name}",
+            ]);
+        }
+
+        // Regular product batch creation
         return Batch::create([
             'batch_number' => $batchData['batch_number'] ?? $this->generateBatchNumber($product),
             'barcode' => $batchData['barcode'] ?? null,

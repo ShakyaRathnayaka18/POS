@@ -256,6 +256,27 @@
                                 </label>
                             </div>
                         </div>
+                        <!-- Weighted Product Section -->
+                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-600">
+                            <div class="mb-3">
+                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                    <input type="checkbox" id="create_is_weighted" name="is_weighted" value="1"
+                                        onchange="toggleWeightedProductFields('create')"
+                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                    <span class="font-medium"><i class="fas fa-weight mr-1"></i> This is a weighted product (sold by weight)</span>
+                                </label>
+                            </div>
+                            <div id="create_weighted_code_section" class="hidden">
+                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                    Weighted Product Code <span class="text-red-500">*</span>
+                                    <span class="text-gray-400">(6 digits, e.g., 878 for White Rice)</span>
+                                </label>
+                                <input name="weighted_product_code" id="create_weighted_product_code" type="text" maxlength="6" pattern="[0-9]{1,6}"
+                                    placeholder="Enter 1-6 digit code (e.g., 878)"
+                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                <p class="text-xs text-gray-500 mt-1">This code will be used in weighted barcodes (format: 000878XXXXX where XXXXX is weight in grams)</p>
+                            </div>
+                        </div>
                         <input type="hidden" name="unit" value="pcs">
                         <div class="grid grid-cols-3 gap-4">
                             <div>
@@ -673,6 +694,28 @@
             }
         } else {
             previewCode.textContent = 'Select supplier first';
+        }
+    }
+
+    // Toggle weighted product fields
+    function toggleWeightedProductFields(prefix) {
+        const checkbox = document.getElementById(prefix + '_is_weighted');
+        const codeSection = document.getElementById(prefix + '_weighted_code_section');
+        const codeInput = document.getElementById(prefix + '_weighted_product_code');
+
+        if (checkbox && codeSection) {
+            if (checkbox.checked) {
+                codeSection.classList.remove('hidden');
+                if (codeInput) {
+                    codeInput.required = true;
+                }
+            } else {
+                codeSection.classList.add('hidden');
+                if (codeInput) {
+                    codeInput.required = false;
+                    codeInput.value = '';
+                }
+            }
         }
     }
 </script>

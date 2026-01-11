@@ -186,7 +186,13 @@
                                             x-text="'/' + (item.base_unit || item.unit || 'pcs')"></span>
                                     </td>
                                     <td class="px-4 py-3">
-                                        <div class="flex items-center justify-center gap-1">
+                                        <!-- Weighted products: show weight, no editing -->
+                                        <div x-show="item.is_weighted" class="text-center">
+                                            <div class="font-medium text-sm" x-text="(item.quantity / 1000).toFixed(3) + ' kg'"></div>
+                                            <div class="text-xs text-gray-500">Fixed weight</div>
+                                        </div>
+                                        <!-- Regular products: quantity controls -->
+                                        <div x-show="!item.is_weighted" class="flex items-center justify-center gap-1">
                                             <button @click="decrementQuantity(index)"
                                                 class="w-7 h-7 rounded bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 flex items-center justify-center transition-colors">
                                                 <i class="fas fa-minus text-xs"></i>
@@ -202,7 +208,7 @@
                                                 <i class="fas fa-plus text-xs"></i>
                                             </button>
                                         </div>
-                                        <div class="text-xs text-center text-gray-500 mt-1"
+                                        <div x-show="!item.is_weighted" class="text-xs text-center text-gray-500 mt-1"
                                             x-text="item.base_unit || item.unit || 'pcs'"></div>
                                     </td>
                                     <td class="px-4 py-3">
@@ -788,36 +794,63 @@
                         return;
                     }
 
-                    // Check if product already in cart
-                    const existingIndex = this.cart.findIndex(item => item.id === product.id);
+                    // Handle weighted products (each scan is unique)
+                    if (product.is_weighted) {
+                        // For weighted products, check if exact same barcode already in cart
+                        const existingWeighted = this.cart.findIndex(item =>
+                            item.is_weighted && item.barcode === product.barcode
+                        );
 
-                    if (existingIndex !== -1) {
-                        // Increment quantity if not exceeding available stock
-                        const currentItem = this.cart[existingIndex];
-                        const step = currentItem.allow_decimal_sales ? 0.1 : 1;
-                        const newQty = Math.round((currentItem.quantity + step) * 100) / 100;
-
-                        if (newQty <= currentItem.available_quantity) {
-                            currentItem.quantity = newQty;
-                            this.calculateTotals();
-                        } else {
-                            const unit = currentItem.base_unit || currentItem.unit || 'pcs';
-                            this.errorMessage =
-                                `Maximum available quantity (${currentItem.available_quantity} ${unit}) reached for ${product.product_name}.`;
+                        if (existingWeighted !== -1) {
+                            this.errorMessage = 'This weighted item is already in the cart. Please scan a new barcode.';
+                            return;
                         }
-                    } else {
-                        // Add new item to cart - start with 1 unit or 0.1 for decimal products
-                        const initialQty = product.allow_decimal_sales ? 0.1 : 1;
+
+                        // Add weighted product with exact scanned weight
                         this.cart.push({
                             ...product,
-                            quantity: initialQty,
-                            // Discount fields
+                            quantity: product.quantity, // Weight in grams
+                            allow_quantity_edit: false, // Cannot edit weighted product quantity
                             discountType: 'none',
                             discountValue: 0,
                             discountAmount: 0,
-                            originalPrice: product.selling_price
+                            originalPrice: product.selling_price // Price per kg
                         });
                         this.calculateTotals();
+                    } else {
+                        // Regular product handling
+                        // Check if product already in cart
+                        const existingIndex = this.cart.findIndex(item => item.id === product.id && !item.is_weighted);
+
+                        if (existingIndex !== -1) {
+                            // Increment quantity if not exceeding available stock
+                            const currentItem = this.cart[existingIndex];
+                            const step = currentItem.allow_decimal_sales ? 0.1 : 1;
+                            const newQty = Math.round((currentItem.quantity + step) * 100) / 100;
+
+                            if (newQty <= currentItem.available_quantity) {
+                                currentItem.quantity = newQty;
+                                this.calculateTotals();
+                            } else {
+                                const unit = currentItem.base_unit || currentItem.unit || 'pcs';
+                                this.errorMessage =
+                                    `Maximum available quantity (${currentItem.available_quantity} ${unit}) reached for ${product.product_name}.`;
+                            }
+                        } else {
+                            // Add new item to cart - start with 1 unit or 0.1 for decimal products
+                            const initialQty = product.allow_decimal_sales ? 0.1 : 1;
+                            this.cart.push({
+                                ...product,
+                                quantity: initialQty,
+                                allow_quantity_edit: true,
+                                // Discount fields
+                                discountType: 'none',
+                                discountValue: 0,
+                                discountAmount: 0,
+                                originalPrice: product.selling_price
+                            });
+                            this.calculateTotals();
+                        }
                     }
 
                     // Clear search
@@ -915,7 +948,17 @@
                 },
 
                 calculateItemTotal(item) {
-                    const originalSubtotal = item.quantity * parseFloat(item.originalPrice || item.selling_price);
+                    let originalSubtotal;
+
+                    // Calculate subtotal based on product type
+                    if (item.is_weighted) {
+                        // For weighted products: (weight_grams / 1000) × price_per_kg
+                        originalSubtotal = (item.quantity / 1000) * parseFloat(item.originalPrice || item.selling_price);
+                    } else {
+                        // Regular products: quantity × price
+                        originalSubtotal = item.quantity * parseFloat(item.originalPrice || item.selling_price);
+                    }
+
                     const discountAmount = parseFloat(item.discountAmount || 0);
                     const subtotalAfterDiscount = originalSubtotal - discountAmount;
                     const tax = subtotalAfterDiscount * (parseFloat(item.tax) / 100);
@@ -930,7 +973,16 @@
                     this.cart.forEach(item => {
                         const originalPrice = parseFloat(item.originalPrice || item.selling_price);
                         const discountAmount = parseFloat(item.discountAmount || 0);
-                        const itemSubtotal = item.quantity * originalPrice;
+
+                        let itemSubtotal;
+                        if (item.is_weighted) {
+                            // For weighted products: (weight_grams / 1000) × price_per_kg
+                            itemSubtotal = (item.quantity / 1000) * originalPrice;
+                        } else {
+                            // Regular products: quantity × price
+                            itemSubtotal = item.quantity * originalPrice;
+                        }
+
                         const itemSubtotalAfterDiscount = itemSubtotal - discountAmount;
                         const itemTax = itemSubtotalAfterDiscount * (parseFloat(item.tax) / 100);
 

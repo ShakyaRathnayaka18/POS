@@ -71,12 +71,21 @@
                     <!-- Product Name -->
                     <div class="text-sm font-medium text-gray-900 dark:text-white mb-1">
                         {{ $item->product->product_name }}
+                        @if ($item->product->is_weighted)
+                            <span class="text-xs text-gray-600 dark:text-gray-400">
+                                ({{ number_format($item->quantity / 1000, 3) }}kg @ LKR {{ number_format($item->price, 2) }}/kg)
+                            </span>
+                        @endif
                     </div>
 
                     <!-- Product Details -->
                     <div class="flex justify-between text-xs text-gray-900 dark:text-white mb-3">
                         <span style="width: 15%">
-                            <strong>{{ number_format($item->quantity, 0) }}</strong>
+                            @if ($item->product->is_weighted)
+                                <strong>{{ number_format($item->quantity / 1000, 3) }}kg</strong>
+                            @else
+                                <strong>{{ number_format($item->quantity, 0) }}</strong>
+                            @endif
                         </span>
                         <span style="width: 20%">
                             @if ((method_exists($item, 'hasDiscount') && $item->hasDiscount()) || (property_exists($item, 'discount_type') && $item->discount_type !== 'none' && $item->discount_amount > 0))

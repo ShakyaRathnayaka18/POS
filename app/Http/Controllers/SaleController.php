@@ -6,6 +6,7 @@ use App\Http\Requests\StoreSaleRequest;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
+use App\Services\WeightedBarcodeService;
 use Exception;
 use Illuminate\Http\Request;
 
@@ -131,6 +132,14 @@ class SaleController extends Controller
             return response()->json([]);
         }
 
+        // Check if this is a weighted barcode (11 digits)
+        $weightedBarcodeService = app(WeightedBarcodeService::class);
+
+        if ($weightedBarcodeService->isWeightedBarcode($search)) {
+            return $this->handleWeightedBarcodeSearch($search, $weightedBarcodeService);
+        }
+
+        // Regular product search
         $products = Product::with(['category', 'brand', 'availableStocks.batch'])
             ->where(function ($query) use ($search) {
                 $query->where('product_name', 'like', "%{$search}%")
@@ -162,10 +171,66 @@ class SaleController extends Controller
                 'unit' => $product->unit,
                 'base_unit' => $product->base_unit,
                 'allow_decimal_sales' => $product->allow_decimal_sales,
+                'is_weighted' => $product->is_weighted,
             ];
         });
 
         return response()->json($results);
+    }
+
+    /**
+     * Handle weighted barcode search (11 digits: 6 product code + 5 weight in grams)
+     */
+    protected function handleWeightedBarcodeSearch(string $barcode, WeightedBarcodeService $service)
+    {
+        $parsed = $service->parseWeightedBarcode($barcode);
+
+        if (! $parsed) {
+            return response()->json([
+                'error' => 'Invalid weighted barcode format',
+            ], 422);
+        }
+
+        $product = $service->findProductByCode($parsed['product_code']);
+
+        if (! $product) {
+            return response()->json([
+                'error' => "Weighted product not found with code: {$parsed['product_code']}",
+            ], 404);
+        }
+
+        $availability = $this->saleService->getProductAvailability($product->id);
+        $weightKg = $service->gramsToKg($parsed['weight_grams']);
+
+        // Check if sufficient stock available
+        if ($availability['available_quantity'] < $parsed['weight_grams']) {
+            return response()->json([
+                'error' => "Insufficient stock for {$product->product_name}",
+                'requested_kg' => $weightKg,
+                'available_kg' => round($availability['available_quantity'] / 1000, 3),
+            ], 422);
+        }
+
+        // Return product with embedded weight information
+        return response()->json([[
+            'id' => $product->id,
+            'product_name' => $product->product_name.' - '.$weightKg.'kg',
+            'sku' => $product->sku,
+            'barcode' => $barcode,
+            'category' => $product->category?->cat_name,
+            'brand' => $product->brand?->brand_name,
+            'selling_price' => $availability['selling_price'],
+            'tax' => $availability['tax'],
+            'available_quantity' => $availability['available_quantity'],
+            'in_stock' => true,
+            'unit' => 'kg',
+            'base_unit' => 'g',
+            'allow_decimal_sales' => true,
+            'is_weighted' => true,
+            'weight_kg' => $weightKg,
+            'quantity' => $parsed['weight_grams'],
+            'original_product_name' => $product->product_name,
+        ]]);
     }
 
     /**

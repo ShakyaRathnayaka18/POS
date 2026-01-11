@@ -86,7 +86,9 @@
       "Bash(python:*)",
       "Bash(wc:*)",
       "Bash(xargs ls:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "mcp__excel__excel_describe_sheets",
+      "mcp__excel__excel_read_sheet"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -96,6 +98,7 @@
     "browsermcp",
     "shadcn-ui",
     "context7",
-    "motion"
+    "motion",
+    "Snyk"
   ]
 }

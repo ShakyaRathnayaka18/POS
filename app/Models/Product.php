@@ -21,6 +21,9 @@ class Product extends Model
         'purchase_unit',
         'conversion_factor',
         'allow_decimal_sales',
+        'is_weighted',
+        'weighted_product_code',
+        'pricing_type',
     ];
 
     protected function casts(): array
@@ -28,6 +31,7 @@ class Product extends Model
         return [
             'conversion_factor' => 'decimal:4',
             'allow_decimal_sales' => 'boolean',
+            'is_weighted' => 'boolean',
         ];
     }
 
@@ -75,6 +79,14 @@ class Product extends Model
             if (empty($product->sku)) {
                 $product->sku = self::generateSku();
             }
+
+            if ($product->is_weighted && empty($product->weighted_product_code)) {
+                throw new \Exception('Weighted products must have a weighted_product_code');
+            }
+
+            if (! $product->is_weighted && ! empty($product->weighted_product_code)) {
+                throw new \Exception('Regular products cannot have weighted_product_code');
+            }
         });
     }
 
@@ -115,5 +127,29 @@ class Product extends Model
                 'lead_time_days',
             ])
             ->withTimestamps();
+    }
+
+    /**
+     * Check if product is weighted.
+     */
+    public function isWeightedProduct(): bool
+    {
+        return $this->is_weighted;
+    }
+
+    /**
+     * Get the weight display unit.
+     */
+    public function getWeightDisplayAttribute(): string
+    {
+        return $this->pricing_type === 'per_kg' ? 'kg' : 'g';
+    }
+
+    /**
+     * Scope for weighted products.
+     */
+    public function scopeWeighted($query)
+    {
+        return $query->where('is_weighted', true);
     }
 }
