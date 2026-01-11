@@ -69,6 +69,27 @@ class StockService
     }
 
     /**
+     * Allocate stock from a specific stock record.
+     */
+    public function allocateFromSpecificStock(int $stockId, float $quantity): array
+    {
+        $stock = Stock::with('batch')->findOrFail($stockId);
+
+        if ($stock->available_quantity < $quantity) {
+            throw new \Exception("Insufficient stock in the selected batch. Required: {$quantity}, Available: {$stock->available_quantity}");
+        }
+
+        return [[
+            'stock_id' => $stock->id,
+            'batch_id' => $stock->batch_id,
+            'quantity' => $quantity,
+            'cost_price' => $stock->cost_price,
+            'selling_price' => $stock->selling_price,
+            'tax' => $stock->tax,
+        ]];
+    }
+
+    /**
      * Deduct allocated stock quantities.
      */
     public function deductStock(array $allocations): void

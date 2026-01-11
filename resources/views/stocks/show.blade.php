@@ -120,11 +120,11 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center py-2 border-b">
                         <span class="font-medium text-gray-700">Cost Price:</span>
-                        <span class="text-gray-900 text-lg">${{ number_format($stock->cost_price, 2) }}</span>
+                        <span class="text-gray-900 text-lg">LKR {{ number_format($stock->cost_price, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b">
                         <span class="font-medium text-gray-700">Selling Price:</span>
-                        <span class="text-gray-900 text-lg">${{ number_format($stock->selling_price, 2) }}</span>
+                        <span class="text-gray-900 text-lg">LKR {{ number_format($stock->selling_price, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 border-b">
                         <span class="font-medium text-gray-700">Tax:</span>
@@ -133,16 +133,16 @@
                     <div class="flex justify-between items-center py-2 border-b">
                         <span class="font-medium text-gray-700">Profit Margin:</span>
                         <span class="text-green-600 text-lg font-semibold">
-                            ${{ number_format($profitMargin, 2) }} ({{ number_format($profitPercentage, 1) }}%)
+                            LKR {{ number_format($profitMargin, 2) }} ({{ number_format($profitPercentage, 1) }}%)
                         </span>
                     </div>
                     <div class="flex justify-between items-center py-2 bg-blue-50 px-3 rounded">
                         <span class="font-bold text-gray-900">Total Value:</span>
-                        <span class="text-blue-600 text-xl font-bold">${{ number_format($totalValue, 2) }}</span>
+                        <span class="text-blue-600 text-xl font-bold">LKR {{ number_format($totalValue, 2) }}</span>
                     </div>
                     <div class="flex justify-between items-center py-2 bg-green-50 px-3 rounded">
                         <span class="font-bold text-gray-900">Potential Revenue:</span>
-                        <span class="text-green-600 text-xl font-bold">${{ number_format($potentialRevenue, 2) }}</span>
+                        <span class="text-green-600 text-xl font-bold">LKR {{ number_format($potentialRevenue, 2) }}</span>
                     </div>
                 </div>
             </div>

@@ -89,6 +89,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::middleware(['permission:view products'])->group(function () {
+        Route::post('products/bulk-store', [ProductController::class, 'bulkStore'])->name('products.bulk_store');
         Route::resource('products', ProductController::class)->only(['index', 'store', 'update', 'destroy']);
     });
 

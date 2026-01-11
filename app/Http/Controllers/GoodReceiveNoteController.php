@@ -20,13 +20,22 @@ class GoodReceiveNoteController extends Controller
     /**
      * Display a listing of GRNs.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $grns = GoodReceiveNote::with('supplier')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $query = GoodReceiveNote::with('supplier')
+            ->orderBy('created_at', 'desc');
 
-        return view('good-receive-notes.index', compact('grns'));
+        // Apply filters
+        if ($request->filled('supplier_id')) {
+            $query->where('supplier_id', $request->supplier_id);
+        }
+
+        $grns = $query->paginate(15)
+            ->withQueryString();
+
+        $suppliers = Supplier::orderBy('company_name')->get();
+
+        return view('good-receive-notes.index', compact('grns', 'suppliers'));
     }
 
     /**

@@ -160,11 +160,98 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
+    public function bulkStore(Request $request)
+    {
+        $messages = [
+            'common_category_id.required' => 'Please select a category.',
+            'common_brand_id.required' => 'Please select a brand.',
+            'products.required' => 'Please add at least one product to save.',
+        ];
+
+        $validated = $request->validate([
+            'common_category_id' => 'required|exists:categories,id',
+            'common_brand_id' => 'required|exists:brands,id',
+            'common_base_unit' => 'nullable|string|max:20',
+            'common_purchase_unit' => 'nullable|string|max:20',
+            'common_conversion_factor' => 'nullable|numeric|min:0.0001',
+            'common_allow_decimal_sales' => 'nullable|boolean',
+            'common_supplier_id' => 'nullable|exists:suppliers,id',
+            'common_auto_generate_vendor_code' => 'nullable|boolean',
+            'products' => 'required|array|min:1',
+            'products.*.name' => 'required|string|max:255',
+            'products.*.unit' => 'nullable|string',
+            'products.*.initial_stock' => 'nullable|integer|min:0',
+            'products.*.min_stock' => 'nullable|integer|min:0',
+            'products.*.max_stock' => 'nullable|integer|min:0',
+            'products.*.description' => 'nullable|string',
+        ], $messages);
+
+        $count = 0;
+
+        // Prepare common unit config
+        $baseUnit = $request->common_base_unit ?? 'pcs';
+        $purchaseUnit = $request->common_purchase_unit;
+        $conversionFactor = $request->common_conversion_factor ?? 1;
+        $allowDecimal = $request->boolean('common_allow_decimal_sales');
+
+        $supplier = null;
+        if ($request->filled('common_supplier_id')) {
+            $supplier = Supplier::find($request->common_supplier_id);
+        }
+
+        foreach ($request->products as $productData) {
+            if (empty($productData['name'])) continue;
+
+            // Use common unit config, fallback to per-row unit if common is not set (legacy behavior support) but prioritize common
+            // Actually, we should prioritize the common settings if they were part of the form submission.
+            // Since we added them to the form, they will be present.
+
+            // Note: If the user didn't touch the common unit dropdowns, they might default to 'pcs'.
+            // The per-row 'unit' might differ. However, to keep it consistent with "Unit Configuration Unit Configuration" request, 
+            // we apply the detailed config to all.
+
+            $product = Product::create([
+                'product_name' => $productData['name'],
+                'category_id' => $request->common_category_id,
+                'brand_id' => $request->common_brand_id,
+                'unit' => $baseUnit, // Set primary unit to base unit
+                'base_unit' => $baseUnit,
+                'purchase_unit' => $purchaseUnit,
+                'conversion_factor' => $conversionFactor,
+                'allow_decimal_sales' => $allowDecimal,
+                'initial_stock' => $productData['initial_stock'] ?? 0,
+                'minimum_stock' => $productData['min_stock'] ?? 0,
+                'maximum_stock' => $productData['max_stock'] ?? 0,
+                'description' => $productData['description'] ?? null,
+            ]);
+
+            if ($supplier) {
+                $vendorCode = null;
+                if ($request->boolean('common_auto_generate_vendor_code')) {
+                    // Check if method exists, otherwise assume null or handle gracefully
+                    if (method_exists(\App\Http\Controllers\VendorCodeController::class, 'generateVendorCode')) {
+                        $vendorCode = VendorCodeController::generateVendorCode($supplier, $product);
+                    }
+                }
+
+                $product->suppliers()->attach($supplier->id, [
+                    'vendor_product_code' => $vendorCode,
+                    'is_preferred' => false,
+                    'lead_time_days' => null,
+                ]);
+            }
+
+            $count++;
+        }
+
+        return redirect()->route('products.index')->with('success', "$count products added successfully.");
+    }
+
     public function update(Request $request, Product $product)
     {
         $validated = $request->validate([
             'product_name' => 'required|string|max:255',
-            'sku' => 'required|string|max:255|unique:products,sku,'.$product->id,
+            'sku' => 'required|string|max:255|unique:products,sku,' . $product->id,
             'description' => 'nullable|string',
             'category_id' => 'required|exists:categories,id',
             'brand_id' => 'nullable|exists:brands,id',

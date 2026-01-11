@@ -131,7 +131,10 @@
                 <div>
                     <p class="text-sm text-gray-600 dark:text-gray-400">Profit Margin</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                        {{ number_format($profitMargin, 2) }}%
+                        {{ number_format($profitMargin['percentage'], 2) }}%
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        LKR {{ number_format($profitMargin['amount'], 2) }}
                     </p>
                 </div>
                 <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">
@@ -151,6 +154,21 @@
                 </div>
                 <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-full">
                     <i class="fas fa-users text-2xl text-purple-600 dark:text-purple-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Products -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Products</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                        {{ number_format($totalProducts) }}
+                    </p>
+                </div>
+                <div class="p-3 bg-cyan-100 dark:bg-cyan-900 rounded-full">
+                    <i class="fas fa-tags text-2xl text-cyan-600 dark:text-cyan-400"></i>
                 </div>
             </div>
         </div>

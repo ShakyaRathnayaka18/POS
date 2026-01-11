@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Stock;
 use App\Services\StockAdjustmentService;
@@ -31,11 +32,21 @@ class StockController extends Controller
             ->selectRaw('SUM(available_quantity) as total_available_quantity')
             ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN cost_price END) as cost_price')
             ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN selling_price END) as selling_price')
+            ->selectRaw('MAX(CASE WHEN cost_price > 0 THEN discount_price END) as discount_price')
             ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN quantity ELSE 0 END) as foc_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price = 0 THEN available_quantity ELSE 0 END) as foc_available_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN quantity ELSE 0 END) as paid_quantity')
             ->selectRaw('SUM(CASE WHEN cost_price > 0 THEN available_quantity ELSE 0 END) as paid_available_quantity')
             ->groupBy('product_id', 'batch_id');
+
+        // Filter by category
+        $selectedCategoryId = null;
+        if ($request->filled('category_id')) {
+            $selectedCategoryId = $request->category_id;
+            $query->whereHas('product', function ($q) use ($selectedCategoryId) {
+                $q->where('category_id', $selectedCategoryId);
+            });
+        }
 
         // Filter by product
         if ($request->filled('product_id')) {
@@ -81,7 +92,6 @@ class StockController extends Controller
                 $stock->product = $fullStock->product;
                 $stock->batch = $fullStock->batch;
             }
-
             return $stock;
         });
 
@@ -108,8 +118,113 @@ class StockController extends Controller
             ->count();
 
         $products = Product::orderBy('product_name')->get();
+        $categories = Category::orderBy('cat_name')->get();
 
-        return view('stocks.index', compact('stocks', 'products', 'totalStocks', 'totalValue', 'outOfStock', 'lowStock'));
+        // Calculate category-specific stats only if category is selected
+        $categoryStats = null;
+        $selectedCategory = null;
+
+        if ($selectedCategoryId) {
+            $selectedCategory = Category::find($selectedCategoryId);
+
+            // Get all products in this category
+            $categoryProducts = Product::where('category_id', $selectedCategoryId)->pluck('id');
+
+            // Calculate stats for selected category
+            $categoryTotalProducts = $categoryProducts->count();
+
+            $categoryTotalStocks = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->get()
+                ->count();
+
+            $categoryTotalValue = Stock::where('cost_price', '>', 0)
+                ->whereIn('product_id', $categoryProducts)
+                ->sum(DB::raw('cost_price * available_quantity'));
+
+            $categoryOutOfStock = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->havingRaw('SUM(available_quantity) = 0')
+                ->get()
+                ->count();
+
+            $categoryLowStock = Stock::select('product_id', 'batch_id')
+                ->whereIn('product_id', $categoryProducts)
+                ->groupBy('product_id', 'batch_id')
+                ->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+                ->havingRaw('SUM(available_quantity) > 0')
+                ->get()
+                ->count();
+
+            $categoryInStock = $categoryTotalStocks - $categoryOutOfStock;
+
+            $categoryBrandIds = Product::where('category_id', $selectedCategoryId)
+                ->whereNotNull('brand_id')
+                ->distinct()
+                ->pluck('brand_id');
+
+            $categoryBrands = \App\Models\Brand::whereIn('id', $categoryBrandIds)
+                ->orderBy('brand_name')
+                ->get()
+                ->map(function ($brand) use ($selectedCategoryId) {
+                    // Get products for this brand within the selected category
+                    $brandProductIds = Product::where('category_id', $selectedCategoryId)
+                        ->where('brand_id', $brand->id)
+                        ->pluck('id');
+
+                    // Calculate stats
+                    $brand->total_products = $brandProductIds->count();
+
+                    $brand->total_stocks = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->get()
+                        ->count();
+
+                    $brand->out_of_stock = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->havingRaw('SUM(available_quantity) = 0')
+                        ->get()
+                        ->count();
+
+                    $brand->low_stock = Stock::select('product_id', 'batch_id')
+                        ->whereIn('product_id', $brandProductIds)
+                        ->groupBy('product_id', 'batch_id')
+                        ->havingRaw('SUM(available_quantity) <= (SUM(quantity) / 2)')
+                        ->havingRaw('SUM(available_quantity) > 0')
+                        ->get()
+                        ->count();
+
+                    $brand->in_stock = $brand->total_stocks - $brand->out_of_stock;
+
+                    return $brand;
+                });
+
+            $categoryStats = [
+                'total_products' => $categoryTotalProducts,
+                'total_stocks' => $categoryTotalStocks,
+                'total_value' => $categoryTotalValue,
+                'out_of_stock' => $categoryOutOfStock,
+                'low_stock' => $categoryLowStock,
+                'in_stock' => $categoryInStock,
+                'brands' => $categoryBrands,
+            ];
+        }
+
+        return view('stocks.index', compact(
+            'stocks',
+            'products',
+            'categories',
+            'totalStocks',
+            'totalValue',
+            'outOfStock',
+            'lowStock',
+            'categoryStats',
+            'selectedCategory'
+        ));
     }
 
     /**
@@ -162,7 +277,8 @@ class StockController extends Controller
         // *** 1. VALIDATION ***
         $validated = $request->validate([
             'cost_price' => 'required|numeric|min:0',
-            'selling_price' => 'required|numeric|min:0',
+            'selling_price' => 'required|numeric|min:0', // This is interpreted as base selling price
+            'discount_price' => 'nullable|numeric|min:0', // LKR discount
             'barcode' => 'nullable|string|max:255|unique:batches,barcode,' . $stock->batch_id,
 
             // Validation for adjustment fields
@@ -172,6 +288,10 @@ class StockController extends Controller
         ]);
 
         // Setup state variables
+        $discountAmount = (float)($validated['discount_price'] ?? 0);
+        $baseSellingPrice = (float)$validated['selling_price'];
+        $finalSellingPrice = $baseSellingPrice - $discountAmount;
+
         $adjustmentQuantity = (float)($validated['quantity_adjustment'] ?? 0);
         $currentPage = $request->input('current_page', 1);
         $hasQuantityAdjustment = $adjustmentQuantity !== 0.0;
@@ -187,6 +307,7 @@ class StockController extends Controller
         // *** 2. PRICE/BARCODE UPDATE & AUDIT ***
         $oldCostPrice = $stock->cost_price;
         $oldSellingPrice = $stock->selling_price;
+        $oldDiscountPrice = $stock->discount_price;
         $oldBarcode = $stock->batch->barcode;
         $changes = [];
         $priceOrBarcodeUpdated = false;
@@ -194,7 +315,8 @@ class StockController extends Controller
         // Update stock-level fields
         $stock->update([
             'cost_price' => $validated['cost_price'],
-            'selling_price' => $validated['selling_price'],
+            'selling_price' => $finalSellingPrice,
+            'discount_price' => $discountAmount,
         ]);
 
         // Update batch-level barcode if changed
@@ -207,8 +329,12 @@ class StockController extends Controller
             $changes[] = "Cost Price: LKR {$oldCostPrice} → LKR {$validated['cost_price']}";
             $priceOrBarcodeUpdated = true;
         }
-        if ($oldSellingPrice != $validated['selling_price']) {
-            $changes[] = "Selling Price: LKR {$oldSellingPrice} → LKR {$validated['selling_price']}";
+        if ($oldSellingPrice != $finalSellingPrice) {
+            $changes[] = "Selling Price: LKR {$oldSellingPrice} → LKR {$finalSellingPrice}";
+            $priceOrBarcodeUpdated = true;
+        }
+        if ($oldDiscountPrice != $discountAmount) {
+            $changes[] = "Discount: LKR {$oldDiscountPrice} → LKR {$discountAmount}";
             $priceOrBarcodeUpdated = true;
         }
         if ($validated['barcode'] !== $oldBarcode) {
@@ -279,6 +405,7 @@ class StockController extends Controller
             $grn = $stock->batch->goodReceiveNote;
             if ($grn) {
                 $grn->update([
+                    'discount' => $discountAmount, // Syncing stock discount to GRN discount
                     'notes' => ($grn->notes ?? '') . $auditNote . " (Stock ID: {$stock->id}, Product: {$stock->product->product_name})",
                 ]);
             }

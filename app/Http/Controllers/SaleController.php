@@ -142,32 +142,32 @@ class SaleController extends Controller
         // Regular product search
         $products = Product::with(['category', 'brand', 'availableStocks.batch'])
             ->where(function ($query) use ($search) {
-                $query->where('product_name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhereHas('availableStocks.batch', function ($q) use ($search) {
-                        $q->where('barcode', 'like', "%{$search}%");
-                    });
+                $query->whereHas('product', function ($q) use ($search) {
+                    $q->where('product_name', 'like', "%{$search}%")
+                        ->orWhere('sku', 'like', "%{$search}%");
+                })->orWhereHas('batch', function ($q) use ($search) {
+                    $q->where('barcode', 'like', "%{$search}%");
+                });
             })
-            ->whereHas('availableStocks', function ($q) {
-                $q->where('available_quantity', '>', 0);
-            })
-            ->limit(20)
+            ->limit(30)
             ->get();
 
-        $results = $products->map(function ($product) {
-            $availability = $this->saleService->getProductAvailability($product->id);
-
+        $results = $stocks->map(function ($stock) {
+            $product = $stock->product;
+            
             return [
                 'id' => $product->id,
-                'product_name' => $product->product_name,
+                'stock_id' => $stock->id,
+                'batch_number' => $stock->batch->batch_number,
+                'product_name' => $product->product_name . " (" . $stock->batch->batch_number . ")",
                 'sku' => $product->sku,
-                'barcode' => $product->availableStocks->first()?->batch?->barcode,
+                'barcode' => $stock->batch->barcode,
                 'category' => $product->category?->cat_name,
                 'brand' => $product->brand?->brand_name,
-                'selling_price' => $availability['selling_price'],
-                'tax' => $availability['tax'],
-                'available_quantity' => $availability['available_quantity'],
-                'in_stock' => $availability['in_stock'],
+                'selling_price' => $stock->selling_price,
+                'tax' => $stock->tax,
+                'available_quantity' => $stock->available_quantity,
+                'in_stock' => $stock->available_quantity > 0,
                 'unit' => $product->unit,
                 'base_unit' => $product->base_unit,
                 'allow_decimal_sales' => $product->allow_decimal_sales,
