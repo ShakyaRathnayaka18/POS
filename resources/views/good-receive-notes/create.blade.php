@@ -282,9 +282,11 @@
                     this.searchQuery = supplier.company_name;
                     this.showDropdown = false;
 
-                    // Trigger the existing change event
-                    const event = new Event('change', { bubbles: true });
-                    document.getElementById('supplier_id').dispatchEvent(event);
+                    // Wait for Alpine to update the value, then trigger change event
+                    this.$nextTick(() => {
+                        const event = new Event('change', { bubbles: true });
+                        document.getElementById('supplier_id').dispatchEvent(event);
+                    });
                 }
             };
         }
