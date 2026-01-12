@@ -53,7 +53,7 @@
                                         <div class="font-bold text-primary-600 dark:text-primary-400">
                                             <span x-text="'LKR ' + parseFloat(product.selling_price).toFixed(2)"></span>
                                             <span class="text-xs font-normal text-gray-500"
-                                                x-text="'/' + (product.base_unit || product.unit || 'pcs')"></span>
+                                                x-text="'/' + (product.is_weighted ? product.unit : (product.base_unit || product.unit || 'pcs'))"></span>
                                         </div>
                                         <div x-show="product.discount_amount > 0" class="text-xs text-red-500 font-medium">
                                             - LKR <span x-text="parseFloat(product.discount_amount).toFixed(2)"></span> Discount
@@ -61,8 +61,8 @@
                                         <div class="text-xs"
                                             :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
                                             <span
-                                                x-text="parseFloat(product.available_quantity).toFixed(product.allow_decimal_sales ? 2 : 0)"></span>
-                                            <span x-text="product.base_unit || product.unit || 'pcs'"></span>
+                                                x-text="product.is_weighted ? parseFloat(product.available_quantity / 1000).toFixed(2) : parseFloat(product.available_quantity).toFixed(product.allow_decimal_sales ? 2 : 0)"></span>
+                                            <span x-text="product.is_weighted ? product.unit : (product.base_unit || product.unit || 'pcs')"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -179,14 +179,14 @@
                                         </div>
                                         <div class="text-xs text-gray-500">
                                             <span
-                                                x-text="parseFloat(item.available_quantity).toFixed(item.allow_decimal_sales ? 2 : 0)"></span>
-                                            <span x-text="item.base_unit || item.unit || 'pcs'"></span> available
+                                                x-text="item.is_weighted ? parseFloat(item.available_quantity / 1000).toFixed(2) : parseFloat(item.available_quantity).toFixed(item.allow_decimal_sales ? 2 : 0)"></span>
+                                            <span x-text="item.is_weighted ? item.unit : (item.base_unit || item.unit || 'pcs')"></span> available
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-medium">
                                         <span x-text="parseFloat(item.selling_price).toFixed(2)"></span>
                                         <span class="text-xs text-gray-500"
-                                            x-text="'/' + (item.base_unit || item.unit || 'pcs')"></span>
+                                            x-text="'/' + (item.is_weighted ? item.unit : (item.base_unit || item.unit || 'pcs'))"></span>
                                     </td>
                                     <td class="px-4 py-3">
                                         <!-- Weighted products: show weight, no editing -->
@@ -640,8 +640,8 @@
                                         <div class="font-bold text-gray-900 dark:text-white text-lg" x-text="stock.product_name"></div>
                                         <div class="flex items-center gap-2 mt-2">
                                             <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded text-xs font-mono font-bold" x-text="'Batch: ' + stock.batch_number"></span>
-                                            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded text-xs font-bold" 
-                                                x-text="'Qty: ' + parseFloat(stock.available_quantity).toFixed(stock.allow_decimal_sales ? 2 : 0)"></span>
+                                            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded text-xs font-bold"
+                                                x-text="'Qty: ' + (stock.is_weighted ? parseFloat(stock.available_quantity / 1000).toFixed(2) : parseFloat(stock.available_quantity).toFixed(stock.allow_decimal_sales ? 2 : 0)) + ' ' + (stock.is_weighted ? stock.unit : (stock.base_unit || stock.unit || 'pcs'))"></span>
                                         </div>
                                     </div>
                                     <div class="text-right ml-4">

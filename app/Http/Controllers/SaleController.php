@@ -139,22 +139,22 @@ class SaleController extends Controller
             return $this->handleWeightedBarcodeSearch($search, $weightedBarcodeService);
         }
 
-        // Regular product search
-        $products = Product::with(['category', 'brand', 'availableStocks.batch'])
-            ->where(function ($query) use ($search) {
-                $query->whereHas('product', function ($q) use ($search) {
-                    $q->where('product_name', 'like', "%{$search}%")
-                        ->orWhere('sku', 'like', "%{$search}%");
-                })->orWhereHas('batch', function ($q) use ($search) {
-                    $q->where('barcode', 'like', "%{$search}%");
-                });
+        // Regular product search - search stocks with their products and batches
+        $stocks = \App\Models\Stock::with(['product.category', 'product.brand', 'batch'])
+            ->whereHas('product', function ($q) use ($search) {
+                $q->where('product_name', 'like', "%{$search}%")
+                    ->orWhere('sku', 'like', "%{$search}%");
             })
+            ->orWhereHas('batch', function ($q) use ($search) {
+                $q->where('barcode', 'like', "%{$search}%");
+            })
+            ->where('available_quantity', '>', 0)
             ->limit(30)
             ->get();
 
         $results = $stocks->map(function ($stock) {
             $product = $stock->product;
-            
+
             return [
                 'id' => $product->id,
                 'stock_id' => $stock->id,
