@@ -167,207 +167,229 @@
             </div>
         </div>
 
-    <!-- Product Modal (Create) -->
-    <div id="productModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full hidden">
-        <div
-            class="relative w-full max-w-2xl mx-auto my-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                    <i class="fas fa-box-open mr-2 text-primary-600"></i> Add New Product
-                </h3>
-                <button onclick="closeModal('productModal')" class="text-gray-400 hover:text-gray-600 transition">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
+        <!-- Product Modal (Create) -->
+        <div id="productModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full hidden">
+            <div
+                class="relative w-full max-w-2xl mx-auto my-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                        <i class="fas fa-box-open mr-2 text-primary-600"></i> Add New Product
+                    </h3>
+                    <button onclick="closeModal('productModal')" class="text-gray-400 hover:text-gray-600 transition">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <form class="px-6 py-6 space-y-6" method="POST" action="{{ route('products.store') }}"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name
+                                    <span class="text-red-500">*</span></label>
+                                <input name="product_name" type="text" required
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="e.g. Coca Cola 500ml">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
+                                <input name="sku" type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed"
+                                    placeholder="Auto-generated" readonly>
+                                <p class="text-xs text-gray-500 mt-1">SKU will be auto-generated</p>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                                <textarea name="description" rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="Short product description..."></textarea>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category
+                                    <span class="text-red-500">*</span></label>
+                                <select name="category_id" required
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">Select Category</option>
+                                    @foreach ($categories as $category)
+                                        <option value="{{ $category->id }}">{{ $category->cat_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
+                                <select name="brand_id"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">Select Brand</option>
+                                    @foreach ($brands as $brand)
+                                        <option value="{{ $brand->id }}">{{ $brand->brand_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <!-- Unit Configuration Section -->
+                            <div
+                                class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Unit Configuration
+                                </h4>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label
+                                            class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sales
+                                            Unit</label>
+                                        <select name="base_unit" id="create_base_unit"
+                                            onchange="updateConversionFactor('create')"
+                                            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                            <option value="pcs">Pieces (pcs)</option>
+                                            <option value="g">Grams (g)</option>
+                                            <option value="kg">Kilograms (kg)</option>
+                                            <option value="ml">Milliliters (ml)</option>
+                                            <option value="L">Liters (L)</option>
+                                            <option value="box">Box</option>
+                                            <option value="pack">Pack</option>
+                                            <option value="dozen">Dozen</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Purchase
+                                            Unit (GRN)</label>
+                                        <select name="purchase_unit" id="create_purchase_unit"
+                                            onchange="updateConversionFactor('create')"
+                                            class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                            <option value="">Same as Sales Unit</option>
+                                            <option value="pcs">Pieces (pcs)</option>
+                                            <option value="g">Grams (g)</option>
+                                            <option value="kg">Kilograms (kg)</option>
+                                            <option value="ml">Milliliters (ml)</option>
+                                            <option value="L">Liters (L)</option>
+                                            <option value="box">Box</option>
+                                            <option value="pack">Pack</option>
+                                            <option value="dozen">Dozen</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-3" id="create_conversion_container" style="display: none;">
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Conversion Factor <span id="create_conversion_hint" class="text-gray-400"></span>
+                                    </label>
+                                    <input name="conversion_factor" id="create_conversion_factor" type="number"
+                                        step="0.0001" min="0.0001" value="1"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                </div>
+                                <div class="mt-3">
+                                    <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                                        <input type="checkbox" name="allow_decimal_sales" value="1"
+                                            class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                        Allow decimal quantities at POS (e.g., 0.5 kg)
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Weighted Product Section -->
+                            <div
+                                class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-600">
+                                <div class="mb-3">
+                                    <label
+                                        class="flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                                        <input type="checkbox" id="create_is_weighted" name="is_weighted" value="1"
+                                            onchange="toggleWeightedProductFields('create')"
+                                            class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
+                                        <span class="font-medium"><i class="fas fa-weight mr-1"></i> This is a weighted
+                                            product (sold by weight)</span>
+                                    </label>
+                                </div>
+                                <div id="create_weighted_code_section" class="hidden">
+                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                                        Weighted Product Code <span class="text-red-500">*</span>
+                                        <span class="text-gray-400">(6 digits, e.g., 878 for White Rice)</span>
+                                    </label>
+                                    <input name="weighted_product_code" id="create_weighted_product_code" type="text"
+                                        maxlength="6" pattern="[0-9]{1,6}"
+                                        placeholder="Enter 1-6 digit code (e.g., 878)"
+                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
+                                    <p class="text-xs text-gray-500 mt-1">This code will be used in weighted barcodes
+                                        (format: 000878XXXXX where XXXXX is weight in grams)</p>
+                                </div>
+                            </div>
+                            <input type="hidden" name="unit" value="pcs">
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial
+                                        Stock</label>
+                                    <input name="initial_stock" type="number"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min
+                                        Stock</label>
+                                    <input name="minimum_stock" type="number"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        placeholder="0">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max
+                                        Stock</label>
+                                    <input name="maximum_stock" type="number"
+                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                        placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Supplier Section -->
+                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Supplier Information
+                            (Optional)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label
+                                    class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supplier</label>
+                                <select id="create_supplier_id" name="supplier_id" onchange="onProductSupplierChange()"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
+                                    <option value="">Select Supplier</option>
+                                    @foreach (\App\Models\Supplier::orderBy('company_name')->get() as $supplier)
+                                        <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div id="vendor_code_section" class="hidden">
+                                <div class="flex items-center mb-2">
+                                    <input type="checkbox" id="auto_generate_vendor_code"
+                                        name="auto_generate_vendor_code" value="1"
+                                        onchange="toggleProductAutoGenerate(this.checked)"
+                                        class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
+                                    <label for="auto_generate_vendor_code"
+                                        class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                                        Auto-generate vendor code
+                                    </label>
+                                </div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vendor
+                                    Product Code</label>
+                                <input id="create_vendor_product_code" name="vendor_product_code" type="text"
+                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
+                                    placeholder="Enter vendor's product code">
+                                <div id="product_vendor_code_preview"
+                                    class="hidden mt-2 text-sm text-green-600 dark:text-green-400">
+                                    Preview: <span id="product_preview_code" class="font-mono font-bold"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+                        <button type="button" onclick="closeModal('productModal')"
+                            class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
+                        <button type="submit"
+                            class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition font-semibold flex items-center"><i
+                                class="fas fa-save mr-2"></i>Save Product</button>
+                    </div>
+                </form>
             </div>
-            <form class="px-6 py-6 space-y-6" method="POST" action="{{ route('products.store') }}"
-                enctype="multipart/form-data">
-                @csrf
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Name
-                                <span class="text-red-500">*</span></label>
-                            <input name="product_name" type="text" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="e.g. Coca Cola 500ml">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">SKU</label>
-                            <input name="sku" type="text"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 dark:text-white cursor-not-allowed"
-                                placeholder="Auto-generated" readonly>
-                            <p class="text-xs text-gray-500 mt-1">SKU will be auto-generated</p>
-                        </div>
-                        <div>
-                            <label
-                                class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                            <textarea name="description" rows="3"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="Short product description..."></textarea>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category
-                                <span class="text-red-500">*</span></label>
-                            <select name="category_id" required
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->cat_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Brand</label>
-                            <select name="brand_id"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select Brand</option>
-                                @foreach($brands as $brand)
-                                <option value="{{ $brand->id }}">{{ $brand->brand_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <!-- Unit Configuration Section -->
-                        <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Unit Configuration</h4>
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Sales Unit</label>
-                                    <select name="base_unit" id="create_base_unit" onchange="updateConversionFactor('create')"
-                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
-                                        <option value="pcs">Pieces (pcs)</option>
-                                        <option value="g">Grams (g)</option>
-                                        <option value="kg">Kilograms (kg)</option>
-                                        <option value="ml">Milliliters (ml)</option>
-                                        <option value="L">Liters (L)</option>
-                                        <option value="box">Box</option>
-                                        <option value="pack">Pack</option>
-                                        <option value="dozen">Dozen</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Purchase Unit (GRN)</label>
-                                    <select name="purchase_unit" id="create_purchase_unit" onchange="updateConversionFactor('create')"
-                                        class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
-                                        <option value="">Same as Sales Unit</option>
-                                        <option value="pcs">Pieces (pcs)</option>
-                                        <option value="g">Grams (g)</option>
-                                        <option value="kg">Kilograms (kg)</option>
-                                        <option value="ml">Milliliters (ml)</option>
-                                        <option value="L">Liters (L)</option>
-                                        <option value="box">Box</option>
-                                        <option value="pack">Pack</option>
-                                        <option value="dozen">Dozen</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-3" id="create_conversion_container" style="display: none;">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                    Conversion Factor <span id="create_conversion_hint" class="text-gray-400"></span>
-                                </label>
-                                <input name="conversion_factor" id="create_conversion_factor" type="number" step="0.0001" min="0.0001" value="1"
-                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
-                            </div>
-                            <div class="mt-3">
-                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                                    <input type="checkbox" name="allow_decimal_sales" value="1"
-                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
-                                    Allow decimal quantities at POS (e.g., 0.5 kg)
-                                </label>
-                            </div>
-                        </div>
-                        <!-- Weighted Product Section -->
-                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-600">
-                            <div class="mb-3">
-                                <label class="flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                                    <input type="checkbox" id="create_is_weighted" name="is_weighted" value="1"
-                                        onchange="toggleWeightedProductFields('create')"
-                                        class="mr-2 rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500">
-                                    <span class="font-medium"><i class="fas fa-weight mr-1"></i> This is a weighted product (sold by weight)</span>
-                                </label>
-                            </div>
-                            <div id="create_weighted_code_section" class="hidden">
-                                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                                    Weighted Product Code <span class="text-red-500">*</span>
-                                    <span class="text-gray-400">(6 digits, e.g., 878 for White Rice)</span>
-                                </label>
-                                <input name="weighted_product_code" id="create_weighted_product_code" type="text" maxlength="6" pattern="[0-9]{1,6}"
-                                    placeholder="Enter 1-6 digit code (e.g., 878)"
-                                    class="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:text-white">
-                                <p class="text-xs text-gray-500 mt-1">This code will be used in weighted barcodes (format: 000878XXXXX where XXXXX is weight in grams)</p>
-                            </div>
-                        </div>
-                        <input type="hidden" name="unit" value="pcs">
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Initial
-                                    Stock</label>
-                                <input name="initial_stock" type="number"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Min
-                                    Stock</label>
-                                <input name="minimum_stock" type="number"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Max
-                                    Stock</label>
-                                <input name="maximum_stock" type="number"
-                                    class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                    placeholder="0">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- Supplier Section -->
-                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                    <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Supplier Information (Optional)</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Supplier</label>
-                            <select id="create_supplier_id" name="supplier_id" onchange="onProductSupplierChange()"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white">
-                                <option value="">Select Supplier</option>
-                                @foreach(\App\Models\Supplier::orderBy('company_name')->get() as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->company_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div id="vendor_code_section" class="hidden">
-                            <div class="flex items-center mb-2">
-                                <input type="checkbox" id="auto_generate_vendor_code" name="auto_generate_vendor_code" value="1"
-                                       onchange="toggleProductAutoGenerate(this.checked)"
-                                       class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded">
-                                <label for="auto_generate_vendor_code" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                    Auto-generate vendor code
-                                </label>
-                            </div>
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Vendor Product Code</label>
-                            <input id="create_vendor_product_code" name="vendor_product_code" type="text"
-                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-                                placeholder="Enter vendor's product code">
-                            <div id="product_vendor_code_preview" class="hidden mt-2 text-sm text-green-600 dark:text-green-400">
-                                Preview: <span id="product_preview_code" class="font-mono font-bold"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200 dark:border-gray-700">
-                    <button type="button" onclick="closeModal('productModal')"
-                        class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition">Cancel</button>
-                    <button type="submit"
-                        class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition font-semibold flex items-center"><i
-                            class="fas fa-save mr-2"></i>Save Product</button>
-                </div>
-            </form>
         </div>
-    </div>
 
         <!-- Product Modal (Edit) -->
         <div id="editProductModal"
@@ -821,6 +843,12 @@
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.classList.remove('hidden');
+                    if (modalId === 'bulkProductModal') {
+                        const tbody = document.getElementById('bulk-products-body');
+                        if (tbody && tbody.children.length === 0) {
+                            handleAddBulkRow();
+                        }
+                    }
                 }
             }
 
@@ -954,39 +982,104 @@
                     // Generate preview: first 3 letters of supplier (letters only) + placeholder for SKU
                     const prefix = supplierName.replace(/[^A-Za-z]/g, '').substring(0, 3).toUpperCase();
 
-            if (sku) {
-                const numericMatch = sku.match(/(\d+)$/);
-                const numeric = numericMatch ? numericMatch[1] : '000000';
-                previewCode.textContent = prefix + '-' + numeric;
-            } else {
-                previewCode.textContent = prefix + '-XXXXXX (SKU will be auto-generated)';
-            }
-        } else {
-            previewCode.textContent = 'Select supplier first';
-        }
-    }
-
-    // Toggle weighted product fields
-    function toggleWeightedProductFields(prefix) {
-        const checkbox = document.getElementById(prefix + '_is_weighted');
-        const codeSection = document.getElementById(prefix + '_weighted_code_section');
-        const codeInput = document.getElementById(prefix + '_weighted_product_code');
-
-        if (checkbox && codeSection) {
-            if (checkbox.checked) {
-                codeSection.classList.remove('hidden');
-                if (codeInput) {
-                    codeInput.required = true;
-                }
-            } else {
-                codeSection.classList.add('hidden');
-                if (codeInput) {
-                    codeInput.required = false;
-                    codeInput.value = '';
+                    if (sku) {
+                        const numericMatch = sku.match(/(\d+)$/);
+                        const numeric = numericMatch ? numericMatch[1] : '000000';
+                        previewCode.textContent = prefix + '-' + numeric;
+                    } else {
+                        previewCode.textContent = prefix + '-XXXXXX (SKU will be auto-generated)';
+                    }
+                } else {
+                    previewCode.textContent = 'Select supplier first';
                 }
             }
-        }
-    }
-</script>
-@endpush
+
+            // Toggle weighted product fields
+            function toggleWeightedProductFields(prefix) {
+                const checkbox = document.getElementById(prefix + '_is_weighted');
+                const codeSection = document.getElementById(prefix + '_weighted_code_section');
+                const codeInput = document.getElementById(prefix + '_weighted_product_code');
+
+                if (checkbox && codeSection) {
+                    if (checkbox.checked) {
+                        codeSection.classList.remove('hidden');
+                        if (codeInput) {
+                            codeInput.required = true;
+                        }
+                    } else {
+                        codeSection.classList.add('hidden');
+                        if (codeInput) {
+                            codeInput.required = false;
+                            codeInput.value = '';
+                        }
+                    }
+                }
+            }
+
+            // Bulk Add Row Management
+            let bulkRowIndex = 0;
+
+            function handleAddBulkRow() {
+                const tbody = document.getElementById('bulk-products-body');
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors';
+                row.innerHTML = `
+            <td class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 font-mono row-number"></td>
+            <td class="px-3 py-2">
+                <input type="text" name="products[${bulkRowIndex}][name]" required
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="Product Name">
+            </td>
+            <td class="px-3 py-2">
+                <input type="text" name="products[${bulkRowIndex}][unit]"
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded bg-gray-50 dark:bg-gray-600/50 dark:text-gray-400 text-sm cursor-not-allowed"
+                    value="pcs" readonly>
+            </td>
+            <td class="px-3 py-2">
+                <input type="number" name="products[${bulkRowIndex}][initial_stock]" value="0" min="0"
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm">
+            </td>
+            <td class="px-3 py-2">
+                <input type="number" name="products[${bulkRowIndex}][min_stock]" value="0" min="0"
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm">
+            </td>
+            <td class="px-3 py-2">
+                <input type="number" name="products[${bulkRowIndex}][max_stock]" value="0" min="0"
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm">
+            </td>
+            <td class="px-3 py-2">
+                <input type="text" name="products[${bulkRowIndex}][description]"
+                    class="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-sm"
+                    placeholder="Optional description">
+            </td>
+            <td class="px-3 py-2 text-center">
+                <button type="button" onclick="removeBulkRow(this)"
+                    class="text-red-500 hover:text-red-700 transition">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        `;
+                tbody.appendChild(row);
+                bulkRowIndex++;
+                updateBulkRowCount();
+            }
+
+            function removeBulkRow(button) {
+                const row = button.closest('tr');
+                row.remove();
+                updateBulkRowCount();
+            }
+
+            function updateBulkRowCount() {
+                const tbody = document.getElementById('bulk-products-body');
+                const rows = tbody.querySelectorAll('tr');
+                document.getElementById('bulk-row-count').textContent = rows.length;
+
+                // Update row numbers
+                rows.forEach((row, index) => {
+                    row.querySelector('.row-number').textContent = index + 1;
+                });
+            }
+        </script>
+    @endpush
 @endsection
