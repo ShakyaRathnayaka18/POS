@@ -28,11 +28,8 @@
                         <label for="supplier_id"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Supplier *</label>
                         <div class="relative">
-                            <input type="text"
-                                x-model="searchQuery"
-                                @focus="showDropdown = true"
-                                @input="filterSuppliers()"
-                                placeholder="Search supplier..."
+                            <input type="text" x-model="searchQuery" @focus="showDropdown = true"
+                                @input="filterSuppliers()" placeholder="Search supplier..."
                                 class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
 
                             <input type="hidden" name="supplier_id" id="supplier_id" x-model="selectedSupplierId" required>
@@ -284,7 +281,9 @@
 
                     // Wait for Alpine to update the value, then trigger change event
                     this.$nextTick(() => {
-                        const event = new Event('change', { bubbles: true });
+                        const event = new Event('change', {
+                            bubbles: true
+                        });
                         document.getElementById('supplier_id').dispatchEvent(event);
                     });
                 }
@@ -368,15 +367,6 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Quantity <span id="qty-unit-${itemIndex}" class="text-gray-500"></span> *
-                    </label>
-                    <input type="number" name="items[${itemIndex}][quantity]" required min="0.0001" step="0.0001" value="1"
-                        onchange="updateCalculations(); updateUnitConversionDisplay(${itemIndex});"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white" id="quantity-${itemIndex}">
-                    <div id="converted-qty-${itemIndex}" class="hidden mt-1 text-xs text-green-600 dark:text-green-400"></div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                         Cost Price <span id="cost-unit-${itemIndex}" class="text-gray-500"></span> *
                     </label>
                     <input type="number" name="items[${itemIndex}][cost_price]" required min="0" step="0.01"
@@ -389,6 +379,15 @@
                     </label>
                     <input type="number" name="items[${itemIndex}][selling_price]" min="0" step="0.01"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Quantity <span id="qty-unit-${itemIndex}" class="text-gray-500"></span> *
+                    </label>
+                    <input type="number" name="items[${itemIndex}][quantity]" required min="0.0001" step="0.0001" value="1"
+                        onchange="updateCalculations(); updateUnitConversionDisplay(${itemIndex});"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white" id="quantity-${itemIndex}">
+                    <div id="converted-qty-${itemIndex}" class="hidden mt-1 text-xs text-green-600 dark:text-green-400"></div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax %</label>
@@ -441,7 +440,9 @@
             const purchaseUnit = selectedOption.dataset.purchaseUnit || '';
             const conversionFactor = parseFloat(selectedOption.dataset.conversionFactor) || 1;
 
-            const effectivePurchaseUnit = purchaseUnit || baseUnit;
+            let effectivePurchaseUnit = purchaseUnit || baseUnit;
+            if (effectivePurchaseUnit.toLowerCase() === 'g') effectivePurchaseUnit = 'kg';
+
             const unitInfoEl = document.getElementById(`unit-info-${itemIndex}`);
             const qtyUnitEl = document.getElementById(`qty-unit-${itemIndex}`);
             const costUnitEl = document.getElementById(`cost-unit-${itemIndex}`);
@@ -454,8 +455,13 @@
 
             // Show unit conversion info if different units
             if (purchaseUnit && purchaseUnit !== baseUnit && conversionFactor !== 1) {
+                let displayBaseUnit = baseUnit;
+                let displayPurchaseUnit = purchaseUnit;
+                if (displayBaseUnit.toLowerCase() === 'g') displayBaseUnit = 'kg';
+                if (displayPurchaseUnit.toLowerCase() === 'g') displayPurchaseUnit = 'kg';
+
                 unitInfoEl.innerHTML =
-                    `<i class="fas fa-info-circle mr-1"></i>Sold in: ${baseUnit} | 1 ${purchaseUnit} = ${conversionFactor} ${baseUnit}`;
+                    `<i class="fas fa-info-circle mr-1"></i>Sold in: ${displayBaseUnit} | 1 ${displayPurchaseUnit} = ${conversionFactor} ${displayBaseUnit}`;
                 unitInfoEl.classList.remove('hidden');
             } else {
                 unitInfoEl.classList.add('hidden');
@@ -479,8 +485,10 @@
 
             if (purchaseUnit && purchaseUnit !== baseUnit && conversionFactor !== 1 && quantity > 0) {
                 const convertedQty = quantity * conversionFactor;
+                let displayBaseUnit = baseUnit;
+                if (displayBaseUnit === 'g') displayBaseUnit = 'kg';
                 convertedQtyEl.innerHTML =
-                    `<i class="fas fa-exchange-alt mr-1"></i>Stock: ${convertedQty.toFixed(4)} ${baseUnit}`;
+                    `<i class="fas fa-exchange-alt mr-1"></i>Stock: ${convertedQty.toFixed(4)} ${displayBaseUnit}`;
                 convertedQtyEl.classList.remove('hidden');
             } else {
                 convertedQtyEl.classList.add('hidden');
@@ -828,6 +836,10 @@
             const selectedOption = productSelect.options[productSelect.selectedIndex];
             const productId = productSelect.value;
             const productName = selectedOption.text;
+            const baseUnit = selectedOption.dataset.baseUnit || 'pcs';
+            const purchaseUnit = selectedOption.dataset.purchaseUnit || '';
+            let displayUnit = purchaseUnit || baseUnit;
+            if (displayUnit === 'g') displayUnit = 'kg';
 
             // Get batch details from original item
             const barcode = originalItem.querySelector('[name*="[barcode]"]')?.value || '';
@@ -858,20 +870,20 @@
                     <input type="hidden" name="items[${itemIndex}][product_id]" value="${productId}">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity *</label>
-                    <input type="number" name="items[${itemIndex}][quantity]" required value="${quantity}" min="1" step="1"
-                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
-                        onchange="updateCalculations()">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost Price *</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cost Price (per ${displayUnit}) *</label>
                     <input type="number" name="items[${itemIndex}][cost_price]" required value="0" readonly
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling Price</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Selling Price (per ${displayUnit})</label>
                     <input type="number" name="items[${itemIndex}][selling_price]" min="0" step="0.01" value="0"
                         class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantity (${displayUnit}) *</label>
+                    <input type="number" name="items[${itemIndex}][quantity]" required value="${quantity}" min="1" step="1"
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-600 text-gray-900 dark:text-white"
+                        onchange="updateCalculations()">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tax %</label>
