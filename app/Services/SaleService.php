@@ -89,6 +89,8 @@ class SaleService
                 // Process each allocation (may span multiple batches)
                 foreach ($allocations as $allocation) {
                     $unitPrice = $allocation['selling_price'];
+                    $stockDiscountPerUnit = (float) ($allocation['discount_price'] ?? 0);
+                    $originalPricePerUnit = $unitPrice + $stockDiscountPerUnit;
 
                     // For weighted products, quantity is in grams but price is per kg
                     // So we need to convert: (quantity_in_grams / 1000) * price_per_kg
@@ -97,32 +99,37 @@ class SaleService
                         ? $allocation['quantity'] / 1000
                         : $allocation['quantity'];
 
-                    $lineSubtotalBeforeDiscount = $effectiveQuantity * $unitPrice;
+                    $lineSubtotalBeforeDiscount = $effectiveQuantity * $originalPricePerUnit;
                     $subtotalBeforeDiscount += $lineSubtotalBeforeDiscount;
+                    $stockDiscountAmount = $effectiveQuantity * $stockDiscountPerUnit;
+                    $totalItemDiscounts += $stockDiscountAmount;
 
                     // Apply discount if present
                     $discountData = [
-                        'discount_type' => 'none',
-                        'discount_value' => 0,
-                        'discount_amount' => 0,
+                        'discount_type' => $stockDiscountPerUnit > 0 ? 'fixed_amount' : 'none',
+                        'discount_value' => $stockDiscountPerUnit > 0 ? $stockDiscountPerUnit : 0,
+                        'discount_amount' => $stockDiscountAmount,
                         'discount_id' => null,
                         'discount_approved_by' => null,
-                        'price_before_discount' => $unitPrice,
+                        'price_before_discount' => $originalPricePerUnit,
                         'price' => $unitPrice,
                         'subtotal_before_discount' => $lineSubtotalBeforeDiscount,
                     ];
 
                     if (isset($item['discount']) && $item['discount']['type'] !== 'none') {
+                        $manualDiscountAmount = (float) $item['discount']['amount'];
+                        $combinedDiscountAmount = $stockDiscountAmount + $manualDiscountAmount;
+
                         $discountData = array_merge($discountData, [
-                            'discount_type' => $item['discount']['type'],
-                            'discount_value' => $item['discount']['value'],
-                            'discount_amount' => $item['discount']['amount'],
+                            'discount_type' => 'fixed_amount',
+                            'discount_value' => $combinedDiscountAmount / ($effectiveQuantity ?: 1),
+                            'discount_amount' => $combinedDiscountAmount,
                             'discount_id' => $item['discount']['discount_id'] ?? null,
                             'discount_approved_by' => $item['discount']['approved_by'] ?? null,
                             'price' => $item['discount']['final_price'],
                         ]);
 
-                        $totalItemDiscounts += $item['discount']['amount'];
+                        $totalItemDiscounts += $manualDiscountAmount;
                     }
 
                     // Calculate tax on discounted price
@@ -282,6 +289,7 @@ class SaleService
         return [
             'available_quantity' => $availableQuantity,
             'selling_price' => $stock?->selling_price ?? 0,
+            'discount_amount' => $stock?->discount_price ?? 0,
             'tax' => $stock?->tax ?? 0,
             'in_stock' => $availableQuantity > 0,
         ];

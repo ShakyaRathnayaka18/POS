@@ -165,6 +165,7 @@ class SaleController extends Controller
                 'category' => $product->category?->cat_name,
                 'brand' => $product->brand?->brand_name,
                 'selling_price' => $stock->selling_price,
+                'discount_amount' => $stock->discount_price,
                 'tax' => $stock->tax,
                 'available_quantity' => $stock->available_quantity,
                 'in_stock' => $stock->available_quantity > 0,
@@ -214,12 +215,13 @@ class SaleController extends Controller
         // Return product with embedded weight information
         return response()->json([[
             'id' => $product->id,
-            'product_name' => $product->product_name.' - '.$weightKg.'kg',
+            'product_name' => $product->product_name . ' - ' . $weightKg . 'kg',
             'sku' => $product->sku,
             'barcode' => $barcode,
             'category' => $product->category?->cat_name,
             'brand' => $product->brand?->brand_name,
             'selling_price' => $availability['selling_price'],
+            'discount_amount' => $availability['discount_amount'] ?? 0,
             'tax' => $availability['tax'],
             'available_quantity' => $availability['available_quantity'],
             'in_stock' => true,
