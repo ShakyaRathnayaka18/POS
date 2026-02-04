@@ -3,18 +3,19 @@
 @section('title', 'Cashier Dashboard')
 
 @section('content')
-    <div x-data="cashierPos()" x-init="init()"
-         @keydown.window.ctrl.m.prevent="toggleManualModeShortcut()"
-         class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-6rem)]">
+    <div x-data="cashierPos()" x-init="init()" @keydown.window.ctrl.m.prevent="toggleManualModeShortcut()"
+        class="flex flex-col lg:flex-row gap-6 h-[calc(100vh-6rem)]">
         <!-- Left Main Area: Product Search & Cart -->
         <div class="flex-1 flex flex-col gap-2 overflow-hidden">
             <!-- Manual Entry Mode Toggle -->
             <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-3 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" x-model="isManualMode" @change="toggleManualMode"
-                               :disabled="cart.length > 0" class="sr-only peer">
-                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-500"></div>
+                        <input type="checkbox" x-model="isManualMode" @change="toggleManualMode" :disabled="cart.length > 0"
+                            class="sr-only peer">
+                        <div
+                            class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-yellow-500">
+                        </div>
                         <span class="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">
                             <i class="fas fa-edit mr-1"></i> Manual Entry Mode
                         </span>
@@ -29,7 +30,8 @@
             <div x-show="!isManualMode" x-transition class="bg-white dark:bg-gray-800 shadow rounded-lg p-0 flex-shrink-0">
                 <div class="relative">
                     <input type="text" x-model="searchQuery" @input.debounce.300ms="searchProducts"
-                        @keydown.enter.prevent="selectFirstProduct" placeholder="Search products by name, barcode, or SKU..."
+                        @keydown.enter.prevent="selectFirstProduct"
+                        placeholder="Search products by name, barcode, or SKU..."
                         class="w-full pl-10 pr-2 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white text-lg shadow-sm">
                     <i class="fas fa-search absolute left-3 top-4 text-gray-400 text-lg"></i>
 
@@ -56,13 +58,15 @@
                                                 x-text="'/' + (product.is_weighted ? product.unit : (product.base_unit || product.unit || 'pcs'))"></span>
                                         </div>
                                         <div x-show="product.discount_amount > 0" class="text-xs text-red-500 font-medium">
-                                            - LKR <span x-text="parseFloat(product.discount_amount).toFixed(2)"></span> Discount
+                                            - LKR <span x-text="parseFloat(product.discount_amount).toFixed(2)"></span>
+                                            Discount
                                         </div>
                                         <div class="text-xs"
                                             :class="product.available_quantity > 0 ? 'text-green-600' : 'text-red-600'">
                                             <span
                                                 x-text="product.is_weighted ? parseFloat(product.available_quantity / 1000).toFixed(2) : parseFloat(product.available_quantity).toFixed(product.allow_decimal_sales ? 2 : 0)"></span>
-                                            <span x-text="product.is_weighted ? product.unit : (product.base_unit || product.unit || 'pcs')"></span>
+                                            <span
+                                                x-text="product.is_weighted ? product.unit : (product.base_unit || product.unit || 'pcs')"></span>
                                         </div>
                                     </div>
                                 </div>
@@ -78,7 +82,8 @@
             </div>
 
             <!-- Manual Entry Form (Manual Mode) -->
-            <div x-show="isManualMode" x-transition class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 shadow rounded-lg p-4 flex-shrink-0">
+            <div x-show="isManualMode" x-transition
+                class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 shadow rounded-lg p-4 flex-shrink-0">
                 <div class="flex items-center mb-3">
                     <i class="fas fa-edit text-yellow-600 dark:text-yellow-400 text-xl mr-2"></i>
                     <h3 class="text-lg font-semibold text-yellow-900 dark:text-yellow-100">Manual Product Entry</h3>
@@ -89,43 +94,36 @@
                             Product Name <span class="text-red-500">*</span>
                         </label>
                         <input type="text" x-model="manualEntry.product_name"
-                               @keydown.enter.prevent="$refs.priceInput.focus()"
-                               placeholder="Enter product name"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                            @keydown.enter.prevent="$refs.priceInput.focus()" placeholder="Enter product name"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Price (LKR) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" x-model="manualEntry.price" step="0.01" min="0"
-                               x-ref="priceInput"
-                               @keydown.enter.prevent="$refs.quantityInput.focus()"
-                               placeholder="0.00"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                        <input type="number" x-model="manualEntry.price" step="0.01" min="0" x-ref="priceInput"
+                            @keydown.enter.prevent="$refs.quantityInput.focus()" placeholder="0.00"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Quantity <span class="text-red-500">*</span>
                         </label>
                         <input type="number" x-model="manualEntry.quantity" step="0.01" min="0.01"
-                               x-ref="quantityInput"
-                               @keydown.enter.prevent="$refs.barcodeInput.focus()"
-                               placeholder="1"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                            x-ref="quantityInput" @keydown.enter.prevent="$refs.barcodeInput.focus()" placeholder="1"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Barcode (Optional)
                         </label>
-                        <input type="text" x-model="manualEntry.entered_barcode"
-                               x-ref="barcodeInput"
-                               @keydown.enter.prevent="addManualItemToCart()"
-                               placeholder="Scan or enter barcode"
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
+                        <input type="text" x-model="manualEntry.entered_barcode" x-ref="barcodeInput"
+                            @keydown.enter.prevent="addManualItemToCart()" placeholder="Scan or enter barcode"
+                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
                     </div>
                 </div>
                 <button @click="addManualItemToCart()" type="button"
-                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
+                    class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-md transition-colors">
                     <i class="fas fa-plus-circle mr-2"></i> Add to Cart
                 </button>
                 <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
@@ -180,7 +178,9 @@
                                         <div class="text-xs text-gray-500">
                                             <span
                                                 x-text="item.is_weighted ? parseFloat(item.available_quantity / 1000).toFixed(2) : parseFloat(item.available_quantity).toFixed(item.allow_decimal_sales ? 2 : 0)"></span>
-                                            <span x-text="item.is_weighted ? item.unit : (item.base_unit || item.unit || 'pcs')"></span> available
+                                            <span
+                                                x-text="item.is_weighted ? item.unit : (item.base_unit || item.unit || 'pcs')"></span>
+                                            available
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-medium">
@@ -191,7 +191,8 @@
                                     <td class="px-4 py-3">
                                         <!-- Weighted products: show weight, no editing -->
                                         <div x-show="item.is_weighted" class="text-center">
-                                            <div class="font-medium text-sm" x-text="(item.quantity / 1000).toFixed(3) + ' kg'"></div>
+                                            <div class="font-medium text-sm"
+                                                x-text="(item.quantity / 1000).toFixed(3) + ' kg'"></div>
                                             <div class="text-xs text-gray-500">Fixed weight</div>
                                         </div>
                                         <!-- Regular products: quantity controls -->
@@ -629,7 +630,8 @@
                             <i class="fas fa-times text-xl"></i>
                         </button>
                     </div>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Multiple batches found. Please select the one you want to checkout.</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Multiple batches found. Please select the one
+                        you want to checkout.</p>
 
                     <div class="space-y-3 max-h-96 overflow-y-auto p-1">
                         <template x-for="stock in selectedProductStocks" :key="stock.stock_id">
@@ -637,10 +639,14 @@
                                 class="w-full text-left border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all transform hover:scale-[1.01] shadow-sm">
                                 <div class="flex justify-between items-center">
                                     <div class="flex-1">
-                                        <div class="font-bold text-gray-900 dark:text-white text-lg" x-text="stock.product_name"></div>
+                                        <div class="font-bold text-gray-900 dark:text-white text-lg"
+                                            x-text="stock.product_name"></div>
                                         <div class="flex items-center gap-2 mt-2">
-                                            <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded text-xs font-mono font-bold" x-text="'Batch: ' + stock.batch_number"></span>
-                                            <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded text-xs font-bold"
+                                            <span
+                                                class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2.5 py-1 rounded text-xs font-mono font-bold"
+                                                x-text="'Batch: ' + stock.batch_number"></span>
+                                            <span
+                                                class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2.5 py-1 rounded text-xs font-bold"
                                                 x-text="'Qty: ' + (stock.is_weighted ? parseFloat(stock.available_quantity / 1000).toFixed(2) : parseFloat(stock.available_quantity).toFixed(stock.allow_decimal_sales ? 2 : 0)) + ' ' + (stock.is_weighted ? stock.unit : (stock.base_unit || stock.unit || 'pcs'))"></span>
                                         </div>
                                     </div>
@@ -648,8 +654,10 @@
                                         <div class="font-bold text-primary-600 dark:text-primary-400 text-xl">
                                             <span x-text="'LKR ' + parseFloat(stock.selling_price).toFixed(2)"></span>
                                         </div>
-                                        <div x-show="stock.discount_amount > 0" class="text-sm text-red-500 font-bold mt-1">
-                                            <i class="fas fa-tag mr-1"></i> - LKR <span x-text="parseFloat(stock.discount_amount).toFixed(2)"></span> Off
+                                        <div x-show="stock.discount_amount > 0"
+                                            class="text-sm text-red-500 font-bold mt-1">
+                                            <i class="fas fa-tag mr-1"></i> - LKR <span
+                                                x-text="parseFloat(stock.discount_amount).toFixed(2)"></span> Off
                                         </div>
                                     </div>
                                 </div>
@@ -810,7 +818,8 @@
                             // Focus on product name field when entering manual mode
                             if (this.isManualMode) {
                                 this.$nextTick(() => {
-                                    document.querySelector('input[x-model="manualEntry.product_name"]')?.focus();
+                                    document.querySelector('input[x-model="manualEntry.product_name"]')
+                                        ?.focus();
                                 });
                             }
                         }
@@ -839,7 +848,8 @@
                                 // Multiple batches for same barcode
                                 this.openBatchSelectionModal(exactMatch);
                             }
-                        } else if (this.searchResults.length === 1 && this.searchResults[0].barcode === this.searchQuery) {
+                        } else if (this.searchResults.length === 1 && this.searchResults[0].barcode === this
+                            .searchQuery) {
                             // Exact unique barcode match - add directly
                             this.addToCart(this.searchResults[0]);
                         }
@@ -939,17 +949,9 @@
                     this.searchResults = [];
                     this.errorMessage = '';
 
-                    // Auto-focus on Amount Received field for faster checkout
+                    // Keep focus on search input for continuous scanning
                     this.$nextTick(() => {
-                        // Add a small delay to ensure the field is fully rendered and visible
-                        setTimeout(() => {
-                            const amountReceivedInput = document.querySelector(
-                                'input[x-model="amountReceived"]');
-                            if (amountReceivedInput) {
-                                amountReceivedInput.focus();
-                                amountReceivedInput.select(); // Select existing value for easy override
-                            }
-                        }, 100); // 100ms delay to ensure field is visible
+                        document.querySelector('input[x-model="searchQuery"]')?.focus();
                     });
                 },
 
@@ -1237,7 +1239,8 @@
 
                     try {
                         // Determine endpoint and payload based on cart type
-                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' : '{{ route('sales.store') }}';
+                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' :
+                            '{{ route('sales.store') }}';
 
                         let payload;
                         if (this.cartType === 'manual') {
@@ -1259,7 +1262,8 @@
                                         type: item.discountType,
                                         value: item.discountValue,
                                         amount: item.discountAmount,
-                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
+                                        final_price: (item.quantity * item.originalPrice - item
+                                            .discountAmount) / item.quantity
                                     } : null
                                 }))
                             };
@@ -1396,7 +1400,8 @@
 
                     try {
                         // Determine endpoint and payload based on cart type
-                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' : '{{ route('sales.store') }}';
+                        const endpoint = this.cartType === 'manual' ? '{{ route('manual-sales.store') }}' :
+                            '{{ route('sales.store') }}';
 
                         let payload;
                         if (this.cartType === 'manual') {
@@ -1418,7 +1423,8 @@
                                         type: item.discountType,
                                         value: item.discountValue,
                                         amount: item.discountAmount,
-                                        final_price: (item.quantity * item.originalPrice - item.discountAmount) / item.quantity
+                                        final_price: (item.quantity * item.originalPrice - item
+                                            .discountAmount) / item.quantity
                                     } : null
                                 }))
                             };
