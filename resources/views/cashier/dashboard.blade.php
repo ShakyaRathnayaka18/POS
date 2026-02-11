@@ -680,6 +680,17 @@
         [x-cloak] {
             display: none !important;
         }
+
+        /* Hide number input arrows (spinners) */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 
     <script>
@@ -981,8 +992,6 @@
                     if (newQty >= minQty) {
                         item.quantity = newQty;
                         this.calculateTotals();
-                    } else {
-                        this.removeFromCart(index);
                     }
                 },
 
