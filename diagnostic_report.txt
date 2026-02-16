@@ -1,0 +1,28 @@
+=== Profit Margin Diagnostic Report ===
+
+Revenue (Account 4100 - Credits): LKR 116,331.42
+COGS Debits (Account 5100 - Debits): LKR 4,595,617.84
+COGS Credits (Account 5100 - Credits): LKR 0.00
+Net COGS: LKR 4,595,617.84
+Gross Profit: LKR -4,479,286.42
+Profit Margin: -3,850.45%
+
+=== Sample COGS Journal Entries (Account 5100) ===
+Date: 2026-02-16 | Debit: 45.00 | Credit: 0.00 | Desc: Sale transaction SALE-0143 - Cost of goods sold for SALE-0143
+Date: 2026-02-16 | Debit: 45.00 | Credit: 0.00 | Desc: Sale transaction SALE-0142 - Cost of goods sold for SALE-0142
+Date: 2026-02-16 | Debit: 113.56 | Credit: 0.00 | Desc: Sale transaction SALE-0141 - Cost of goods sold for SALE-0141
+Date: 2026-02-16 | Debit: 113.56 | Credit: 0.00 | Desc: Sale transaction SALE-0140 - Cost of goods sold for SALE-0140
+Date: 2026-02-16 | Debit: 238.82 | Credit: 0.00 | Desc: Sale transaction SALE-0139 - Cost of goods sold for SALE-0139
+Date: 2026-02-16 | Debit: 153.00 | Credit: 0.00 | Desc: Sale transaction SALE-0138 - Cost of goods sold for SALE-0138
+Date: 2026-02-16 | Debit: 299,675.12 | Credit: 0.00 | Desc: Sale transaction SALE-0137 - Cost of goods sold for SALE-0137
+Date: 2026-02-16 | Debit: 120,328.75 | Credit: 0.00 | Desc: Sale transaction SALE-0136 - Cost of goods sold for SALE-0136
+Date: 2026-02-16 | Debit: 206,133.95 | Credit: 0.00 | Desc: Sale transaction SALE-0135 - Cost of goods sold for SALE-0135
+Date: 2026-02-16 | Debit: 507.00 | Credit: 0.00 | Desc: Sale transaction SALE-0134 - Cost of goods sold for SALE-0134
+
+=== Analysis ===
+ΓÜá∩╕Å  WARNING: COGS is higher than Revenue!
+This indicates products are being sold at a loss or there's a data issue.
+Possible causes:
+1. Cost prices in stock records are higher than selling prices
+2. Incorrect journal entries
+3. Missing revenue entries

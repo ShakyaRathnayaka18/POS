@@ -147,10 +147,14 @@ class SaleController extends Controller
             })
             ->orWhereHas('batch', function ($q) use ($search) {
                 $q->where('barcode', 'like', "%{$search}%");
-            })
-            ->where('available_quantity', '>', 0)
-            ->limit(30)
-            ->get();
+            });
+
+        // Only filter by available quantity if not explicitly requested to include out of stock
+        if (!$request->has('include_out_of_stock')) {
+            $stocks->where('available_quantity', '>', 0);
+        }
+
+        $stocks = $stocks->limit(30)->get();
 
         $results = $stocks->map(function ($stock) {
             $product = $stock->product;

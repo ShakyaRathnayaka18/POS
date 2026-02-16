@@ -188,7 +188,7 @@ class DashboardService
         if ($asOfDate) {
             $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
 
-            // Get total revenue from Sales Revenue account (4100)
+            // Get total revenue from Sales Revenue account (4100) - Credits only
             $revenue = DB::table('journal_entry_lines')
                 ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
@@ -197,7 +197,7 @@ class DashboardService
                 ->where('accounts.account_code', '4100')
                 ->sum('journal_entry_lines.credit_amount');
 
-            // Get total COGS from COGS account (5100)
+            // Get total COGS from COGS account (5100) - Debits only
             $cogs = DB::table('journal_entry_lines')
                 ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
@@ -206,6 +206,18 @@ class DashboardService
                 ->where('accounts.account_code', '5100')
                 ->sum('journal_entry_lines.debit_amount');
 
+            // Subtract any COGS credits (from returns) to get net COGS
+            $cogsCreditAdjustments = DB::table('journal_entry_lines')
+                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
+                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
+                ->where('journal_entries.status', 'posted')
+                ->where('journal_entries.created_at', '<=', $targetDate)
+                ->where('accounts.account_code', '5100')
+                ->sum('journal_entry_lines.credit_amount');
+
+            $netCogs = $cogs - $cogsCreditAdjustments;
+
+            // Handle edge cases
             if ($revenue <= 0) {
                 return [
                     'percentage' => 0,
@@ -213,14 +225,17 @@ class DashboardService
                 ];
             }
 
+            $grossProfit = $revenue - $netCogs;
+            $profitMarginPercentage = ($grossProfit / $revenue) * 100;
+
             return [
-                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
-                'amount' => $revenue - $cogs
+                'percentage' => round($profitMarginPercentage, 2),
+                'amount' => round($grossProfit, 2)
             ];
         }
 
         return Cache::remember('dashboard.profit_margin', 900, function () {
-            // Get total revenue from Sales Revenue account (4100)
+            // Get total revenue from Sales Revenue account (4100) - Credits only
             $revenue = DB::table('journal_entry_lines')
                 ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
@@ -228,7 +243,7 @@ class DashboardService
                 ->where('accounts.account_code', '4100')
                 ->sum('journal_entry_lines.credit_amount');
 
-            // Get total COGS from COGS account (5100)
+            // Get total COGS from COGS account (5100) - Debits only
             $cogs = DB::table('journal_entry_lines')
                 ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
@@ -236,6 +251,17 @@ class DashboardService
                 ->where('accounts.account_code', '5100')
                 ->sum('journal_entry_lines.debit_amount');
 
+            // Subtract any COGS credits (from returns) to get net COGS
+            $cogsCreditAdjustments = DB::table('journal_entry_lines')
+                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
+                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
+                ->where('journal_entries.status', 'posted')
+                ->where('accounts.account_code', '5100')
+                ->sum('journal_entry_lines.credit_amount');
+
+            $netCogs = $cogs - $cogsCreditAdjustments;
+
+            // Handle edge cases
             if ($revenue <= 0) {
                 return [
                     'percentage' => 0,
@@ -243,9 +269,12 @@ class DashboardService
                 ];
             }
 
+            $grossProfit = $revenue - $netCogs;
+            $profitMarginPercentage = ($grossProfit / $revenue) * 100;
+
             return [
-                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
-                'amount' => $revenue - $cogs
+                'percentage' => round($profitMarginPercentage, 2),
+                'amount' => round($grossProfit, 2)
             ];
         });
     }

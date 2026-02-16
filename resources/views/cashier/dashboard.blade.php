@@ -118,7 +118,8 @@
                             Barcode (Optional)
                         </label>
                         <input type="text" x-model="manualEntry.entered_barcode" x-ref="barcodeInput"
-                            @keydown.enter.prevent="addManualItemToCart()" placeholder="Scan or enter barcode"
+                            @keydown.enter.prevent="handleManualBarcode(false)"
+                            @input.debounce.500ms="handleManualBarcode(true)" placeholder="Scan or enter barcode"
                             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-yellow-500 dark:bg-gray-700 dark:text-white">
                     </div>
                 </div>
@@ -977,7 +978,8 @@
                     const step = item.allow_decimal_sales ? 0.1 : 1;
                     const newQty = Math.round((item.quantity + step) * 100) / 100; // Avoid floating point issues
 
-                    if (newQty <= item.available_quantity) {
+                    // For manual items, bypass available_quantity check
+                    if (item.isManual || newQty <= item.available_quantity) {
                         item.quantity = newQty;
                         this.calculateTotals();
                     }
@@ -1001,7 +1003,8 @@
 
                     if (item.quantity < minQty) {
                         item.quantity = minQty;
-                    } else if (item.quantity > item.available_quantity) {
+                    } else if (!item.isManual && item.quantity > item.available_quantity) {
+                        // Only check max quantity for non-manual items
                         item.quantity = parseFloat(item.available_quantity);
                         const unit = item.base_unit || item.unit || 'pcs';
                         this.errorMessage = `Maximum available quantity is ${item.available_quantity} ${unit}.`;
@@ -1146,6 +1149,54 @@
                     }
                 },
 
+                async handleManualBarcode(isAuto = false) {
+                    const barcode = this.manualEntry.entered_barcode;
+
+                    // If no barcode entered, proceed with standard manual entry validation (only if not auto)
+                    if (!barcode) {
+                        if (!isAuto) this.addManualItemToCart();
+                        return;
+                    }
+
+                    try {
+                        this.isProcessing = true;
+                        // Search for the product by barcode, including out of stock items
+                        const response = await fetch(
+                            `{{ route('api.products.search') }}?q=${encodeURIComponent(barcode)}&include_out_of_stock=1`
+                        );
+                        const results = await response.json();
+
+                        // Check for exact barcode match
+                        const exactMatch = results.find(p => p.barcode === barcode);
+
+                        if (exactMatch) {
+                            // Convert to manual item format and add to cart directly
+                            this.manualEntry = {
+                                product_name: exactMatch.product_name,
+                                price: exactMatch.selling_price,
+                                quantity: 1,
+                                entered_barcode: barcode,
+                                tax: exactMatch.tax || 0
+                            };
+
+                            // Add to cart immediately as a manual item
+                            this.addManualItemToCart();
+                        } else {
+                            // No match found
+                            // If auto-triggered (scanning/typing), don't show validation errors yet
+                            // Only add manual item if manually triggered (Enter key)
+                            if (!isAuto) {
+                                this.addManualItemToCart();
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Barcode lookup error:', error);
+                        if (!isAuto) this.addManualItemToCart();
+                    } finally {
+                        this.isProcessing = false;
+                    }
+                },
+
                 addManualItemToCart() {
                     // Validate required fields
                     if (!this.manualEntry.product_name || !this.manualEntry.product_name.trim()) {
@@ -1188,8 +1239,8 @@
                         discountType: 'percentage', // For consistency with regular items
                         discountValue: 0, // For discount functionality
                         discountAmount: 0, // For discount functionality
-                        allow_decimal_sales: true, // For quantity validation
-                        final_price: this.manualPrice // Initialize final_price
+                        allow_decimal_sales: false, // Enforce whole numbers for manual items
+                        final_price: price // Initialize final_price with the entered price
                     });
 
                     // Set cart type

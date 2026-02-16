@@ -1,0 +1,52 @@
+
+========================================
+  INVESTIGATING MISSING SALES
+========================================
+
+--- All Sales Today (including non-completed) ---
+Completed: 13 sales, LKR 17,015.10
+
+--- Sales in Last 24 Hours ---
+Count: 13
+Total: LKR 17,015.10
+
+--- Sales Created Today (Full Timestamps) ---
+SALE-0146 | 2026-02-16 12:02:14 | LKR 2,248.00 | Completed
+SALE-0145 | 2026-02-16 10:39:47 | LKR 260.00 | Completed
+SALE-0144 | 2026-02-16 08:37:02 | LKR 530.00 | Completed
+SALE-0143 | 2026-02-16 07:41:32 | LKR 70.00 | Completed
+SALE-0142 | 2026-02-16 07:40:35 | LKR 70.00 | Completed
+SALE-0141 | 2026-02-16 07:39:14 | LKR 150.00 | Completed
+SALE-0140 | 2026-02-16 07:35:13 | LKR 150.00 | Completed
+SALE-0139 | 2026-02-16 07:33:33 | LKR 313.00 | Completed
+SALE-0138 | 2026-02-16 07:29:57 | LKR 170.00 | Completed
+SALE-0137 | 2026-02-16 07:29:11 | LKR 2,418.00 | Completed
+SALE-0136 | 2026-02-16 07:03:51 | LKR 466.10 | Completed
+SALE-0135 | 2026-02-16 06:58:09 | LKR 9,620.00 | Completed
+SALE-0134 | 2026-02-16 05:15:31 | LKR 550.00 | Completed
+
+--- Checking for Incomplete Sales ---
+No incomplete sales found.
+
+--- System Information ---
+Current Time: 2026-02-16 14:01:53
+Today Start: 2026-02-16 00:00:00
+Today End: 2026-02-16 23:59:59
+Timezone: UTC
+
+--- Summary ---
+Γ£ô Dashboard calculation is CORRECT: LKR 17,015.10
+Γ£ô Database matches dashboard
+ΓÜá∩╕Å  Client reports ~LKR 20,000
+ΓÜá∩╕Å  Missing: LKR 2,984.90
+
+Possible explanations:
+1. Sales not yet entered into the system
+2. Client counting cash in hand vs recorded sales
+3. Client including pending transactions
+4. Timezone mismatch (sales recorded on different date)
+5. Manual/offline sales not recorded
+
+Recommendation: Ask client to verify which specific transactions
+are missing from the system.
+
