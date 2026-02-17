@@ -101,8 +101,9 @@ class StockController extends Controller
             ->get()
             ->count();
 
-        $totalValue = Stock::where('cost_price', '>', 0)
-            ->sum(DB::raw('cost_price * available_quantity'));
+        $totalValue = Stock::join('products', 'stocks.product_id', '=', 'products.id')
+            ->where('stocks.cost_price', '>', 0)
+            ->sum(DB::raw('CASE WHEN products.is_weighted = 1 THEN (stocks.cost_price * stocks.available_quantity) / 1000 ELSE stocks.cost_price * stocks.available_quantity END'));
 
         $outOfStock = Stock::select('product_id', 'batch_id')
             ->groupBy('product_id', 'batch_id')
@@ -139,9 +140,10 @@ class StockController extends Controller
                 ->get()
                 ->count();
 
-            $categoryTotalValue = Stock::where('cost_price', '>', 0)
-                ->whereIn('product_id', $categoryProducts)
-                ->sum(DB::raw('cost_price * available_quantity'));
+            $categoryTotalValue = Stock::join('products', 'stocks.product_id', '=', 'products.id')
+                ->where('stocks.cost_price', '>', 0)
+                ->whereIn('stocks.product_id', $categoryProducts)
+                ->sum(DB::raw('CASE WHEN products.is_weighted = 1 THEN (stocks.cost_price * stocks.available_quantity) / 1000 ELSE stocks.cost_price * stocks.available_quantity END'));
 
             $categoryOutOfStock = Stock::select('product_id', 'batch_id')
                 ->whereIn('product_id', $categoryProducts)
@@ -234,8 +236,9 @@ class StockController extends Controller
     {
         $stock->load(['product.category', 'product.brand', 'batch.goodReceiveNote.supplier']);
 
-        $totalValue = $stock->cost_price * $stock->available_quantity;
-        $potentialRevenue = $stock->selling_price * $stock->available_quantity;
+        $factor = $stock->product->is_weighted ? 1000 : 1;
+        $totalValue = ($stock->cost_price * $stock->available_quantity) / $factor;
+        $potentialRevenue = ($stock->selling_price * $stock->available_quantity) / $factor;
         $profitMargin = $stock->selling_price - $stock->cost_price;
         $profitPercentage = $stock->cost_price > 0 ? (($profitMargin / $stock->cost_price) * 100) : 0;
 

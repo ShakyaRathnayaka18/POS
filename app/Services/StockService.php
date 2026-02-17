@@ -54,6 +54,7 @@ class StockService
                 'quantity' => $allocatedQuantity,
                 'cost_price' => $stock->cost_price,
                 'selling_price' => $stock->selling_price,
+                'discount_price' => $stock->discount_price,
                 'tax' => $stock->tax,
             ];
 
@@ -62,7 +63,7 @@ class StockService
 
         // Use small threshold for floating point comparison
         if ($remainingQuantity > 0.0001) {
-            throw new \Exception("Insufficient stock available. Required: {$quantity}, Available: ".($quantity - $remainingQuantity));
+            throw new \Exception("Insufficient stock available. Required: {$quantity}, Available: " . ($quantity - $remainingQuantity));
         }
 
         return $allocations;
@@ -85,6 +86,7 @@ class StockService
             'quantity' => $quantity,
             'cost_price' => $stock->cost_price,
             'selling_price' => $stock->selling_price,
+            'discount_price' => $stock->discount_price,
             'tax' => $stock->tax,
         ]];
     }

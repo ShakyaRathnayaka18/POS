@@ -132,12 +132,16 @@ class ManualSaleController extends Controller
             'created_at' => $manualSale->created_at,
             'items' => $manualSale->items->map(function ($item) {
                 return (object) [
-                    'product' => (object) ['product_name' => $item->product_name],
+                    'product' => (object) [
+                        'product_name' => $item->product_name,
+                        'is_weighted' => false, // Manual items are assumed non-weighted for now
+                    ],
                     'quantity' => $item->quantity,
                     'price' => $item->price,
                     'price_before_discount' => $item->price_before_discount ?? $item->price,
                     'tax' => $item->tax,
                     'total' => $item->total,
+                    'is_weighted' => false, // Also added here for good measure if accessed directly
                     'discount_type' => $item->discount_type ?? 'none',
                     'discount_amount' => $item->discount_amount ?? 0,
                 ];

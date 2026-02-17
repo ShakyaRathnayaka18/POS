@@ -39,7 +39,8 @@
             <!-- Sale Information -->
             <div class="mb-3 text-xs info-section">
                 <div class="flex justify-between mb-1">
-                    <span class="text-gray-900 dark:text-white">දිනය: <strong>{{ $sale->created_at->setTimezone('Asia/Colombo')->format('d/m/Y  h:i:sA') }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">දිනය:
+                        <strong>{{ $sale->created_at->setTimezone('Asia/Colombo')->format('d/m/Y  h:i:sA') }}</strong></span>
                     <span class="text-gray-900 dark:text-white">අංකය: <strong>{{ $sale->sale_number }}</strong></span>
                 </div>
             </div>
@@ -47,8 +48,10 @@
             <!-- Cashier & Payment Info -->
             <div class="mb-3 text-xs info-section">
                 <div class="flex justify-between">
-                    <span class="text-gray-900 dark:text-white">මුදල් අයකැමි: <strong>{{ $sale->user->name ?? 'System' }}</strong></span>
-                    <span class="text-gray-900 dark:text-white">ගෙවීමේ ක්‍රමය: <strong>{{ $sale->payment_method }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">මුදල් අයකැමි:
+                        <strong>{{ $sale->user->name ?? 'System' }}</strong></span>
+                    <span class="text-gray-900 dark:text-white">ගෙවීමේ ක්‍රමය:
+                        <strong>{{ $sale->payment_method }}</strong></span>
                 </div>
             </div>
 
@@ -69,17 +72,12 @@
             <div class="mb-4 items-list">
                 @foreach ($sale->items as $item)
                     <!-- Product Name -->
-                    <div class="text-sm font-medium text-gray-900 dark:text-white mb-1">
+                    <div class="text-sm font-medium text-gray-900 dark:text-white mb-1 product-name">
                         {{ $item->product->product_name }}
-                        <!-- @if ($item->product->is_weighted)
-                            <span class="text-xs text-gray-600 dark:text-gray-400">
-                                ({{ number_format($item->quantity / 1000, 3) }}kg @ LKR {{ number_format($item->price, 2) }}/kg)
-                            </span>
-                        @endif -->
                     </div>
 
                     <!-- Product Details -->
-                    <div class="flex justify-between text-xs text-gray-900 dark:text-white mb-3">
+                    <div class="flex justify-between text-xs text-gray-900 dark:text-white mb-3 product-details">
                         <span style="width: 15%">
                             @if ($item->product->is_weighted)
                                 <strong>{{ number_format($item->quantity / 1000, 3) }}kg</strong>
@@ -88,7 +86,9 @@
                             @endif
                         </span>
                         <span style="width: 20%">
-                            @if ((method_exists($item, 'hasDiscount') && $item->hasDiscount()) || (property_exists($item, 'discount_type') && $item->discount_type !== 'none' && $item->discount_amount > 0))
+                            @if (
+                                (method_exists($item, 'hasDiscount') && $item->hasDiscount()) ||
+                                    (property_exists($item, 'discount_type') && $item->discount_type !== 'none' && $item->discount_amount > 0))
                                 <span
                                     class="line-through text-gray-500">{{ number_format($item->price_before_discount, 2, '.', ',') }}</span>
                             @else
@@ -110,29 +110,30 @@
 
             <!-- Totals Section -->
             <div class="space-y-2 totals-section">
-                <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white">
+                <div class="flex justify-between text-lg font-bold text-gray-900 dark:text-white grand-total">
                     <span>මුලු එකතුව</span>
                     <span>{{ number_format($sale->total, 2, '.', ',') }}</span>
                 </div>
 
-                <div class="text-center text-xl font-black my-3">
+                <div class="text-center text-xl font-black my-3 payment-header">
                     **** ගෙවීම ****
                 </div>
 
-                <div class="flex justify-between text-sm text-gray-900 dark:text-white">
+                <div class="flex justify-between text-sm text-gray-900 dark:text-white payment-line">
                     <span>ගෙවූ මුදල</span>
                     <span class="font-bold">{{ number_format($sale->amount_received ?? $sale->total, 2, '.', ',') }}</span>
                 </div>
 
                 @if ($sale->total_discount > 0)
-                    <div class="flex justify-between text-sm text-gray-900 dark:text-white">
+                    <div class="flex justify-between text-sm text-gray-900 dark:text-white discount-line">
                         <span>ලබාදුන් වට්ටම</span>
-                        <span class="font-bold text-green-600">{{ number_format($sale->total_discount, 2, '.', ',') }}</span>
+                        <span
+                            class="font-bold text-green-600">{{ number_format($sale->total_discount, 2, '.', ',') }}</span>
                     </div>
                 @endif
 
                 @if ($sale->payment_method->value === 'cash' && $sale->change_amount > 0)
-                    <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white">
+                    <div class="flex justify-between text-base font-bold text-gray-900 dark:text-white change-line">
                         <span>ඉතිරිය</span>
                         <span>{{ number_format($sale->change_amount, 2, '.', ',') }}</span>
                     </div>
@@ -173,7 +174,7 @@
                 visibility: visible;
             }
 
-            /* Receipt Container */
+            /* Receipt Container - 80mm x 210mm */
             #receipt {
                 position: absolute;
                 left: 50%;
@@ -181,138 +182,169 @@
                 transform: translateX(-50%);
                 width: 80mm !important;
                 max-width: 80mm !important;
+                height: auto !important;
                 background: white !important;
-                padding: 4mm !important;
+                padding: 3mm 4mm !important;
                 margin: 0 !important;
                 box-shadow: none !important;
-                font-family: Arial, 'Noto Sans Sinhala', sans-serif !important;
+                font-family: 'Arial', 'Noto Sans Sinhala', 'Iskoola Pota', sans-serif !important;
             }
 
-            /* All text black and bold */
+            /* Base text styles */
             #receipt * {
-                color: black !important;
-                font-weight: 700 !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
 
             /* Store Logo */
             #receipt img {
-                width: 45px !important;
+                width: 50px !important;
                 height: auto !important;
-                margin: 0 auto 4px !important;
+                margin: 0 auto 3mm !important;
+                display: block !important;
             }
 
             /* Store Header */
             #receipt .receipt-header {
-                border-bottom: 2px solid black !important;
-                padding-bottom: 4mm !important;
+                border-bottom: 2px solid #000 !important;
+                padding-bottom: 3mm !important;
                 margin-bottom: 3mm !important;
             }
 
             #receipt h1 {
-                font-size: 24px !important;
+                font-size: 26pt !important;
                 font-weight: 900 !important;
-                margin: 3px 0 !important;
-                letter-spacing: 1px !important;
+                margin: 2mm 0 !important;
+                letter-spacing: 1.5px !important;
+                line-height: 1.1 !important;
             }
 
             #receipt .receipt-header p {
-                font-size: 11px !important;
+                font-size: 10pt !important;
+                font-weight: 600 !important;
                 line-height: 1.4 !important;
-                margin: 2px 0 !important;
+                margin: 1mm 0 !important;
             }
 
             #receipt .receipt-header p:last-of-type {
-                font-size: 12px !important;
+                font-size: 13pt !important;
                 font-weight: 900 !important;
-                margin-top: 4px !important;
+                margin-top: 3mm !important;
             }
 
-            /* Sale Info */
-            #receipt .sale-info {
-                font-size: 11px !important;
+            /* Info Sections */
+            #receipt .info-section {
+                font-size: 9pt !important;
+                font-weight: 600 !important;
+                line-height: 1.5 !important;
                 margin-bottom: 2mm !important;
             }
 
-            #receipt .sale-info strong {
+            #receipt .info-section strong {
                 font-weight: 900 !important;
-            }
-
-            /* Cashier & Payment Info */
-            #receipt .info-section {
-                font-size: 10px !important;
-                line-height: 1.5 !important;
             }
 
             /* Dividers */
             #receipt .border-dashed {
                 border-style: dashed !important;
-                border-color: black !important;
-                margin: 2mm 0 !important;
+                border-color: #000 !important;
+                border-width: 1px !important;
+                margin: 2.5mm 0 !important;
             }
 
             #receipt .border-t-2 {
-                border-top: 1px solid black !important;
+                border-top: 2px solid #000 !important;
+            }
+
+            #receipt .border-t {
+                border-top: 1px solid #000 !important;
             }
 
             /* Items Header */
             #receipt .items-header {
-                font-size: 8px !important;
+                font-size: 9pt !important;
                 font-weight: 900 !important;
                 margin-bottom: 2mm !important;
-                border-bottom: 1px dashed black !important;
+                border-bottom: 1px dashed #000 !important;
                 padding-bottom: 1mm !important;
             }
 
-            /* Items List */
-            #receipt .items-list>div:first-child {
-                font-size: 10px !important;
+            /* Product Items */
+            #receipt .product-name {
+                font-size: 11pt !important;
                 font-weight: 800 !important;
                 margin-bottom: 1mm !important;
-                line-height: 1.2 !important;
+                line-height: 1.3 !important;
             }
 
-            #receipt .items-list>div:nth-child(2) {
-                font-size: 9px !important;
+            #receipt .product-details {
+                font-size: 10pt !important;
+                font-weight: 700 !important;
                 margin-bottom: 3mm !important;
+                line-height: 1.3 !important;
             }
 
-            #receipt .items-list span {
-                display: inline-block;
+            #receipt .product-details span {
+                display: inline-block !important;
+            }
+
+            #receipt .product-details .line-through {
+                text-decoration: line-through !important;
+                color: #666 !important;
             }
 
             /* Totals Section */
             #receipt .totals-section {
-                font-size: 10px !important;
+                margin-top: 3mm !important;
             }
 
-            #receipt .totals-section>div:first-child {
-                font-size: 14px !important;
+            #receipt .grand-total {
+                font-size: 15pt !important;
                 font-weight: 900 !important;
-                margin: 2mm 0 !important;
+                padding: 2mm 0 !important;
+                border-top: 2px solid #000 !important;
+                border-bottom: 2px solid #000 !important;
+                margin-bottom: 3mm !important;
             }
 
-            #receipt .totals-section .text-center {
-                font-size: 11px !important;
+            #receipt .payment-header {
+                font-size: 11pt !important;
                 font-weight: 900 !important;
                 letter-spacing: 2px !important;
                 margin: 3mm 0 !important;
             }
 
-            #receipt .totals-section .text-sm {
-                font-size: 9px !important;
+            #receipt .payment-line {
+                font-size: 10pt !important;
+                font-weight: 700 !important;
                 margin: 1.5mm 0 !important;
             }
 
-            #receipt .totals-section .text-base {
-                font-size: 11px !important;
+            #receipt .discount-line {
+                font-size: 10pt !important;
+                font-weight: 700 !important;
+                margin: 1.5mm 0 !important;
+            }
+
+            #receipt .discount-line .text-green-600 {
+                color: #000 !important;
+            }
+
+            #receipt .change-line {
+                font-size: 12pt !important;
                 font-weight: 900 !important;
-                margin: 2mm 0 !important;
+                margin: 2.5mm 0 !important;
+                padding-top: 2mm !important;
+                border-top: 1px dashed #000 !important;
             }
 
             /* Footer */
             #receipt .footer-section {
-                font-size: 8px !important;
-                line-height: 1.4 !important;
+                margin-top: 4mm !important;
+                font-size: 8.5pt !important;
+                font-weight: 600 !important;
+                line-height: 1.5 !important;
             }
 
             #receipt .footer-section p {
@@ -324,11 +356,22 @@
             }
 
             #receipt .footer-section .text-sm {
-                font-size: 10px !important;
+                font-size: 10pt !important;
                 font-weight: 900 !important;
             }
 
-            /* Spacing adjustments */
+            /* Remove any background colors */
+            #receipt .dark\:text-white,
+            #receipt .dark\:text-gray-300,
+            #receipt .dark\:text-gray-400,
+            #receipt .dark\:bg-gray-800,
+            #receipt .text-gray-500,
+            #receipt .text-gray-600 {
+                color: #000 !important;
+                background: white !important;
+            }
+
+            /* Ensure proper spacing */
             #receipt .mb-1 {
                 margin-bottom: 1mm !important;
             }
@@ -371,13 +414,10 @@
                 padding-bottom: 3mm !important;
             }
 
-            /* Remove dark mode classes */
-            #receipt .dark\:text-white,
-            #receipt .dark\:text-gray-300,
-            #receipt .dark\:text-gray-400,
-            #receipt .dark\:bg-gray-800 {
-                color: black !important;
-                background: white !important;
+            /* Page setup */
+            @page {
+                size: 80mm 210mm;
+                margin: 0;
             }
         }
     </style>

@@ -80,7 +80,11 @@ class StockAdjustmentController extends Controller
             $stock = Stock::with(['product', 'batch'])->find($request->stock_id);
         }
 
-        return view('stock-adjustments.create', compact('stock'));
+        $stocks = Stock::with(['product', 'batch'])
+            ->where('available_quantity', '>', 0)
+            ->get();
+
+        return view('stock-adjustments.create', compact('stock', 'stocks'));
     }
 
     /**
@@ -96,7 +100,7 @@ class StockAdjustmentController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Failed to create adjustment: '.$e->getMessage());
+                ->with('error', 'Failed to create adjustment: ' . $e->getMessage());
         }
     }
 
@@ -129,7 +133,7 @@ class StockAdjustmentController extends Controller
                 ->with('success', 'Stock adjustment approved successfully.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to approve adjustment: '.$e->getMessage());
+                ->with('error', 'Failed to approve adjustment: ' . $e->getMessage());
         }
     }
 
@@ -145,7 +149,7 @@ class StockAdjustmentController extends Controller
                 ->with('success', 'Stock adjustment rejected.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Failed to reject adjustment: '.$e->getMessage());
+                ->with('error', 'Failed to reject adjustment: ' . $e->getMessage());
         }
     }
 }
