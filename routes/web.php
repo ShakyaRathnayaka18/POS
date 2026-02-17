@@ -167,13 +167,21 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Manual Sales Reconciliation routes - requires view sales permission
+    // IMPORTANT: Specific routes (without parameters) must come before parameterized routes
     Route::middleware(['permission:view sales'])->group(function () {
+        // List all pending reconciliations
         Route::get('/manual-sales/reconciliation', [ManualSaleReconciliationController::class, 'index'])
             ->name('manual-sales.reconciliation.index');
-        Route::get('/manual-sales/{manualSale}/reconciliation', [ManualSaleReconciliationController::class, 'show'])
-            ->name('manual-sales.reconciliation.show');
+
+        // Search product by barcode (AJAX endpoint)
         Route::post('/manual-sales/reconciliation/search-product', [ManualSaleReconciliationController::class, 'searchProductByBarcode'])
             ->name('manual-sales.reconciliation.search-product');
+
+        // Show specific reconciliation page
+        Route::get('/manual-sales/{manualSale}/reconciliation', [ManualSaleReconciliationController::class, 'show'])
+            ->name('manual-sales.reconciliation.show');
+
+        // Complete reconciliation
         Route::post('/manual-sales/{manualSale}/reconciliation', [ManualSaleReconciliationController::class, 'reconcile'])
             ->name('manual-sales.reconciliation.reconcile');
     });

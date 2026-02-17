@@ -7,6 +7,7 @@ use App\Models\Batch;
 use App\Models\ManualSale;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\Stock;
 use Exception;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -23,13 +24,20 @@ class ManualSaleReconciliationService
      */
     public function findProductByBarcode(string $barcode): ?Product
     {
-        $batch = Batch::where('barcode', $barcode)->first();
+        $batch = Batch::where('barcode', $barcode)->with('stocks')->first();
 
         if (! $batch) {
             return null;
         }
 
-        return Product::with(['category', 'brand'])->find($batch->product_id);
+        // Get product_id from the first stock associated with this batch
+        $stock = $batch->stocks()->first();
+
+        if (! $stock) {
+            return null;
+        }
+
+        return Product::with(['category', 'brand'])->find($stock->product_id);
     }
 
     /**

@@ -73,6 +73,11 @@ class TransactionIntegrationService
         // Calculate COGS based on cost price from stock
         $totalCOGS = $sale->items->sum(function ($item) {
             // Get the actual cost from the stock record
+            // Handle weighted items (quantity in grams, cost_price per kg)
+            if ($item->product->is_weighted) {
+                return ($item->quantity / 1000) * $item->stock->cost_price;
+            }
+
             return $item->stock->cost_price * $item->quantity;
         });
 

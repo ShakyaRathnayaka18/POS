@@ -34,4 +34,14 @@ class JournalEntryLine extends Model
     {
         return $this->belongsTo(Account::class);
     }
+
+    /**
+     * Scope for specific account codes
+     */
+    public function scopeForAccountCodes($query, array $accountCodes)
+    {
+        return $query->whereHas('account', function ($q) use ($accountCodes) {
+            $q->whereIn('account_code', $accountCodes);
+        });
+    }
 }

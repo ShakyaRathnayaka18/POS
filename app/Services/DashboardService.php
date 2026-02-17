@@ -6,13 +6,15 @@ use App\Enums\ShiftStatusEnum;
 use App\Models\Batch;
 use App\Models\Customer;
 use App\Models\CustomerCredit;
+use App\Models\JournalEntry;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\Shift;
+use App\Models\Stock;
 use App\Models\SupplierCredit;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
@@ -76,22 +78,18 @@ class DashboardService
      */
     protected function calculateHistoricalStock(int $productId, \Carbon\Carbon $targetDate): int
     {
-        // Current stock
-        $currentStock = DB::table('stocks')
-            ->where('product_id', $productId)
+        // Current stock using Eloquent
+        $currentStock = Stock::totalAvailableForProduct($productId)
             ->sum('available_quantity');
 
-        // Sales after target date
-        $salesAfter = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->where('sale_items.product_id', $productId)
-            ->where('sales.created_at', '>', $targetDate)
-            ->sum('sale_items.quantity');
+        // Sales after target date using relationships
+        $salesAfter = SaleItem::forProduct($productId)
+            ->fromSalesAfter($targetDate)
+            ->sum('quantity');
 
-        // GRNs/Stock additions after target date
-        $stocksAfter = DB::table('stocks')
-            ->where('product_id', $productId)
-            ->where('created_at', '>', $targetDate)
+        // Stock additions after target date
+        $stocksAfter = Stock::totalAvailableForProduct($productId)
+            ->createdAfter($targetDate)
             ->sum('quantity');
 
         // Historical stock = current - additions after + sales after
@@ -107,29 +105,22 @@ class DashboardService
     {
         [$startDate, $endDate] = $this->getPeriodRange($period, $asOfDate);
 
+        $query = function () use ($startDate, $endDate) {
+            return SaleItem::topSellingProducts($startDate, $endDate, 10)
+                ->get()
+                ->map(function ($item) {
+                    return (object) [
+                        'product_name' => $item->product->product_name,
+                        'total_quantity' => $item->total_quantity,
+                    ];
+                });
+        };
+
         if ($asOfDate) {
-            return DB::table('sale_items')
-                ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->whereBetween('sales.created_at', [$startDate, $endDate])
-                ->select('products.product_name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
-                ->groupBy('products.id', 'products.product_name')
-                ->orderByDesc('total_quantity')
-                ->limit(10)
-                ->get();
+            return $query();
         }
 
-        return Cache::remember("dashboard.top_selling_products.{$period}", 600, function () use ($startDate, $endDate) {
-            return DB::table('sale_items')
-                ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->whereBetween('sales.created_at', [$startDate, $endDate])
-                ->select('products.product_name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
-                ->groupBy('products.id', 'products.product_name')
-                ->orderByDesc('total_quantity')
-                ->limit(10)
-                ->get();
-        });
+        return Cache::remember("dashboard.top_selling_products.{$period}", 600, $query);
     }
 
     /**
@@ -181,73 +172,31 @@ class DashboardService
     }
 
     /**
-     * Calculate profit margin percentage
+     * Calculate daily profit (selling price - cost price)
+     * Handles both regular and weighted items correctly
      */
-    public function getProfitMargin(?string $asOfDate = null): array
+    public function getDailyProfit(?string $asOfDate = null): float
     {
+        $targetDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate) : today();
+
+        $query = function () use ($targetDate) {
+            $saleItems = SaleItem::forDate($targetDate)
+                ->withProfitData()
+                ->get();
+
+            $revenue = $saleItems->sum('total');
+            $cost = $saleItems->sum(function ($item) {
+                return $item->calculateCost();
+            });
+
+            return $revenue - $cost;
+        };
+
         if ($asOfDate) {
-            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
-
-            // Get total revenue from Sales Revenue account (4100)
-            $revenue = DB::table('journal_entry_lines')
-                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
-                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
-                ->where('journal_entries.status', 'posted')
-                ->where('journal_entries.created_at', '<=', $targetDate)
-                ->where('accounts.account_code', '4100')
-                ->sum('journal_entry_lines.credit_amount');
-
-            // Get total COGS from COGS account (5100)
-            $cogs = DB::table('journal_entry_lines')
-                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
-                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
-                ->where('journal_entries.status', 'posted')
-                ->where('journal_entries.created_at', '<=', $targetDate)
-                ->where('accounts.account_code', '5100')
-                ->sum('journal_entry_lines.debit_amount');
-
-            if ($revenue <= 0) {
-                return [
-                    'percentage' => 0,
-                    'amount' => 0
-                ];
-            }
-
-            return [
-                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
-                'amount' => $revenue - $cogs
-            ];
+            return $query();
         }
 
-        return Cache::remember('dashboard.profit_margin', 900, function () {
-            // Get total revenue from Sales Revenue account (4100)
-            $revenue = DB::table('journal_entry_lines')
-                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
-                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
-                ->where('journal_entries.status', 'posted')
-                ->where('accounts.account_code', '4100')
-                ->sum('journal_entry_lines.credit_amount');
-
-            // Get total COGS from COGS account (5100)
-            $cogs = DB::table('journal_entry_lines')
-                ->join('journal_entries', 'journal_entry_lines.journal_entry_id', '=', 'journal_entries.id')
-                ->join('accounts', 'journal_entry_lines.account_id', '=', 'accounts.id')
-                ->where('journal_entries.status', 'posted')
-                ->where('accounts.account_code', '5100')
-                ->sum('journal_entry_lines.debit_amount');
-
-            if ($revenue <= 0) {
-                return [
-                    'percentage' => 0,
-                    'amount' => 0
-                ];
-            }
-
-            return [
-                'percentage' => round((($revenue - $cogs) / $revenue) * 100, 2),
-                'amount' => $revenue - $cogs
-            ];
-        });
+        return Cache::remember('dashboard.daily_profit', 900, $query);
     }
 
     /**
@@ -462,54 +411,128 @@ class DashboardService
     {
         [$start, $end, $grouping] = $this->determineProfitPeriodAndGrouping($period, $startDate, $endDate, $asOfDate);
 
+        $targetDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->endOfDay() : null;
+
+        $query = function () use ($start, $end, $grouping, $targetDate) {
+            $periodData = $this->getProfitDataGroupedByPeriod($start, $end, $grouping, $targetDate);
+
+            return $this->formatProfitDataForChartFromCollection($periodData, $start, $end, $grouping);
+        };
+
         if ($asOfDate) {
-            $targetDate = \Carbon\Carbon::parse($asOfDate)->endOfDay();
-
-            // Query journal entries grouped by time period
-            $data = DB::table('journal_entries as je')
-                ->join('journal_entry_lines as jel', 'je.id', '=', 'jel.journal_entry_id')
-                ->join('accounts as a', 'jel.account_id', '=', 'a.id')
-                ->where('je.status', 'posted')
-                ->where('je.created_at', '<=', $targetDate)
-                ->whereBetween('je.entry_date', [$start, $end])
-                ->whereIn('a.account_code', ['4100', '5100', '6100']) // Revenue, COGS, Operating Expenses
-                ->select(
-                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date') . ' as period'),
-                    'a.account_code',
-                    DB::raw('SUM(jel.credit_amount) as total_credit'),
-                    DB::raw('SUM(jel.debit_amount) as total_debit')
-                )
-                ->groupBy('period', 'a.account_code')
-                ->orderBy('period')
-                ->get();
-
-            return $this->formatProfitDataForChart($data, $start, $end, $grouping);
+            return $query();
         }
 
         $cacheKey = $period === 'custom'
             ? "dashboard.profit_over_time.custom.{$startDate}.{$endDate}"
             : "dashboard.profit_over_time.{$period}";
 
-        return Cache::remember($cacheKey, 600, function () use ($start, $end, $grouping) {
-            // Query journal entries grouped by time period
-            $data = DB::table('journal_entries as je')
-                ->join('journal_entry_lines as jel', 'je.id', '=', 'jel.journal_entry_id')
-                ->join('accounts as a', 'jel.account_id', '=', 'a.id')
-                ->where('je.status', 'posted')
-                ->whereBetween('je.entry_date', [$start, $end])
-                ->whereIn('a.account_code', ['4100', '5100', '6100']) // Revenue, COGS, Operating Expenses
-                ->select(
-                    DB::raw($this->getGroupByExpression($grouping, 'je.entry_date') . ' as period'),
-                    'a.account_code',
-                    DB::raw('SUM(jel.credit_amount) as total_credit'),
-                    DB::raw('SUM(jel.debit_amount) as total_debit')
-                )
-                ->groupBy('period', 'a.account_code')
-                ->orderBy('period')
-                ->get();
+        return Cache::remember($cacheKey, 600, $query);
+    }
 
-            return $this->formatProfitDataForChart($data, $start, $end, $grouping);
-        });
+    /**
+     * Get profit data grouped by period using Eloquent
+     */
+    protected function getProfitDataGroupedByPeriod(\Carbon\Carbon $start, \Carbon\Carbon $end, string $grouping, ?\Carbon\Carbon $targetDate = null): \Illuminate\Support\Collection
+    {
+        $query = JournalEntry::query()
+            ->posted()
+            ->withinDateRange($start, $end)
+            ->with(['lines' => function ($query) {
+                $query->whereHas('account', function ($q) {
+                    $q->whereIn('account_code', ['4100', '5100', '6100']);
+                })
+                    ->with('account:id,account_code');
+            }]);
+
+        if ($targetDate) {
+            $query->createdBefore($targetDate);
+        }
+
+        $entries = $query->get();
+
+        return $this->aggregateProfitData($entries, $grouping);
+    }
+
+    /**
+     * Aggregate profit data from journal entries
+     */
+    protected function aggregateProfitData(\Illuminate\Database\Eloquent\Collection $entries, string $grouping): \Illuminate\Support\Collection
+    {
+        $periodData = collect();
+
+        foreach ($entries as $entry) {
+            $periodKey = $this->getPeriodKeyFromDate($entry->entry_date, $grouping);
+
+            if (! $periodData->has($periodKey)) {
+                $periodData->put($periodKey, [
+                    'revenue' => 0,
+                    'cogs' => 0,
+                    'expenses' => 0,
+                ]);
+            }
+
+            foreach ($entry->lines as $line) {
+                if (! $line->account) {
+                    continue;
+                }
+
+                $accountCode = $line->account->account_code;
+                $period = $periodData->get($periodKey);
+
+                if ($accountCode === '4100') {
+                    $period['revenue'] += $line->credit_amount;
+                } elseif ($accountCode === '5100') {
+                    $period['cogs'] += $line->debit_amount;
+                } elseif ($accountCode === '6100') {
+                    $period['expenses'] += $line->debit_amount;
+                }
+
+                $periodData->put($periodKey, $period);
+            }
+        }
+
+        return $periodData;
+    }
+
+    /**
+     * Get period key from date based on grouping
+     */
+    protected function getPeriodKeyFromDate(\Carbon\Carbon $date, string $grouping): string
+    {
+        return match ($grouping) {
+            'daily' => $date->format('Y-m-d'),
+            'weekly' => $date->format('Y-W'),
+            'monthly' => $date->format('Y-m'),
+            default => $date->format('Y-m-d'),
+        };
+    }
+
+    /**
+     * Format collection data into chart-ready arrays
+     */
+    protected function formatProfitDataForChartFromCollection(\Illuminate\Support\Collection $periodData, $start, $end, string $grouping): array
+    {
+        $labels = $this->generatePeriodLabels($start, $end, $grouping);
+        $grossProfit = array_fill(0, count($labels), 0);
+        $netProfit = array_fill(0, count($labels), 0);
+
+        // Map to chart arrays
+        foreach ($periodData as $period => $values) {
+            $displayKey = $this->getPeriodKey($period, $grouping);
+            $index = array_search($displayKey, $labels);
+
+            if ($index !== false) {
+                $grossProfit[$index] = round($values['revenue'] - $values['cogs'], 2);
+                $netProfit[$index] = round($values['revenue'] - $values['cogs'] - $values['expenses'], 2);
+            }
+        }
+
+        return [
+            'labels' => $labels,
+            'gross_profit' => $grossProfit,
+            'net_profit' => $netProfit,
+        ];
     }
 
     /**
@@ -559,48 +582,6 @@ class DashboardService
     }
 
     /**
-     * Format raw data into chart-ready arrays
-     */
-    protected function formatProfitDataForChart($data, $start, $end, string $grouping): array
-    {
-        $labels = $this->generatePeriodLabels($start, $end, $grouping);
-        $grossProfit = array_fill(0, count($labels), 0);
-        $netProfit = array_fill(0, count($labels), 0);
-
-        // Group data by period
-        $periodData = [];
-        foreach ($data as $row) {
-            $period = $row->period;
-            if (! isset($periodData[$period])) {
-                $periodData[$period] = ['revenue' => 0, 'cogs' => 0, 'expenses' => 0];
-            }
-
-            if ($row->account_code === '4100') {
-                $periodData[$period]['revenue'] += $row->total_credit;
-            } elseif ($row->account_code === '5100') {
-                $periodData[$period]['cogs'] += $row->total_debit;
-            } elseif ($row->account_code === '6100') {
-                $periodData[$period]['expenses'] += $row->total_debit;
-            }
-        }
-
-        // Map to chart arrays
-        foreach ($periodData as $period => $values) {
-            $index = array_search($this->getPeriodKey($period, $grouping), $labels);
-            if ($index !== false) {
-                $grossProfit[$index] = round($values['revenue'] - $values['cogs'], 2);
-                $netProfit[$index] = round($values['revenue'] - $values['cogs'] - $values['expenses'], 2);
-            }
-        }
-
-        return [
-            'labels' => $labels,
-            'gross_profit' => $grossProfit,
-            'net_profit' => $netProfit,
-        ];
-    }
-
-    /**
      * Generate all period labels for the date range
      */
     protected function generatePeriodLabels($start, $end, string $grouping): array
@@ -611,7 +592,7 @@ class DashboardService
         while ($current <= $end) {
             $labels[] = match ($grouping) {
                 'daily' => $current->format('M d'),
-                'weekly' => 'Week ' . $current->format('W, Y'),
+                'weekly' => 'Week '.$current->format('W, Y'),
                 'monthly' => $current->format('M Y'),
                 default => $current->format('M d'),
             };
@@ -641,7 +622,7 @@ class DashboardService
 
         return match ($grouping) {
             'daily' => \Carbon\Carbon::parse($period)->format('M d'),
-            'monthly' => \Carbon\Carbon::parse($period . '-01')->format('M Y'),
+            'monthly' => \Carbon\Carbon::parse($period.'-01')->format('M Y'),
             default => $period,
         };
     }
@@ -671,7 +652,7 @@ class DashboardService
             'dashboard.out_of_stock',
             'dashboard.top_selling_products.*',
             'dashboard.expiring_batches',
-            'dashboard.profit_margin',
+            'dashboard.daily_profit',
             'dashboard.customer_credits',
             'dashboard.supplier_credits',
             'dashboard.active_customers',
@@ -684,8 +665,8 @@ class DashboardService
             if (str_contains($key, '*')) {
                 // Clear pattern-based keys
                 $pattern = str_replace('*', '', $key);
-                Cache::forget($pattern . 'daily');
-                Cache::forget($pattern . 'monthly');
+                Cache::forget($pattern.'daily');
+                Cache::forget($pattern.'monthly');
                 // Custom date ranges would have unique keys
             } else {
                 Cache::forget($key);

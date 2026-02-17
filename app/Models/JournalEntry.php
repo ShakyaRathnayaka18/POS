@@ -60,4 +60,28 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(User::class, 'voided_by');
     }
+
+    /**
+     * Scope for posted entries only
+     */
+    public function scopePosted($query)
+    {
+        return $query->where('status', 'posted');
+    }
+
+    /**
+     * Scope for entries within date range
+     */
+    public function scopeWithinDateRange($query, \Carbon\Carbon $startDate, \Carbon\Carbon $endDate)
+    {
+        return $query->whereBetween('entry_date', [$startDate, $endDate]);
+    }
+
+    /**
+     * Scope for entries created before a specific date (for time travel)
+     */
+    public function scopeCreatedBefore($query, \Carbon\Carbon $date)
+    {
+        return $query->where('created_at', '<=', $date);
+    }
 }

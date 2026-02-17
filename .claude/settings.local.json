@@ -90,7 +90,13 @@
       "mcp__excel__excel_describe_sheets",
       "mcp__excel__excel_read_sheet",
       "mcp__mysql-live__execute_query",
-      "mcp__mysql-live__describe_table"
+      "mcp__mysql-live__describe_table",
+      "mcp__playwright__browser_navigate",
+      "mcp__mysql__show_databases",
+      "mcp__mysql-live__list_tables",
+      "mcp__playwright__browser_snapshot",
+      "mcp__mysql-live__get_table_sample",
+      "mcp__playwright__browser_run_code"
     ]
   },
   "enableAllProjectMcpServers": true,

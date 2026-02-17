@@ -32,7 +32,7 @@ class DashboardController extends Controller
             'outOfStock' => $this->dashboardService->getOutOfStockItems($asOfDate),
             'topSellingProducts' => $this->dashboardService->getTopSellingProducts('today', $asOfDate),
             'expiringBatches' => $this->dashboardService->getExpiringBatches($asOfDate),
-            'profitMargin' => $this->dashboardService->getProfitMargin($asOfDate),
+            'dailyProfit' => $this->dashboardService->getDailyProfit($asOfDate),
             'customerCredits' => $this->dashboardService->getOutstandingCustomerCredits($asOfDate),
             'supplierCredits' => $this->dashboardService->getOutstandingSupplierCredits($asOfDate),
             'activeCustomers' => $this->dashboardService->getActiveCustomersCount($asOfDate),

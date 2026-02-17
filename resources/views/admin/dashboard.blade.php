@@ -125,16 +125,13 @@
             </div>
         </div>
 
-        <!-- Profit Margin -->
+        <!-- Daily Profit -->
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Profit Margin</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Daily Profit</p>
                     <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                        {{ number_format($profitMargin['percentage'], 2) }}%
-                    </p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">
-                        LKR {{ number_format($profitMargin['amount'], 2) }}
+                        LKR {{ number_format($dailyProfit, 2) }}
                     </p>
                 </div>
                 <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-full">

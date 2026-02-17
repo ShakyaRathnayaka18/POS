@@ -66,4 +66,20 @@ class Stock extends Model
     {
         return $this->hasMany(StockAdjustment::class);
     }
+
+    /**
+     * Scope to get total available quantity for a product
+     */
+    public function scopeTotalAvailableForProduct($query, int $productId)
+    {
+        return $query->where('product_id', $productId);
+    }
+
+    /**
+     * Scope to get stocks created after a specific date
+     */
+    public function scopeCreatedAfter($query, \Carbon\Carbon $date)
+    {
+        return $query->where('created_at', '>', $date);
+    }
 }
